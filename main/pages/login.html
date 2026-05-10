@@ -1,128 +1,103 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ورود و ثبت‌نام | غول بازار</title>
-  <link rel="stylesheet" href="css/output.css">
-  <style>
-    body { font-family: 'Vazirmatn', sans-serif; }
-    .tab-active   { border-bottom: 2px solid #cf1736; color: #fff; }
-    .tab-inactive { border-bottom: 2px solid transparent; color: rgba(255,255,255,0.45); }
-    input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px #3a1f24 inset !important; -webkit-text-fill-color: #fff !important; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #2d161a; }
-    ::-webkit-scrollbar-thumb { background: #47242a; border-radius: 4px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#450a0a">
+    <title>ورود به پنل مدیریت | فروشگاه</title>
+    <link rel="stylesheet" href="../assets/css/output.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* استایل‌های پایه و اسکرول‌بار سفارشی */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #a8a29e; border-radius: 20px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background-color: #7f1d1d; }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-scaleIn { animation: scaleIn 0.25s ease-out; }
+    </style>
 </head>
-<body class="bg-dark text-white font-vazir min-h-screen flex flex-col overflow-x-hidden">
+<body class="bg-stone-100 dark:bg-red-950 text-stone-800 dark:text-stone-200 font-sans antialiased min-h-screen flex items-center justify-center p-4 transition-colors duration-300">
 
-  <!-- Ambient glows -->
-  <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/8 rounded-full blur-[140px] -translate-y-1/3 translate-x-1/4"></div>
-    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#47242a]/20 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/4"></div>
-  </div>
-
-  <!-- Minimal header -->
-  <header class="relative z-10 bg-dark/90 backdrop-blur-md">
-    <div class="max-w-[1280px] mx-auto px-5 h-16 flex items-center justify-between">
-      <a href="index.html" class="flex items-center gap-2">
-        <img src="assets/logo.png" alt="غول بازار" class="w-9 h-9 object-contain drop-shadow-[0_0_6px_rgba(207,23,54,0.5)]">
-        <span class="font-display text-xl text-white tracking-wider">غول بازار</span>
-      </a>
-      <a href="index.html" class="text-sm text-text-dim hover:text-white transition-colors flex items-center gap-1.5">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-        بازگشت
-      </a>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-stone-100/80 dark:bg-red-950/80 backdrop-blur-sm z-[100] flex items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-red-700 border-t-transparent"></div>
     </div>
-  </header>
 
-  <!-- Main -->
-  <main class="relative z-10 flex-grow flex items-center justify-center py-10 px-4">
     <div class="w-full max-w-md">
-      <div class="text-center mb-8">
-        <img src="assets/logo.png" alt="" class="w-16 h-16 object-contain mx-auto mb-4 drop-shadow-[0_0_20px_rgba(207,23,54,0.4)]">
-        <h1 class="font-display text-3xl text-white mb-1">Ghul Bazar</h1>
-        <p class="text-muted text-sm">ورود یا ساخت حساب کاربری</p>
-      </div>
-
-      <div class="bg-dark rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
-        <!-- Tabs -->
-        <div class="flex">
-          <button id="tab-login" onclick="switchTab('login')" class="tab-active flex-1 py-4 text-sm font-bold tracking-wide transition-colors">ورود</button>
-          <button id="tab-register" onclick="switchTab('register')" class="tab-inactive flex-1 py-4 text-sm font-bold tracking-wide transition-colors">ثبت‌نام</button>
+        <!-- Logo / Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-br from-red-800 to-red-900 rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/20 mx-auto mb-4">
+                <i data-lucide="store" class="text-white w-10 h-10"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-stone-800 dark:text-white">پنل مدیریت</h1>
+            <p class="text-stone-500 dark:text-stone-400 mt-2">برای ادامه وارد حساب کاربری خود شوید</p>
         </div>
 
-        <!-- Login Form -->
-        <div id="form-login" class="p-6 md:p-8">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-text-dim mb-1.5" for="login-phone">شماره همراه</label>
-              <input type="text" id="login-phone" dir="rtl" autocomplete="phone" placeholder="09123456789" class="w-full bg-dark-3 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors">
+        <!-- Login Form Card -->
+        <div class="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl shadow-2xl p-6 md:p-8 animate-scaleIn transition-colors">
+            <div id="alertBox" class="hidden mb-6 px-4 py-3 rounded-xl border text-sm"></div>
+
+            <form id="loginForm" class="space-y-5">
+                <div>
+                    <label for="phone" class="block text-stone-600 dark:text-stone-400 mb-2 text-sm font-medium">شماره تلفن</label>
+                    <div class="relative">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500">
+                            <i data-lucide="phone" class="w-5 h-5"></i>
+                        </span>
+                        <input type="text" id="phone" name="phone" placeholder="مثال: ۰۹۱۲۳۴۵۶۷۸۹" dir="ltr" autocomplete="tel" required
+                            class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl px-4 py-3.5 pr-10 text-stone-800 dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-red-700 focus:ring-2 focus:ring-red-700/20 transition-all outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password" class="block text-stone-600 dark:text-stone-400 mb-2 text-sm font-medium">رمز عبور</label>
+                    <div class="relative">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500">
+                            <i data-lucide="lock" class="w-5 h-5"></i>
+                        </span>
+                        <input type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required
+                            class="w-full bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl px-4 py-3.5 pr-10 text-stone-800 dark:text-white placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:border-red-700 focus:ring-2 focus:ring-red-700/20 transition-all outline-none">
+                        <button type="button" onclick="togglePassword()" class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors">
+                            <i id="toggleIcon" data-lucide="eye" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-red-800 hover:bg-red-900 text-white py-3.5 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-red-900/20 active:scale-[0.98]">
+                    <i data-lucide="log-in" class="w-5 h-5"></i>
+                    <span>ورود به پنل</span>
+                </button>
+            </form>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-stone-200 dark:border-stone-800"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-white dark:bg-stone-900 text-stone-400 dark:text-stone-500">فروشگاه آنلاین</span>
+                </div>
             </div>
-            <div>
-              <div class="flex items-center justify-between mb-1.5">
-                <a href="#" class="text-xs text-muted hover:text-accent transition-colors">فراموشی رمز</a>
-                <label class="text-sm font-medium text-text-dim" for="login-password">رمز عبور</label>
-              </div>
-              <div class="relative">
-                <input type="password" id="login-password" dir="rtl" autocomplete="current-password" placeholder="••••••••" class="w-full bg-dark-3 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors">
-                <button type="button" onclick="togglePass('login-password',this)" class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted/50 hover:text-muted transition-colors select-none">نمایش</button>
-              </div>
-            </div>
-            <div class="flex items-center justify-end gap-2">
-              <label for="remember" class="text-sm text-text-dim cursor-pointer select-none">مرا به خاطر بسپار</label>
-              <input type="checkbox" id="remember" class="w-4 h-4 accent-accent rounded cursor-pointer">
-            </div>
-            <div id="login-error" class="hidden text-xs text-red-300 bg-red-900/20 border border-red-800/30 rounded-lg px-3 py-2 text-right"></div>
-            <button id="login-btn" onclick="doLogin()" class="w-full py-3.5 bg-accent hover:bg-accent-hover text-white text-sm font-bold rounded-xl transition-all shadow-[0_6px_20px_rgba(207,23,54,0.3)]">
-              <span id="login-btn-text">ورود به حساب</span>
+
+            <p class="text-center text-stone-400 dark:text-stone-500 text-xs">
+                <i data-lucide="shield-check" class="inline w-4 h-4 ml-1"></i> دسترسی فقط برای مدیران فروشگاه
+            </p>
+        </div>
+        
+        <!-- دکمه تغییر تم -->
+        <div class="mt-6 text-center">
+            <button onclick="toggleTheme()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors text-sm">
+                <i id="themeIcon" data-lucide="sun" class="w-4 h-4"></i>
+                <span id="themeLabel">حالت روشن</span>
             </button>
-          </div>
-          <div class="relative flex items-center gap-3 my-5">
-            <div class="flex-1 h-px bg-border"></div>
-            <span class="text-text-dim text-xs shrink-0">یا</span>
-            <div class="flex-1 h-px bg-border"></div>
-          </div>
-          <button onclick="switchTab('register')" class="w-full py-3 border border-border rounded-xl text-sm text-text-dim hover:border-accent/40 hover:text-white transition-all">
-            حساب ندارید؟ <span class="text-accent font-bold">ثبت‌نام کنید</span>
-          </button>
         </div>
-
-        <!-- Register Form -->
-        <div id="form-register" class="hidden p-6 md:p-8">
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-3">
-              <div><label class="block text-sm font-medium text-text-dim mb-1.5">نام</label><input type="text" id="reg-fname" autocomplete="given-name" placeholder="نام" class="w-full bg-dark-3 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors"></div>
-              <div><label class="block text-sm font-medium text-text-dim mb-1.5">نام خانوادگی</label><input type="text" id="reg-lname" autocomplete="family-name" placeholder="نام خانوادگی" class="w-full bg-dark-3 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors"></div>
-            </div>
-            <div><label class="block text-sm font-medium text-text-dim mb-1.5">شماره همراه</label><input type="text" id="reg-phone" dir="rtl" autocomplete="phone" placeholder="09123456789" class="w-full bg-dark-3 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors"></div>
-            <div>
-              <label class="block text-sm font-medium text-text-dim mb-1.5">رمز عبور</label>
-              <div class="relative">
-                <input type="password" id="reg-password" dir="rtl" autocomplete="new-password" placeholder="حداقل ۸ کاراکتر" class="w-full bg-dark-3 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors">
-                <button type="button" onclick="togglePass('reg-password',this)" class="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted/50 hover:text-muted transition-colors select-none">نمایش</button>
-              </div>
-            </div>
-            <div><label class="block text-sm font-medium text-text-dim mb-1.5">تکرار رمز عبور</label><input type="password" id="reg-confirm" dir="rtl" autocomplete="new-password" placeholder="••••••••" class="w-full bg-dark-3 rounded-xl px-4 py-3 text-white text-sm placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors"></div>
-            <div class="flex items-start gap-2">
-              <input type="checkbox" id="terms" class="mt-1 w-4 h-4 accent-accent rounded cursor-pointer shrink-0">
-              <label for="terms" class="text-xs text-text-dim leading-relaxed cursor-pointer">با <a href="#" class="text-accent hover:underline">قوانین و مقررات</a> موافقم</label>
-            </div>
-            <div id="register-error" class="hidden text-xs text-red-300 bg-red-900/20 border border-red-800/30 rounded-lg px-3 py-2 text-right"></div>
-            <button id="register-btn" onclick="doRegister()" class="w-full py-3.5 bg-accent hover:bg-accent-hover text-white text-sm font-bold rounded-xl transition-all shadow-[0_6px_20px_rgba(207,23,54,0.3)]">
-              <span id="register-btn-text">ساخت حساب</span>
-            </button>
-          </div>
-          <button onclick="switchTab('login')" class="w-full mt-4 py-3 rounded-xl text-sm text-text-dim hover:border-accent/40 hover:text-white transition-all">
-            حساب دارید؟ <span class="text-accent font-bold">وارد شوید</span>
-          </button>
-        </div>
-      </div>
-      <p class="text-center text-xs text-text-dim/40 mt-5">© ۱۴۰۴ غول بازار</p>
     </div>
-  </main>
-  <script src="js/apiClient.js"></script>
-  <script src="js/login.js"></script>
+    <script src="../assets/js/adminApiClient.js"></script>
+    <script src="../assets/js/adminLogin.js"></script>
 </body>
 </html>

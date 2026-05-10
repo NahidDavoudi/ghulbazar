@@ -5,402 +5,73 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>غول بازار | مرجع اصلی خرید جواهرات سورئال</title>
   <link rel="shortcut icon" href="assets/logo.png" type="image/x-icon">
-  <link rel="stylesheet" href="css/swiper.min.css">
-  <link rel="stylesheet" href="css/output.css">
+  <link rel="stylesheet" href="assets/css/output.css">
+  <style>
+    /* ── global scrollbar ── */
+    * { scrollbar-width: thin; scrollbar-color: #47242a #2d161a; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #2d161a; }
+    ::-webkit-scrollbar-thumb { background: #47242a; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #cf1736; }
+
+    /* ── autofill dark fix ── */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 30px #3a1f24 inset !important;
+      -webkit-text-fill-color: #fff !important;
+    }
+
+    /* ── page transitions ── */
+    #view { transition: opacity 0.15s ease; }
+    #view.fading { opacity: 0; }
+
+    /* ── ltr helper (for numbers/card) ── */
+    .ltr { direction: ltr; }
+
+    /* ── product card hover shadow ── */
+    .product-card:hover {
+      transform: translateY(-2px);
+    }
+
+    /* ── font-display utility (tailwind CDN doesn't pick it up automatically) ── */
+    .font-display { font-family: 'Agbalumo', cursive; }
+    .font-vazir   { font-family: 'Vazirmatn', sans-serif; }
+  </style>
 </head>
-<body class="bg-dark text-white font-vazir overflow-x-hidden" dir="rtl">
 
-<!-- ==================== APP SHELL ==================== -->
-<div id="app-header"></div>
+<body class="bg-dark text-white font-vazir overflow-x-hidden min-h-screen flex flex-col">
 
-<main id="app-main">
-  <!-- محتوای داینامیک اینجا رندر میشه -->
-  <div id="loading-screen" class="text-center py-32 text-text-dim">
-    <p class="text-4xl animate-pulse mb-4">✦</p>
-    <p>در حال بارگذاری...</p>
+  <!-- ── HEADER (injected by JS) ── -->
+  <div id="header"></div>
+
+  <!-- ── MAIN VIEW (router target) ── -->
+  <main id="view" class="flex-1 min-h-screen">
+    <!-- initial loading -->
+    <div class="flex flex-col items-center justify-center py-48 text-text-dim gap-4">
+      <span class="text-5xl animate-pulse">✦</span>
+      <p>در حال بارگذاری...</p>
+    </div>
+  </main>
+
+  <!-- ── FOOTER (injected by JS) ── -->
+  <div id="footer"></div>
+
+  <!-- ── GLOBAL TOAST ── -->
+  <div id="toast"
+       class="fixed bottom-6 left-1/2 z-[999] px-6 py-3 rounded-xl text-sm font-bold shadow-2xl transition-all duration-300"
+       style="opacity:0; transform:translateX(-50%) translateY(10px)">
   </div>
-</main>
 
-<div id="app-footer"></div>
+  <!-- ── APP ENTRY POINT ── -->
+  <!--
+    اگر از bundler (Vite / Webpack) استفاده می‌کنی:
+      <script type="module" src="src/app.js"></script>
 
-<!-- ==================== TEMPLATES (Hidden) ==================== -->
+    اگر مستقیم سرو می‌کنی (بدون bundler):
+      فایل‌ها را در assets/js/ بذار و از type="module" استفاده کن.
+  -->
+  <script type="module" src="assets/js/app.js"></script>
 
-<!-- Template: Home Page -->
-<template id="tmpl-home">
-  <!-- Hero -->
-  <section class="relative min-h-[500px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
-    <div class="absolute inset-0">
-      <img src="assets/hero.png?w=1600&h=900&fit=crop" alt="غول بازار" class="w-full h-full object-cover scale-105">
-      <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent"></div>
-      <div class="absolute inset-0 bg-black/40"></div>
-    </div>
-    <div class="relative z-10 text-center px-5 max-w-3xl mx-auto py-20">
-      <img src="assets/logo.png" alt="غول بازار" class="w-28 h-28 md:w-40 md:h-40 object-contain mx-auto mb-4 drop-shadow-[0_0_24px_rgba(207,23,54,0.6)]">
-      <h1 class="font-display text-5xl md:text-7xl text-white mb-3 leading-tight">Ghul Bazar</h1>
-      <p class="text-muted text-base md:text-xl mb-8">مرجع اصلی خرید و فروش اکسسوری‌های سورئال و قدمت‌دار</p>
-      <div class="flex gap-3 justify-center flex-wrap">
-        <a href="#shop" class="px-6 py-3 md:px-8 md:py-4 rounded-lg bg-accent text-white text-sm md:text-base font-bold shadow-[0_10px_15px_-3px_rgba(207,23,54,0.3)] hover:bg-accent-hover transition-all">کاوش مجموعه</a>
-        <a href="#categories" class="px-6 py-3 md:px-8 md:py-4 rounded-lg backdrop-blur-sm bg-dark-2/50 border border-white/20 text-white text-sm md:text-base font-medium hover:bg-dark-3 transition-all">دسته‌بندی‌ها</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Categories Slider -->
-  <section class="py-12 md:py-20 bg-dark">
-    <div class="max-w-[1280px] mx-auto">
-      <div class="flex items-center justify-between mb-6 px-4 md:px-12">
-        <a href="#categories" class="flex items-center gap-1 text-muted text-xs md:text-sm hover:text-white transition-colors">
-          <span>←</span><span class="hidden sm:inline">مشاهده همه</span>
-        </a>
-        <div class="text-right">
-          <h2 class="text-lg md:text-2xl font-bold">دست‌چین شده بر اساس دوران</h2>
-          <p class="text-text-dim text-xs mt-0.5 hidden md:block">کالکشن‌های منتخب از دوران‌های مختلف تاریخ</p>
-        </div>
-      </div>
-      <div class="swiper categories-swiper px-4 md:px-12" id="eras-swiper">
-        <div class="swiper-wrapper items-stretch" id="eras-wrapper"></div>
-        <div class="swiper-button-prev-cats absolute top-1/2 -translate-y-1/2 right-1 md:right-4 z-10 w-9 h-9 bg-dark-2/80 border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
-          <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M5 3l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-        <div class="swiper-button-next-cats absolute top-1/2 -translate-y-1/2 left-1 md:left-4 z-10 w-9 h-9 bg-dark-2/80 border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
-          <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M9 3L5 7l4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Editorial Banner -->
-  <section class="py-12 md:py-20 bg-dark overflow-hidden">
-    <div class="max-w-[1280px] mx-auto">
-      <div class="relative rounded-2xl md:rounded-3xl overflow-hidden bg-dark-2 border border-border flex flex-col md:flex-row items-center min-h-[340px] md:min-h-[420px]">
-        <div class="absolute inset-0 pointer-events-none">
-          <div class="absolute top-0 right-0 w-[350px] h-[350px] bg-accent/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3"></div>
-          <div class="absolute bottom-0 left-0 w-[250px] h-[250px] bg-[#4a0000]/30 rounded-full blur-[80px]"></div>
-          <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(#cf1736 1px, transparent 1px);background-size:28px 28px;"></div>
-        </div>
-        <div class="relative z-10 flex-1 text-right px-8 md:px-14 py-12 md:py-16">
-          <span class="inline-block text-accent text-xs md:text-sm font-bold tracking-[0.2em] uppercase mb-4">انتخاب سردبیر</span>
-          <h2 class="text-3xl md:text-5xl font-black text-white leading-snug mb-5">استایل دارک آکادمیا<br><span class="text-muted">ویرایش ویژه</span></h2>
-          <p class="text-text-dim text-sm md:text-base leading-relaxed mb-8 max-w-md mr-auto text-right">قطعاتی را کشف کنید که زیبایی‌شناسی دانشوران را تجسم می‌بخشند. گارنت‌های عمیق، نقره سیاه‌قلم و طلایی که به چشم قرن‌ها دیده است.</p>
-          <ul class="space-y-2.5 mb-8">
-            <li class="flex items-center justify-end gap-3 text-sm text-white/80"><span>گواهی اصالت وینتیج</span><svg class="w-5 h-5 text-accent shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></li>
-            <li class="flex items-center justify-end gap-3 text-sm text-white/80"><span>بازسازی توسط اساتید جواهرساز</span><svg class="w-5 h-5 text-accent shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></li>
-            <li class="flex items-center justify-end gap-3 text-sm text-white/80"><span>انتخابی پایدار و اخلاقی</span><svg class="w-5 h-5 text-accent shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></li>
-          </ul>
-          <div class="flex flex-wrap gap-3 justify-end">
-            <a href="#shop?tag=dark-academia" class="px-7 py-3 bg-accent text-white text-sm font-bold rounded-lg hover:bg-accent-hover transition-all shadow-[0_6px_20px_rgba(207,23,54,0.3)]">مشاهده ویرایش</a>
-            <div class="self-end bg-dark-3 border border-border text-muted text-xs px-4 py-2 rounded-lg">"یک یافته کمیاب از سال ۱۲۶۹"</div>
-          </div>
-        </div>
-        <div class="relative w-full md:w-[45%] h-[260px] md:h-full md:min-h-[420px] shrink-0 order-first md:order-last">
-          <div class="absolute inset-0 flex items-center justify-center p-6 md:p-0">
-            <div class="absolute inset-4 md:inset-8 border border-dashed border-white/15 rounded-xl pointer-events-none"></div>
-            <div class="relative z-10 w-[200px] h-[200px] md:w-[260px] md:h-[260px] rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(207,23,54,0.2)]" id="editorial-img-wrap">
-              <img src="./assets/products/img10.jpg" id="editorial-img" alt="انتخاب سردبیر" class="w-full h-full object-cover">
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Products Slider -->
-  <section class="py-12 md:py-20">
-    <div class="max-w-[1280px] mx-auto">
-      <div class="flex items-center justify-between mb-6 px-4 md:px-6">
-        <a href="#shop" class="text-muted text-xs md:text-sm hover:text-white">همه ←</a>
-        <h2 class="text-xl md:text-3xl font-bold">تازه رسیده‌ها</h2>
-      </div>
-      <div class="swiper products-swiper px-4 md:px-6">
-        <div class="swiper-wrapper" id="products-wrapper"></div>
-        <div class="swiper-button-prev-prods absolute top-[45%] -translate-y-1/2 right-0 z-10 w-9 h-9 bg-dark-2/80 border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
-          <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M5 3l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-        <div class="swiper-button-next-prods absolute top-[45%] -translate-y-1/2 left-0 z-10 w-9 h-9 bg-dark-2/80 border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
-          <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M9 3L5 7l4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Newsletter -->
-  <section class="py-16 md:py-24 border-t border-border relative overflow-hidden">
-    <div class="absolute -right-32 top-1/2 -translate-y-1/2 w-64 h-64 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="max-w-lg mx-auto px-5 text-center relative z-10">
-      <div class="text-3xl mb-4">✦</div>
-      <h2 class="text-2xl md:text-3xl font-bold mb-3">به حلقه یاران بپیوندید</h2>
-      <p class="text-text-dim mb-6 text-sm md:text-base">برای دریافت اخبار کالکشن‌های جدید عضو شوید.</p>
-      <div class="flex flex-col sm:flex-row gap-3" dir="ltr">
-        <button class="px-6 py-3 bg-accent text-white font-bold rounded-lg hover:bg-accent-hover transition-all shrink-0 order-2 sm:order-1">عضویت</button>
-        <input type="email" placeholder="ایمیل شما..." class="flex-1 bg-dark-2 border border-border rounded-lg px-4 py-3 text-white text-right placeholder:text-muted/50 focus:outline-none focus:border-accent transition-colors order-1 sm:order-2" dir="rtl">
-      </div>
-    </div>
-  </section>
-</template>
-
-<!-- Template: Shop Page -->
-<template id="tmpl-shop">
-  <div class="max-w-[1280px] mx-auto px-4 md:px-10 py-8 md:py-12">
-    <div class="flex items-center justify-between mb-5 md:hidden">
-      <h1 class="text-base font-bold" id="page-title">فروشگاه</h1>
-      <button id="filter-toggle" class="flex items-center gap-2 px-4 py-2 bg-dark-2 border border-border rounded-lg text-sm text-white hover:border-accent transition-all">
-        <svg width="14" height="12" fill="none" viewBox="0 0 14 12"><path d="M1 1h12M3 6h8M5 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        فیلتر
-      </button>
-    </div>
-    <div class="flex items-start gap-6 md:gap-12">
-      <aside id="shop-sidebar" class="bg-dark-2 rounded-2xl p-4 hidden md:block w-48 lg:w-64 shrink-0 sticky top-24">
-        <h2 class="text-xl font-bold mb-6 text-right">فیلترها</h2>
-        <div class="mb-8">
-          <h3 class="font-medium mb-3 text-right text-muted text-sm">دسته‌بندی</h3>
-          <ul id="cat-filters" class="space-y-2"></ul>
-        </div>
-        <a href="#shop" id="clear-filters" class="text-muted text-sm hover:text-white transition-colors block text-right hidden">× پاک کردن فیلترها</a>
-      </aside>
-      <div class="bg-dark-2 rounded-2xl p-6 flex-1 min-w-0">
-        <div class="flex items-center justify-between mb-6 md:mb-8">
-          <select id="sort-select" class="bg-dark-2 border border-border rounded-lg px-3 py-2 text-xs md:text-sm text-white focus:outline-none focus:border-accent">
-            <option value="">پیش‌فرض</option>
-            <option value="newest">جدیدترین</option>
-            <option value="price_asc">ارزان‌ترین</option>
-            <option value="price_desc">گران‌ترین</option>
-          </select>
-          <div class="text-right">
-            <h1 class="text-lg md:text-2xl font-bold" id="desktop-title">همه محصولات</h1>
-            <p class="text-text-dim text-xs mt-0.5" id="product-count"></p>
-          </div>
-        </div>
-        <div id="products-grid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6"></div>
-        <div id="loading" class="text-center py-24 text-text-dim"><p class="text-4xl mb-4 animate-pulse">✦</p><p>در حال بارگذاری...</p></div>
-        <div id="empty" class="hidden text-center py-24 text-text-dim"><p class="text-4xl mb-4">✦</p><p>محصولی یافت نشد.</p><a href="#shop" class="text-accent hover:underline mt-2 block">بازگشت</a></div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<!-- Template: Categories Page -->
-<template id="tmpl-categories">
-  <div class="max-w-[1280px] mx-auto px-4 md:px-10 py-12">
-    <div class="text-right mb-10">
-      <h1 class="text-3xl md:text-4xl font-bold mb-2">دسته‌بندی‌ها</h1>
-      <p class="text-text-dim">مجموعه‌های منتخب از دوران‌های تاریخی و نوع جواهر</p>
-    </div>
-    <section class="mb-16">
-      <h2 class="text-xl font-bold text-right mb-6 border-b border-border pb-3">بر اساس دوران تاریخی</h2>
-      <div id="eras-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <div class="col-span-full text-center py-16 text-text-dim animate-pulse">✦ در حال بارگذاری...</div>
-      </div>
-    </section>
-    <section>
-      <h2 class="text-xl font-bold text-right mb-6 border-b border-border pb-3">بر اساس نوع جواهر</h2>
-      <div id="cats-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <div class="col-span-full text-center py-16 text-text-dim animate-pulse">✦ در حال بارگذاری...</div>
-      </div>
-    </section>
-  </div>
-</template>
-
-<!-- Template: Product Detail -->
-<template id="tmpl-product">
-  <div class="max-w-[1280px] mx-auto px-4 md:px-10 py-8">
-    <div id="product-detail" class="hidden">
-      <nav class="flex items-center gap-2 text-sm text-text-dim mb-8 justify-end" id="breadcrumb"></nav>
-      <div id="added-toast" class="hidden bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6 text-center text-green-300">
-        ✓ محصول به سبد خرید اضافه شد. <a href="#cart" class="underline">مشاهده سبد خرید</a>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 mb-16">
-        <div>
-          <div class="rounded-2xl overflow-hidden bg-dark-2 aspect-square mb-3 shadow-2xl max-w-sm mx-auto md:max-w-none">
-            <img id="main-image" src="" alt="" class="w-full h-full object-cover">
-          </div>
-          <div class="grid grid-cols-4 gap-2 max-w-sm mx-auto md:max-w-none" id="thumbnails"></div>
-        </div>
-        <div class="text-right">
-          <div id="badges" class="flex gap-2 justify-end mb-4"></div>
-          <h1 id="product-name" class="text-3xl md:text-4xl font-bold leading-tight mb-6"></h1>
-          <div id="rating" class="flex items-center gap-3 justify-end mb-6 border-b border-border pb-6"></div>
-          <p id="product-description" class="text-text-dim leading-relaxed mb-8"></p>
-          <div id="chain-section" class="mb-6 hidden">
-            <div class="flex items-center justify-between mb-3">
-              <a href="#" class="text-muted text-sm hover:text-white">راهنمای طول زنجیر</a>
-              <label class="font-medium text-sm">طول زنجیر</label>
-            </div>
-            <div class="flex gap-3 justify-end flex-wrap" id="chain-options"></div>
-          </div>
-          <div id="size-section" class="mb-6 hidden">
-            <div class="flex items-center justify-between mb-3">
-              <a href="#" class="text-muted text-sm hover:text-white">راهنمای سایز</a>
-              <label class="font-medium text-sm">سایز</label>
-            </div>
-            <div class="flex gap-3 justify-end flex-wrap" id="size-options"></div>
-          </div>
-          <div class="flex items-center justify-between mb-4">
-            <p id="product-price" class="text-2xl font-bold"></p>
-            <p id="product-stock" class="text-text-dim text-sm"></p>
-          </div>
-          <button id="add-to-cart-btn" class="w-full py-4 bg-accent rounded-xl text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-accent-hover transition-all">
-            <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M3 1L1 5V17C1 18.1 1.9 19 3 19H13C14.1 19 15 18.1 15 17V5L13 1H3Z" stroke="white" stroke-width="1.5"/><path d="M1 5H15" stroke="white" stroke-width="1.5"/><path d="M11 9C11 10.7 9.7 12 8 12C6.3 12 5 10.7 5 9" stroke="white" stroke-width="1.5"/></svg>
-            افزودن به مجموعه
-          </button>
-          <p class="text-text-dim text-xs text-center mt-3">ارسال رایگان برای سفارش‌های بالای ۱،۵۰۰،۰۰۰ تومان</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<!-- Template: Cart Page -->
-<template id="tmpl-cart">
-  <div class="bg-dark-2 max-w-[1200px] mx-auto px-4 md:px-10 py-12 rounded-2xl">
-    <h1 class="text-3xl font-bold text-right mb-10">سبد خرید</h1>
-    <div id="loading" class="text-center py-32 text-text-dim"><p class="text-4xl animate-pulse mb-4">✦</p><p>در حال بارگذاری...</p></div>
-    <div id="empty-cart" class="hidden text-center py-32 text-text-dim">
-      <div class="text-6xl mb-6">🛍</div>
-      <p class="text-xl mb-4">سبد خرید شما خالی است</p>
-      <a href="#shop" class="inline-block px-8 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover transition-all">ادامه خرید</a>
-    </div>
-    <div id="cart-content" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
-      <div class="md:col-span-2 space-y-4" id="cart-items"></div>
-      <div class="bg-dark-2 border border-border rounded-xl p-6 h-fit sticky top-24">
-        <h2 class="text-xl font-bold text-right mb-6">خلاصه سفارش</h2>
-        <div class="space-y-3 mb-4 text-right" id="summary-lines"></div>
-        <div class="border-t border-border pt-4 mb-4">
-          <p class="text-sm text-muted mb-2 text-right">کد تخفیف</p>
-          <div class="flex gap-2" dir="ltr">
-            <button id="apply-discount" class="px-4 py-2 bg-dark-3 border border-border rounded-lg text-sm hover:border-accent transition-colors">اعمال</button>
-            <input type="text" id="discount-input" placeholder="کد تخفیف..." dir="rtl" class="flex-1 bg-dark border border-border rounded-lg px-3 py-2 text-sm text-white placeholder:text-muted/50 focus:outline-none focus:border-accent">
-          </div>
-          <p id="discount-msg" class="text-xs mt-2 text-right hidden"></p>
-        </div>
-        <div class="border-t border-border pt-4 mb-6">
-          <div class="flex justify-between font-bold text-lg"><span id="final-total"></span><span>مجموع</span></div>
-        </div>
-        <a href="#checkout" class="block w-full py-4 bg-accent text-white text-center rounded-xl font-bold hover:bg-accent-hover transition-all">ادامه به پرداخت</a>
-        <a href="#shop" class="block text-center text-text-dim text-sm mt-4 hover:text-white">← ادامه خرید</a>
-      </div>
-    </div>
-  </div>
-</template>
-
-<!-- Template: Checkout Page -->
-<template id="tmpl-checkout">
-  <div class="max-w-[1100px] mx-auto px-4 md:px-10 py-12">
-    <h1 class="text-3xl font-bold text-right mb-10">تکمیل سفارش</h1>
-    <div id="loading" class="text-center py-20 text-text-dim"><p class="text-4xl animate-pulse mb-4">✦</p><p>در حال بارگذاری...</p></div>
-    <div id="empty-msg" class="hidden text-center py-20 text-text-dim">
-      <p class="text-xl mb-4">سبد خرید شما خالی است</p>
-      <a href="#shop" class="inline-block px-8 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover">برو به فروشگاه</a>
-    </div>
-    <div id="checkout-form" class="hidden grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12">
-      <div class="md:col-span-3 space-y-6">
-        <div class="bg-dark-2 border border-border rounded-xl p-6">
-          <h2 class="text-lg font-bold text-right mb-6">اطلاعات تحویل</h2>
-          <div class="space-y-4">
-            <div><label class="block text-sm text-muted text-right mb-1">نام و نام‌خانوادگی *</label><input type="text" id="customer-name" required class="w-full bg-dark border border-border rounded-lg px-4 py-3 text-white text-right" placeholder="علی احمدی"></div>
-            <div><label class="block text-sm text-muted text-right mb-1">شماره موبایل *</label><input type="tel" id="customer-phone" required dir="ltr" class="w-full bg-dark border border-border rounded-lg px-4 py-3 text-white text-left" placeholder="09123456789"></div>
-            <div><label class="block text-sm text-muted text-right mb-1">آدرس کامل *</label><textarea id="shipping-address" required rows="3" class="w-full bg-dark border border-border rounded-lg px-4 py-3 text-white text-right resize-none" placeholder="استان، شهر، خیابان، کوچه، پلاک، واحد"></textarea></div>
-          </div>
-        </div>
-        <div class="bg-dark-2 border border-border rounded-xl p-6">
-          <h2 class="text-lg font-bold text-right mb-4">کد تخفیف</h2>
-          <div class="flex gap-2" dir="ltr">
-            <button id="apply-discount" class="px-4 py-2.5 bg-dark-3 border border-border rounded-lg text-sm hover:border-accent transition-colors shrink-0">اعمال</button>
-            <input type="text" id="discount-input" placeholder="کد تخفیف..." dir="rtl" class="flex-1 bg-dark border border-border rounded-lg px-3 py-2.5 text-sm text-white">
-          </div>
-          <p id="discount-msg" class="text-xs mt-2 text-right hidden"></p>
-        </div>
-        <p id="form-error" class="hidden text-accent text-sm text-right"></p>
-        <button id="submit-btn" class="w-full py-4 bg-accent text-white font-bold text-lg rounded-xl hover:bg-accent-hover transition-all">ثبت سفارش</button>
-      </div>
-      <div class="md:col-span-2">
-        <div class="bg-dark-2 border border-border rounded-xl p-6 sticky top-24">
-          <h2 class="text-lg font-bold text-right mb-6">سفارش شما</h2>
-          <div id="order-items" class="space-y-3 mb-4 max-h-64 overflow-y-auto"></div>
-          <div class="border-t border-border pt-4 space-y-2" id="price-breakdown"></div>
-          <div class="border-t border-border mt-4 pt-4"><div class="flex justify-between font-bold text-lg"><span id="checkout-total"></span><span>مجموع</span></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<!-- Template: Orders Page -->
-<template id="tmpl-orders">
-  <div class="flex-grow max-w-[1280px] mx-auto w-full px-4 md:px-10 py-10 md:py-14">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4 border-b border-border pb-8">
-      <div><h1 class="text-2xl md:text-3xl font-black text-white mb-1">سفارشات من</h1><p class="text-text-dim text-sm">سوابق خرید و پیگیری وضعیت ارسال</p></div>
-      <div class="flex gap-3"><a href="#shop" class="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-bold rounded-lg transition-colors">خرید جدید</a></div>
-    </div>
-    <div id="loading" class="text-center py-20 text-text-dim"><p class="text-4xl animate-pulse mb-3">✦</p><p>در حال بارگذاری...</p></div>
-    <div id="need-login" class="hidden text-center py-20">
-      <p class="text-xl text-text-dim mb-6">برای مشاهده سفارشات وارد شوید</p>
-      <a href="login.html" class="inline-block px-8 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover font-bold">ورود به حساب</a>
-    </div>
-    <div id="empty-orders" class="hidden text-center py-20"><p class="text-xl text-text-dim mb-6">هنوز سفارشی ثبت نشده</p><a href="#shop" class="inline-block px-8 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover font-bold">رفتن به فروشگاه</a></div>
-    <div id="orders-content" class="hidden">
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-        <div class="bg-dark-2 border border-border rounded-2xl p-5 text-right"><p class="text-xs text-muted mb-1">سفارشات جاری</p><h3 class="text-3xl text-white font-black" id="stat-active">۰</h3></div>
-        <div class="bg-dark-2 border border-border rounded-2xl p-5 text-right"><p class="text-xs text-muted mb-1">کل خریدها</p><h3 class="text-3xl text-white font-black" id="stat-total">۰</h3></div>
-        <div class="bg-dark-2 border border-border rounded-2xl p-5 text-right"><p class="text-xs text-muted mb-1">مجموع هزینه</p><h3 class="text-2xl text-white font-black" id="stat-amount">۰ تومان</h3></div>
-      </div>
-      <div class="bg-dark-2 border border-border rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-right min-w-[600px]">
-            <thead><tr class="border-b border-border bg-dark-3/60"><th class="py-3.5 px-5 text-xs font-bold text-muted">شماره سفارش</th><th class="py-3.5 px-5 text-xs font-bold text-muted">تاریخ</th><th class="py-3.5 px-5 text-xs font-bold text-muted hidden sm:table-cell">اقلام</th><th class="py-3.5 px-5 text-xs font-bold text-muted">مبلغ</th><th class="py-3.5 px-5 text-xs font-bold text-muted">وضعیت</th><th class="py-3.5 px-5 text-xs font-bold text-muted">عملیات</th></tr></thead>
-            <tbody id="orders-table" class="divide-y divide-border"></tbody>
-          </table>
-        </div>
-        <div class="flex items-center justify-between border-t border-border bg-dark-3/40 px-5 py-3"><p class="text-xs text-text-dim" id="pagination-info"></p><div class="flex gap-1" id="pagination-nav"></div></div>
-      </div>
-    </div>
-  </div>
-</template>
-
-<!-- Template: Payment Page -->
-<template id="tmpl-payment">
-  <div class="border-b border-border bg-dark-2/60">
-    <div class="max-w-[1280px] mx-auto px-5 py-3 flex items-center gap-2 text-xs text-text-dim overflow-x-auto whitespace-nowrap">
-      <a href="#cart" class="hover:text-white transition-colors">سبد خرید</a><span class="text-border">›</span>
-      <a href="#checkout" class="hover:text-white transition-colors">اطلاعات ارسال</a><span class="text-border">›</span>
-      <span class="text-accent font-bold">پرداخت</span>
-    </div>
-  </div>
-  <div class="max-w-4xl mx-auto px-5 py-10 flex-1">
-    <div id="summary-container" class="bg-dark-2 border border-border rounded-2xl p-6 mb-8">
-      <h2 class="text-xl font-bold mb-6">جزئیات سفارش</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div><p class="text-sm text-text-dim">شماره سفارش</p><p id="order-number" class="text-2xl font-bold text-white">-</p><button onclick="copyText('order-number')" class="mt-2 text-xs bg-dark-3 px-3 py-1 rounded-lg hover:bg-accent/20 transition">کپی</button></div>
-        <div><p class="text-sm text-text-dim">مبلغ قابل پرداخت</p><p id="total-amount" class="text-2xl font-bold text-green-400 ltr">0</p></div>
-      </div>
-      <div class="mt-6 p-4 bg-dark-3 border border-border rounded-lg">
-        <p class="text-text-dim text-sm mb-2">لطفاً مبلغ فوق را به شماره کارت زیر واریز کرده و تصویر رسید را بارگذاری نمایید.</p>
-        <div class="bg-dark border border-border rounded-lg p-4 flex items-center justify-between">
-          <span id="card-number" class="font-bold text-white ltr text-lg">6037-9975-XXXX-XXXX</span>
-          <button onclick="copyText('card-number')" class="text-xs bg-accent px-4 py-2 rounded-lg hover:bg-accent-hover transition-colors">کپی شماره کارت</button>
-        </div>
-      </div>
-    </div>
-    <div class="bg-dark-2 border border-border rounded-2xl p-6">
-      <h3 class="text-lg font-bold mb-4">آپلود رسید پرداخت</h3>
-      <div class="space-y-4">
-        <label class="block w-full cursor-pointer bg-dark-3 border border-border rounded-xl p-6 text-center hover:border-accent transition-colors">
-          <span id="upload-ph" class="text-text-dim block">برای انتخاب تصویر کلیک کنید (JPG, PNG, WebP)</span>
-          <span id="upload-preview" class="hidden text-green-400">فایل انتخاب شد: <strong id="file-name"></strong></span>
-          <input type="file" id="receipt-input" class="hidden" accept="image/*" onchange="handleFile(this)">
-        </label>
-        <button id="submit-receipt-btn" onclick="submitReceipt()" class="w-full py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-all disabled:opacity-60">ارسال رسید</button>
-      </div>
-      <p id="upload-error" class="hidden text-accent text-sm mt-3"></p>
-    </div>
-  </div>
-</template>
-
-<!-- Copy Toast -->
-<div id="copy-toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">کپی شد!</div>
-
-<!-- Scripts -->
-<script src="js/apiClient.js"></script>
-<script src="js/swiper.min.js"></script>
-<script src="js/app.js"></script>
 </body>
 </html>

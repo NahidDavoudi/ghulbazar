@@ -1,290 +1,227 @@
-class ApiClient {
-    /**
-     * param {object} options
-     * param {string} options.baseURL - آدرس پایهٔ API (مثلاً "http://localhost/NadStore/index.php?url=")
-     * param {string} [options.tenant] - دامنهٔ فروشگاه (فقط زمانی که TenantMiddleware نیاز به هدر X-Tenant دارد)
-     * param {boolean} [options.debug=false] - نمایش درخواست‌ها در کنسول
-     */
-    constructor(options = {}) {
-      this.baseURL = options.baseURL || '/index.php?url=';
-      this.tenant = options.tenant || null;
-      this.debug = options.debug || false;
-      this.accessToken = localStorage.getItem('access_token') || null;
-      this.refreshToken = localStorage.getItem('refresh_token') || null;
-      this.tokenExpiry = null; // می‌توان از decoded payload خواند
-    }
-  
-    // ================== امکانات داخلی ==================
-    _log(...args) {
-      if (this.debug) console.log('[ApiClient]', ...args);
-    }
-  
-    _getCsrfToken() {
-      const name = 'XSRF-TOKEN=';
-      const decodedCookie = decodeURIComponent(document.cookie);
-      const ca = decodedCookie.split(';');
-      for (let c of ca) {
-        c = c.trim();
-        if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
-      }
-      return '';
-    }
-  
-    _headers(extraHeaders = {}) {
-      const headers = {
-        'Accept': 'application/json',
-        ...extraHeaders
-      };
-  
-      // CSRF برای همهٔ درخواست‌های تغییردهنده
-      const method = (extraHeaders['_method'] || 'GET').toUpperCase();
-      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-        const csrf = this._getCsrfToken();
-        if (csrf) headers['X-CSRF-TOKEN'] = csrf;
-      }
-  
-      if (this.accessToken) {
-        headers['Authorization'] = `Bearer ${this.accessToken}`;
-      }
-      if (this.tenant) {
-        headers['X-Tenant'] = this.tenant;
-      }
-      return headers;
-    }
-  
-    async _request(method, endpoint, body = null, isFormData = false) {
-      const url = this.baseURL + endpoint;
-      const headers = this._headers({ '_method': method });
-      const options = { method, headers };
-  
-      if (body && !isFormData) {
-        headers['Content-Type'] = 'application/json';
-        options.body = JSON.stringify(body);
-      } else if (body && isFormData) {
-        // FormData – خودش content-type رو تنظیم می‌کنه
-        options.body = body;
-      }
-  
-      this._log(`${method} ${url}`, body);
-      let response = await fetch(url, options);
-  
-      // تلاش برای تازه‌سازی توکن در صورت 401
-      if (response.status === 401 && this.refreshToken) {
-        const refreshed = await this._attemptRefresh();
-        if (refreshed) {
-          // بازنویسی هدر با توکن جدید
-          options.headers['Authorization'] = `Bearer ${this.accessToken}`;
-          response = await fetch(url, options);
-        } else {
-          // رفرش ناموفق – پاک‌سازی و شاید ریدایرکت به لاگین
-          this.logout();
-          throw new Error('Session expired. Please login again.');
-        }
-      }
-  
-      const contentType = response.headers.get('content-type');
-      const isJson = contentType && contentType.includes('application/json');
-      const data = isJson ? await response.json() : await response.text();
-  
-      if (!response.ok) {
-        const error = new Error(data?.error || data?.message || 'Request failed');
-        error.status = response.status;
-        error.data = data;
-        throw error;
-      }
-  
-      // بازگرداندن result مفید (بعضی endpointها data دارند، بعضی مثل paginated)
-      return data;
-    }
-  
-    async _attemptRefresh() {
-      if (!this.refreshToken) return false;
-      try {
-        const res = await fetch(this.baseURL + 'auth/refresh', {
-          method: 'POST',
-          headers: this._headers({ 'Content-Type': 'application/json' }),
-          body: JSON.stringify({ refresh_token: this.refreshToken })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          this.setTokens(data.access_token, data.refresh_token);
-          return true;
-        }
-      } catch (e) {
-        console.error('Token refresh failed', e);
-      }
-      return false;
-    }
-  
-    setTokens(accessToken, refreshToken) {
-      this.accessToken = accessToken;
-      this.refreshToken = refreshToken;
-      localStorage.setItem('access_token', accessToken);
-      if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
-    }
-  
-    logout() {
-      this.accessToken = null;
-      this.refreshToken = null;
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-    }
-  
-    // ================== Resource Endpoints ==================
-  
-    // --- Auth ---
-    auth = {
-      login: (phone, password) =>
-        this._request('POST', 'auth/login', { phone, password }).then(d => {
-          this.setTokens(d.access_token, d.refresh_token);
-          return d;
-        }),
-      register: (data) =>
-        this._request('POST', 'auth/register', data).then(d => {
-          this.setTokens(d.access_token, d.refresh_token);
-          return d;
-        }),
-      refresh: () =>
-        this._request('POST', 'auth/refresh', { refresh_token: this.refreshToken }).then(d => {
-          this.setTokens(d.access_token, d.refresh_token);
-          return d;
-        }),
-      logout: () =>
-        this._request('POST', 'auth/logout', { refresh_token: this.refreshToken }).then(() => this.logout()),
-      me: () =>
-        this._request('GET', 'auth/me')
-    };
-  
-    // --- User ---
-    user = {
-      profile: () =>
-        this._request('GET', 'user/profile'),
-      updateProfile: (data) =>
-        this._request('PUT', 'user/profile', data),
-      changePassword: (oldPassword, newPassword) =>
-        this._request('PUT', 'user/password', { old_password: oldPassword, new_password: newPassword }),
-      changePhone: (newPhone) =>
-        this._request('PUT', 'user/phone', { new_phone: newPhone }),
-      getAddresses: () =>
-        this._request('GET', 'user/addresses'),
-      addAddress: (address) =>
-        this._request('POST', 'user/addresses', address),
-      updateAddress: (id, address) =>
-        this._request('PUT', `user/addresses/${id}`, address),
-      deleteAddress: (id) =>
-        this._request('DELETE', `user/addresses/${id}`)
-    };
-  
-    // --- Products ---
-    products = {
-      list: (params = {}) => {
-        const query = new URLSearchParams(params).toString();
-        return this._request('GET', `products${query ? '&' + query : ''}`); // note: base url already has ?url=
-      },
-      show: (id) =>
-        this._request('GET', `products/${id}`),
-      featured: () =>
-        this._request('GET', 'products/featured'),
-      discounted: () =>
-        this._request('GET', 'products/discounted'),
-      byCategory: (categoryId) =>
-        this._request('GET', `products/${categoryId}/byCategory`),
-      create: (data) =>
-        this._request('POST', 'products', data),
-      update: (id, data) =>
-        this._request('PUT', `products/${id}`, data),
-      delete: (id) =>
-        this._request('DELETE', `products/${id}`),
-      addImage: (productId, imageData) =>
-        this._request('POST', `products/${productId}/images`, imageData),
-      uploadImage: (productId, file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        return this._request('POST', `products/${productId}/upload`, formData, true);
-      }
-    };
-  
-    // --- Categories ---
-    categories = {
-      listMain: () =>
-        this._request('GET', 'categories'),
-      show: (id) =>
-        this._request('GET', `categories/${id}`),
-      subcategories: (parentId) =>
-        this._request('GET', `categories/${parentId}/subcategories`),
-      create: (data) =>
-        this._request('POST', 'categories', data),
-      update: (id, data) =>
-        this._request('PUT', `categories/${id}`, data),
-      delete: (id) =>
-        this._request('DELETE', `categories/${id}`)
-    };
-  
-    // --- Cart ---
-    cart = {
-      get: () =>
-        this._request('GET', 'cart'),
-      addItem: (productId, quantity = 1) =>
-        this._request('POST', 'cart/items', { product_id: productId, quantity }),
-      updateItem: (itemId, quantity) =>
-        this._request('PUT', `cart/items/${itemId}`, { quantity }),
-      removeItem: (itemId) =>
-        this._request('DELETE', `cart/items/${itemId}`),
-      clear: () =>
-        this._request('POST', 'cart/clear')
-    };
-  
-    // --- Coupons ---
-    coupons = {
-      validate: (code, orderTotal) =>
-        this._request('POST', 'coupons/validate', { code, order_total: orderTotal }),
-      list: () =>
-        this._request('GET', 'coupons'),
-      create: (data) =>
-        this._request('POST', 'coupons', data),
-      update: (id, data) =>
-        this._request('PUT', `coupons/${id}`, data),
-      delete: (id) =>
-        this._request('DELETE', `coupons/${id}`)
-    };
-  
-    // --- Orders ---
-    orders = {
-      place: (addressId, couponCode = null, notes = null) =>
-        this._request('POST', 'orders', { address_id: addressId, coupon_code: couponCode, notes }),
-      list: () =>
-        this._request('GET', 'orders'),
-      show: (id) =>
-        this._request('GET', `orders/${id}`),
-      cancel: (id) =>
-        this._request('PUT', `orders/${id}/cancel`),
-      updateStatus: (id, status) =>
-        this._request('PUT', `orders/${id}/status`, { status })
-    };
-  
-    // --- Admin / Superadmin ---
-    tenants = {
-      list: () =>
-        this._request('GET', 'tenants'),
-      show: (id) =>
-        this._request('GET', `tenants/${id}`),
-      create: (data) =>
-        this._request('POST', 'tenants', data),
-      update: (id, data) =>
-        this._request('PUT', `tenants/${id}`, data),
-      delete: (id) =>
-        this._request('DELETE', `tenants/${id}`)
-    };
-  
-    // --- Password Reset (public) ---
-    passwordReset = {
-      forgot: (phoneOrEmail) =>
-        this._request('POST', 'password/forgot', phoneOrEmail),
-      reset: (token, newPassword) =>
-        this._request('POST', 'password/reset', { token, password: newPassword })
-    };
-  }
-  
+/**
+ * Ghul Bazar — Customer API Client
+ * @version 2.0.0 (SPA Edition)
+ */
 
-window.ApiClient = ApiClient;
-  window.Error = Error;
+class CustomerError extends Error {
+  constructor(message, status, data = null) {
+    super(message);
+    this.name = 'CustomerError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
+class CustomerApiClient {
+  constructor(options = {}) {
+    this.baseURL    = options.baseURL || 'api.php?endpoint=';
+    this.debug      = options.debug   || false;
+    this.accessToken  = localStorage.getItem('gb_token')   || null;
+    this.refreshToken = localStorage.getItem('gb_refresh')  || null;
+    this.user         = JSON.parse(localStorage.getItem('gb_user') || 'null');
+  }
+
+  /* ─── internals ─── */
+
+  _log(...a) { if (this.debug) console.log('[API]', ...a); }
+
+  _csrf() {
+    const match = document.cookie.split(';')
+      .map(c => c.trim())
+      .find(c => c.startsWith('XSRF-TOKEN='));
+    return match ? decodeURIComponent(match.split('=')[1]) : '';
+  }
+
+  _headers(method = 'GET', extra = {}) {
+    const h = { 'Accept': 'application/json', ...extra };
+    if (['POST','PUT','PATCH','DELETE'].includes(method.toUpperCase())) {
+      const csrf = this._csrf();
+      if (csrf) h['X-CSRF-TOKEN'] = csrf;
+    }
+    if (this.accessToken) h['Authorization'] = `Bearer ${this.accessToken}`;
+    return h;
+  }
+
+  async _req(method, endpoint, body = null, isForm = false) {
+    const url  = this.baseURL + endpoint;
+    const hdrs = this._headers(method);
+    const opts = { method, headers: hdrs };
+
+    if (body && !isForm) {
+      hdrs['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    } else if (body && isForm) {
+      opts.body = body; // FormData — no Content-Type header
+    }
+
+    this._log(method, url, body);
+
+    let res = await fetch(url, opts);
+
+    /* auto-refresh on 401 */
+    if (res.status === 401 && this.refreshToken) {
+      const ok = await this._refresh();
+      if (ok) {
+        opts.headers['Authorization'] = `Bearer ${this.accessToken}`;
+        res = await fetch(url, opts);
+      } else {
+        this._clearSession();
+        throw new CustomerError('نشست منقضی شده. لطفاً دوباره وارد شوید.', 401);
+      }
+    }
+
+    const ct   = res.headers.get('content-type') || '';
+    const data = ct.includes('application/json') ? await res.json() : await res.text();
+
+    if (!res.ok) {
+      throw new CustomerError(
+        data?.error || data?.message || `خطای ${res.status}`,
+        res.status,
+        data
+      );
+    }
+    return data;
+  }
+
+  async _refresh() {
+    if (!this.refreshToken) return false;
+    try {
+      const res  = await fetch(this.baseURL + 'auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: this.refreshToken }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        this._saveTokens(d.access_token, d.refresh_token);
+        return true;
+      }
+    } catch {}
+    return false;
+  }
+
+  _saveTokens(access, refresh) {
+    this.accessToken  = access;
+    this.refreshToken = refresh;
+    localStorage.setItem('gb_token',   access);
+    if (refresh) localStorage.setItem('gb_refresh', refresh);
+  }
+
+  _saveUser(user) {
+    this.user = user;
+    localStorage.setItem('gb_user', JSON.stringify(user));
+  }
+
+  _clearSession() {
+    this.accessToken  = null;
+    this.refreshToken = null;
+    this.user         = null;
+    localStorage.removeItem('gb_token');
+    localStorage.removeItem('gb_refresh');
+    localStorage.removeItem('gb_user');
+  }
+
+  isAuth() { return !!this.accessToken; }
+  getUser() { return this.user; }
+
+  /* ─── Auth ─── */
+  auth = {
+    login: async (phone, password) => {
+      const d = await this._req('POST', 'auth/login', { phone, password });
+      this._saveTokens(d.access_token || d.token, d.refresh_token);
+      if (d.user) this._saveUser(d.user);
+      return d;
+    },
+    register: async (data) => {
+      const d = await this._req('POST', 'auth/register', data);
+      this._saveTokens(d.access_token || d.token, d.refresh_token);
+      if (d.user) this._saveUser(d.user);
+      return d;
+    },
+    sendOtp:   (phone)        => this._req('POST', 'auth/sendLoginOtp',   { phone }),
+    verifyOtp: (phone, code)  => this._req('POST', 'auth/verifyLoginOtp', { phone, code })
+      .then(d => {
+        if (d.access_token) { this._saveTokens(d.access_token, d.refresh_token); this._saveUser(d.user); }
+        return d;
+      }),
+    forgotPassword: (phone) => this._req('POST', 'password/forgot', { phone }),
+    resetPassword:  (token, password) => this._req('POST', 'password/reset', { token, password }),
+    logout: async () => {
+      try { await this._req('POST', 'auth/logout', { refresh_token: this.refreshToken }); } finally {
+        this._clearSession();
+      }
+    },
+  };
+
+  /* ─── Products ─── */
+  products = {
+    list:       (params = {}) => this._req('GET', 'products&' + new URLSearchParams(params)),
+    show:       (id)          => this._req('GET', `products&id=${id}`),
+    featured:   ()            => this._req('GET', 'products&featured=1'),
+    discounted: ()            => this._req('GET', 'products&discounted=1'),
+    byCategory: (slug)        => this._req('GET', `products&category=${encodeURIComponent(slug)}`),
+    byEra:      (era)         => this._req('GET', `products&era=${encodeURIComponent(era)}`),
+    search:     (q)           => this._req('GET', `products&q=${encodeURIComponent(q)}`),
+  };
+
+  /* ─── Categories & Eras ─── */
+  categories = {
+    list: () => this._req('GET', 'categories'),
+    show: (id) => this._req('GET', `categories&id=${id}`),
+  };
+  eras = {
+    list: () => this._req('GET', 'eras'),
+  };
+
+  /* ─── Cart ─── */
+  cart = {
+    get:    ()                   => this._req('GET',    'cart'),
+    add:    (productId, qty = 1) => this._req('POST',   'cart', { product_id: productId, qty }),
+    update: (productId, qty)     => this._req('PUT',    'cart', { product_id: productId, qty }),
+    remove: (productId)          => this._req('DELETE', `cart&product_id=${productId}`),
+    clear:  ()                   => this._req('DELETE', 'cart'),
+  };
+
+  /* ─── Discounts ─── */
+  discounts = {
+    validate: (code) => this._req('GET', `discounts&action=validate&code=${encodeURIComponent(code)}`),
+  };
+
+  /* ─── Orders ─── */
+  orders = {
+    place:   (data)  => this._req('POST', 'orders', data),
+    list:    ()      => this._req('GET',  'orders'),
+    show:    (id)    => this._req('GET',  `orders&id=${id}`),
+    cancel:  (id)    => this._req('PUT',  `orders&id=${id}&action=cancel`),
+  };
+
+  /* ─── Payment (Card-to-Card) ─── */
+  payment = {
+    uploadReceipt: (orderNumber, file) => {
+      const fd = new FormData();
+      fd.append('order_number', orderNumber);
+      fd.append('receipt', file);
+      return this._req('POST', 'upload_receipt', fd, true);
+    },
+    status: (orderId) => this._req('GET', `payment-receipts&order_id=${orderId}`),
+  };
+
+  /* ─── Profile ─── */
+  profile = {
+    get:            ()          => this._req('GET', 'user/profile'),
+    update:         (data)      => this._req('PUT', 'user/profile', data),
+    changePassword: (old_, new_)=> this._req('PUT', 'user/password', { old_password: old_, new_password: new_ }),
+  };
+
+  /* ─── Addresses ─── */
+  addresses = {
+    list:   ()         => this._req('GET',    'user/addresses'),
+    add:    (addr)     => this._req('POST',   'user/addresses', addr),
+    update: (id, addr) => this._req('PUT',    `user/addresses&id=${id}`, addr),
+    delete: (id)       => this._req('DELETE', `user/addresses&id=${id}`),
+  };
+}
+
+/* singleton */
+const api = new CustomerApiClient({ debug: false });
+export default api;
