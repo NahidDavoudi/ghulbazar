@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /ghulbazar/api/
+
+# اگر فایل یا پوشه واقعی وجود دارد، مستقیماً سرو شود
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# همه درخواست‌ها به index.php ارسال شوند
+RewriteRule ^(.*)$ index.php [QSA,L]
