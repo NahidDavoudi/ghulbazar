@@ -53,6 +53,86 @@ class Controller {
             error('Unknown auth action', 400);
         }
     }
+
+    // ---------- User Auth (register / login / profile) ----------
+    public function handleUserAuth(string $method, string $action): void {
+        if ($method === 'POST' && $action === 'register') {
+            $data = body();
+            if (empty($data['name']) || empty($data['phone']) || empty($data['password'])) {
+                error('name, phone and password required');
+            }
+            if (strlen($data['password']) < 6) error('Password must be at least 6 characters');
+            if ($this->repo->phoneExists($data['phone'])) error('Phone already registered', 409);
+
+            $id = $this->repo->createUser($data['name'], $data['phone'], password_hash($data['password'], PASSWORD_DEFAULT));
+            $token = jwt_make(['sub' => $id, 'role' => 'user', 'exp' => time() + 86400 * 30]);
+            respond(['token' => $token, 'message' => 'Registered successfully'], 201);
+        }
+        elseif ($method === 'POST' && $action === 'login') {
+            $data = body();
+            if (empty($data['phone']) || empty($data['password'])) error('phone and password required');
+            $user = $this->repo->findUserByPhone($data['phone']);
+            if (!$user || !password_verify($data['password'], $user['password_hash'])) {
+                error('Invalid credentials', 401);
+            }
+            $token = jwt_make(['sub' => $user['id'], 'role' => $user['role'], 'exp' => time() + 86400 * 30]);
+            respond([
+                'token' => $token,
+                'user'  => ['id' => $user['id'], 'name' => $user['name'], 'phone' => $user['phone'], 'role' => $user['role']]
+            ]);
+        }
+        elseif ($method === 'GET' && $action === 'me') {
+            $u = auth_user();
+            if (!$u) error('Unauthorized', 401);
+            $user = $this->repo->getUserById($u['sub']);
+            if (!$user) error('User not found', 404);
+            respond($user);
+        }
+        elseif ($method === 'PUT' && $action === 'profile') {
+            $u = auth_user();
+            if (!$u) error('Unauthorized', 401);
+            $data = body();
+            // فقط name و password قابل تغییره
+            $updates = [];
+            $params  = [];
+            if (!empty($data['name']))     { $updates[] = 'name = ?';          $params[] = $data['name']; }
+            if (!empty($data['password'])) { $updates[] = 'password_hash = ?'; $params[] = password_hash($data['password'], PASSWORD_DEFAULT); }
+            if (empty($updates)) error('Nothing to update');
+            $params[] = $u['sub'];
+            db()->prepare("UPDATE users SET " . implode(', ', $updates) . " WHERE id = ?")->execute($params);
+            respond(['message' => 'Profile updated']);
+        }
+        else {
+            error('Unknown user auth action', 400);
+        }
+    }
+
+    // ---------- Public Products ----------
+    public function handlePublicProducts(string $method, ?string $slug): void {
+        if ($method !== 'GET') error('Method not allowed', 405);
+
+        if ($slug) {
+            $product = $this->repo->getPublicProductBySlug($slug);
+            if (!$product) error('Product not found', 404);
+            // reviews
+            $product['reviews_list'] = $this->repo->getProductReviews($product['id']);
+            respond($product);
+        } else {
+            $filters = [
+                'category'  => get('category'),
+                'era'       => get('era'),
+                'q'         => get('q'),
+                'sort'      => get('sort'),
+                'min_price' => get('min_price'),
+                'max_price' => get('max_price'),
+                'featured'  => get('featured'),
+            ];
+            $page  = max(1, (int)get('page', 1));
+            $limit = min((int)get('limit', 20), 50);
+            $result = $this->repo->getPublicProducts($filters, $page, $limit);
+            respond(['data' => $result['data'], 'total' => $result['total'], 'page' => $page, 'limit' => $limit]);
+        }
+    }
     
     // ---------- Products ----------
     public function handleProducts(string $method, ?int $id, ?string $action): void {
@@ -241,9 +321,212 @@ class Controller {
         }
     }
     
-    // ---------- Admin Stats ----------
-    public function handleAdminStats(): void {
+    // ---------- Cart ----------
+    public function handleCart(string $method, ?int $itemId): void {
+        $u = auth_user();
+        if (!$u) error('Unauthorized', 401);
+
+        if ($method === 'GET') {
+            respond($this->repo->getCart($u['sub']));
+        }
+        elseif ($method === 'POST') {
+            $data = body();
+            if (empty($data['product_id'])) error('product_id required');
+            $product = $this->repo->getProductById((int)$data['product_id']);
+            if (!$product) error('Product not found', 404);
+            $qty = max(1, (int)($data['quantity'] ?? 1));
+            if ($product['stock'] < $qty) error('Not enough stock');
+            $id = $this->repo->addToCart($u['sub'], $product['id'], $qty, isset($data['selected_options']) ? json_encode($data['selected_options']) : null);
+            respond(['message' => 'Added to cart', 'item_id' => $id], 201);
+        }
+        elseif ($method === 'PUT') {
+            if (!$itemId) error('item id required');
+            $data = body();
+            if (!isset($data['quantity'])) error('quantity required');
+            $ok = $this->repo->updateCartItem($itemId, $u['sub'], (int)$data['quantity']);
+            if (!$ok) error('Item not found', 404);
+            respond(['message' => 'Cart updated']);
+        }
+        elseif ($method === 'DELETE') {
+            if ($itemId) {
+                $ok = $this->repo->removeCartItem($itemId, $u['sub']);
+                if (!$ok) error('Item not found', 404);
+                respond(['message' => 'Item removed']);
+            } else {
+                $this->repo->clearCart($u['sub']);
+                respond(['message' => 'Cart cleared']);
+            }
+        }
+        else {
+            error('Method not allowed', 405);
+        }
+    }
+
+    // ---------- Addresses ----------
+    public function handleAddresses(string $method, ?int $id): void {
+        $u = auth_user();
+        if (!$u) error('Unauthorized', 401);
+
+        if ($method === 'GET') {
+            if ($id) {
+                $addr = $this->repo->getAddressById($id, $u['sub']);
+                if (!$addr) error('Address not found', 404);
+                respond($addr);
+            } else {
+                respond($this->repo->getUserAddresses($u['sub']));
+            }
+        }
+        elseif ($method === 'POST') {
+            $data = body();
+            if (empty($data['address']) || empty($data['city']) || empty($data['zip_code'])) {
+                error('address, city and zip_code required');
+            }
+            $newId = $this->repo->createAddress($u['sub'], $data);
+            respond(['id' => $newId, 'message' => 'Address saved'], 201);
+        }
+        elseif ($method === 'PUT') {
+            if (!$id) error('id required');
+            $data = body();
+            $ok = $this->repo->updateAddress($id, $u['sub'], $data);
+            if (!$ok) error('Address not found', 404);
+            respond(['message' => 'Address updated']);
+        }
+        elseif ($method === 'DELETE') {
+            if (!$id) error('id required');
+            $ok = $this->repo->deleteAddress($id, $u['sub']);
+            if (!$ok) error('Address not found', 404);
+            respond(['message' => 'Address deleted']);
+        }
+        else {
+            error('Method not allowed', 405);
+        }
+    }
+
+    // ---------- Checkout ----------
+    public function handleCheckout(): void {
+        $u = auth_user();
+        if (!$u) error('Unauthorized', 401);
+
+        $data = body();
+
+        // آدرس: می‌تونه از address_id یا inline بیاد
+        $shippingAddress = '';
+        if (!empty($data['address_id'])) {
+            $addr = $this->repo->getAddressById((int)$data['address_id'], $u['sub']);
+            if (!$addr) error('Address not found', 404);
+            $shippingAddress = "{$addr['recipient_name']} - {$addr['city']} - {$addr['address']} - {$addr['zip_code']}";
+        } elseif (!empty($data['shipping_address'])) {
+            $shippingAddress = $data['shipping_address'];
+        } else {
+            error('shipping_address or address_id required');
+        }
+
+        if (empty($data['customer_name'])) error('customer_name required');
+        if (empty($data['customer_phone'])) error('customer_phone required');
+
+        // آیتم‌های سبد
+        $cart = $this->repo->getCart($u['sub']);
+        if (empty($cart['items'])) error('Cart is empty');
+
+        // اعمال تخفیف
+        $discountId = null;
+        $total = $cart['total'];
+        if (!empty($data['discount_code'])) {
+            $discount = $this->repo->findActiveDiscount($data['discount_code']);
+            if (!$discount) error('Invalid or expired discount code');
+            $discountId = $discount['id'];
+            if ($discount['type'] === 'percent') {
+                $total = $total - ($total * $discount['value'] / 100);
+            } else {
+                $total = max(0, $total - $discount['value']);
+            }
+        }
+
+        // ساخت سفارش
+        $orderId = $this->repo->createOrder([
+            'user_id'          => $u['sub'],
+            'customer_name'    => $data['customer_name'],
+            'customer_phone'   => $data['customer_phone'],
+            'customer_email'   => $data['customer_email'] ?? '',
+            'shipping_address' => $shippingAddress,
+            'total_amount'     => (int)$total,
+            'discount_code_id' => $discountId,
+        ], array_map(fn($i) => [
+            'product_id' => $i['product_id'],
+            'quantity'   => $i['quantity'],
+            'price'      => $i['price'],
+        ], $cart['items']));
+
+        // خالی کردن سبد بعد از ثبت سفارش
+        $this->repo->clearCart($u['sub']);
+
+        respond(['message' => 'Order placed', 'order_id' => $orderId], 201);
+    }
+
+    // ---------- User Orders ----------
+    public function handleUserOrders(string $method, ?string $orderNumber): void {
+        $u = auth_user();
+        if (!$u) error('Unauthorized', 401);
+
+        if ($method !== 'GET') error('Method not allowed', 405);
+
+        if ($orderNumber) {
+            $order = $this->repo->getUserOrderByNumber($orderNumber, $u['sub']);
+            if (!$order) error('Order not found', 404);
+            respond($order);
+        } else {
+            $page  = max(1, (int)get('page', 1));
+            $limit = min((int)get('limit', 10), 50);
+            respond($this->repo->getUserOrders($u['sub'], $page, $limit));
+        }
+    }
+
+    // ---------- Reviews ----------
+    public function handleReviews(string $method, ?int $productId, ?int $reviewId): void {
+        if ($method === 'GET') {
+            // public: نظرات تایید شده
+            if (!$productId) error('product_id required');
+            respond($this->repo->getProductReviews($productId));
+        }
+        elseif ($method === 'POST') {
+            $u = auth_user();
+            if (!$u) error('Unauthorized', 401);
+            $data = body();
+            if (!$productId) error('product_id required');
+            if (empty($data['review'])) error('review text required');
+            $rating = max(1, min(5, (int)($data['rating'] ?? 5)));
+
+            if (!$this->repo->hasPurchasedProduct($u['sub'], $productId)) {
+                error('You can only review products you have purchased', 403);
+            }
+            if ($this->repo->hasUserReviewedProduct($u['sub'], $productId)) {
+                error('You have already reviewed this product', 409);
+            }
+            $id = $this->repo->createReview($productId, $u['sub'], $rating, $data['review']);
+            respond(['message' => 'Review submitted, pending approval', 'id' => $id], 201);
+        }
+        // Admin actions
+        elseif ($method === 'PUT') {
+            require_admin();
+            if (!$reviewId) error('review id required');
+            $this->repo->approveReview($reviewId);
+            respond(['message' => 'Review approved']);
+        }
+        elseif ($method === 'DELETE') {
+            require_admin();
+            if (!$reviewId) error('review id required');
+            $this->repo->deleteReview($reviewId);
+            respond(['message' => 'Review deleted']);
+        }
+        else {
+            error('Method not allowed', 405);
+        }
+    }
+
+    // ---------- Admin: Pending Reviews ----------
+    public function handleAdminReviews(): void {
         require_admin();
+        respond($this->repo->getPendingReviews());
         respond($this->repo->getAdminStats());
     }
     
