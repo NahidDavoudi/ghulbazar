@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>غول بازار | مرجع اصلی خرید جواهرات سورئال</title>
+  <link rel="shortcut icon" href="assets/logo.png" type="image/x-icon">
+  <link rel="stylesheet" href="assets/css/output.css">
+  <style>
+    /* ── global scrollbar ── */
+    * { scrollbar-width: thin; scrollbar-color: #47242a #2d161a; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #2d161a; }
+    ::-webkit-scrollbar-thumb { background: #47242a; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #cf1736; }
+
+    /* ── autofill dark fix ── */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 30px #3a1f24 inset !important;
+      -webkit-text-fill-color: #fff !important;
+    }
+
+    /* ── page transitions ── */
+    #view { transition: opacity 0.15s ease; }
+    #view.fading { opacity: 0; }
+
+    /* ── ltr helper (for numbers/card) ── */
+    .ltr { direction: ltr; }
+
+    /* ── product card hover shadow ── */
+    .product-card:hover {
+      transform: translateY(-2px);
+    }
+
+    /* ── font-display utility (tailwind CDN doesn't pick it up automatically) ── */
+    .font-display { font-family: 'Agbalumo', cursive; }
+    .font-vazir   { font-family: 'Vazirmatn', sans-serif; }
+  </style>
+</head>
+
+<body class="bg-dark text-white font-vazir overflow-x-hidden min-h-screen flex flex-col">
+
+  <!-- ── HEADER (injected by JS) ── -->
+  <div id="header"></div>
+
+  <!-- ── MAIN VIEW (router target) ── -->
+  <main id="view" class="flex-1 min-h-screen">
+    <!-- initial loading -->
+    <div class="flex flex-col items-center justify-center py-48 text-text-dim gap-4">
+      <span class="text-5xl animate-pulse">✦</span>
+      <p>در حال بارگذاری...</p>
+    </div>
+  </main>
+
+  <!-- ── FOOTER (injected by JS) ── -->
+  <div id="footer"></div>
+
+  <!-- ── GLOBAL TOAST ── -->
+  <div id="toast"
+       class="fixed bottom-6 left-1/2 z-[999] px-6 py-3 rounded-xl text-sm font-bold shadow-2xl transition-all duration-300"
+       style="opacity:0; transform:translateX(-50%) translateY(10px)">
+  </div>
+
+  <!-- ── APP ENTRY POINT ── -->
+  <!--
+    اگر از bundler (Vite / Webpack) استفاده می‌کنی:
+      <script type="module" src="src/app.js"></script>
+
+    اگر مستقیم سرو می‌کنی (بدون bundler):
+      فایل‌ها را در assets/js/ بذار و از type="module" استفاده کن.
+  -->
+  <script type="module" src="assets/js/app.js"></script>
+
+</body>
+</html>
