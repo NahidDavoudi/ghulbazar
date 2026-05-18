@@ -1,227 +1,302 @@
 /**
- * Ghul Bazar — Customer API Client
- * @version 2.0.0 (SPA Edition)
+ * apiClient.js
+ * Client for Ghul Bazar REST API (api.php)
+ * Uses JWT Bearer token for authenticated requests.
  */
 
-class CustomerError extends Error {
-  constructor(message, status, data = null) {
-    super(message);
-    this.name = 'CustomerError';
-    this.status = status;
-    this.data = data;
-  }
-}
-
-class CustomerApiClient {
-  constructor(options = {}) {
-    this.baseURL = options.baseURL || (window.location.origin + '/store/public/index.php?url=');
-    this.debug      = options.debug   || false;
-    this.accessToken  = localStorage.getItem('gb_token')   || null;
-    this.refreshToken = localStorage.getItem('gb_refresh')  || null;
-    this.user         = JSON.parse(localStorage.getItem('gb_user') || 'null');
-  }
-
-  /* ─── internals ─── */
-
-  _log(...a) { if (this.debug) console.log('[API]', ...a); }
-
-  _csrf() {
-    const match = document.cookie.split(';')
-      .map(c => c.trim())
-      .find(c => c.startsWith('XSRF-TOKEN='));
-    return match ? decodeURIComponent(match.split('=')[1]) : '';
-  }
-
-  _headers(method = 'GET', extra = {}) {
-    const h = { 'Accept': 'application/json', ...extra };
-    if (['POST','PUT','PATCH','DELETE'].includes(method.toUpperCase())) {
-      const csrf = this._csrf();
-      if (csrf) h['X-CSRF-TOKEN'] = csrf;
+class ApiClient {
+    constructor(baseURL = '') {
+      this.baseURL = baseURL;
+      this.token = null;
     }
-    if (this.accessToken) h['Authorization'] = `Bearer ${this.accessToken}`;
-    return h;
-  }
-
-  async _req(method, endpoint, body = null, isForm = false) {
-    const url  = this.baseURL + endpoint;
-    const hdrs = this._headers(method);
-    const opts = { method, headers: hdrs };
-
-    if (body && !isForm) {
-      hdrs['Content-Type'] = 'application/json';
-      opts.body = JSON.stringify(body);
-    } else if (body && isForm) {
-      opts.body = body; // FormData — no Content-Type header
-    }
-
-    this._log(method, url, body);
-
-    let res = await fetch(url, opts);
-
-    /* auto-refresh on 401 */
-    if (res.status === 401 && this.refreshToken) {
-      const ok = await this._refresh();
-      if (ok) {
-        opts.headers['Authorization'] = `Bearer ${this.accessToken}`;
-        res = await fetch(url, opts);
+  
+    // ------------------------------------------------------------------
+    // Internal helpers
+    // ------------------------------------------------------------------
+    setToken(token) {
+      this.token = token;
+      if (token) {
+        localStorage.setItem('jwt_token', token);
       } else {
-        this._clearSession();
-        throw new CustomerError('نشست منقضی شده. لطفاً دوباره وارد شوید.', 401);
+        localStorage.removeItem('jwt_token');
       }
     }
-
-    const ct   = res.headers.get('content-type') || '';
-    const data = ct.includes('application/json') ? await res.json() : await res.text();
-
-    if (!res.ok) {
-      throw new CustomerError(
-        data?.error || data?.message || `خطای ${res.status}`,
-        res.status,
-        data
-      );
+  
+    getToken() {
+      if (this.token) return this.token;
+      const stored = localStorage.getItem('jwt_token');
+      if (stored) this.token = stored;
+      return this.token;
     }
-    return data;
-  }
-
-  async _refresh() {
-    if (!this.refreshToken) return false;
-    try {
-      const res  = await fetch(this.baseURL + 'auth/refresh', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: this.refreshToken }),
-      });
-      if (res.ok) {
-        const d = await res.json();
-        this._saveTokens(d.access_token, d.refresh_token);
-        return true;
+  
+    clearToken() {
+      this.token = null;
+      localStorage.removeItem('jwt_token');
+    }
+  
+    // Build query string from object
+    buildQuery(params) {
+      if (!params) return '';
+      const search = new URLSearchParams();
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null && value !== '') {
+          search.append(key, value);
+        }
       }
-    } catch {}
-    return false;
-  }
-
-  _saveTokens(access, refresh) {
-    this.accessToken  = access;
-    this.refreshToken = refresh;
-    localStorage.setItem('gb_token',   access);
-    if (refresh) localStorage.setItem('gb_refresh', refresh);
-  }
-
-  _saveUser(user) {
-    this.user = user;
-    localStorage.setItem('gb_user', JSON.stringify(user));
-  }
-
-  _clearSession() {
-    this.accessToken  = null;
-    this.refreshToken = null;
-    this.user         = null;
-    localStorage.removeItem('gb_token');
-    localStorage.removeItem('gb_refresh');
-    localStorage.removeItem('gb_user');
-  }
-
-  isAuth() { return !!this.accessToken; }
-  getUser() { return this.user; }
-
-  /* ─── Auth ─── */
-  auth = {
-    login: async (phone, password) => {
-      const d = await this._req('POST', 'auth/login', { phone, password });
-      this._saveTokens(d.access_token || d.token, d.refresh_token);
-      if (d.user) this._saveUser(d.user);
-      return d;
-    },
-    register: async (data) => {
-      const d = await this._req('POST', 'auth/register', data);
-      this._saveTokens(d.access_token || d.token, d.refresh_token);
-      if (d.user) this._saveUser(d.user);
-      return d;
-    },
-    sendOtp:   (phone)        => this._req('POST', 'auth/sendLoginOtp',   { phone }),
-    verifyOtp: (phone, code)  => this._req('POST', 'auth/verifyLoginOtp', { phone, code })
-      .then(d => {
-        if (d.access_token) { this._saveTokens(d.access_token, d.refresh_token); this._saveUser(d.user); }
-        return d;
-      }),
-    forgotPassword: (phone) => this._req('POST', 'password/forgot', { phone }),
-    resetPassword:  (token, password) => this._req('POST', 'password/reset', { token, password }),
-    logout: async () => {
-      try { await this._req('POST', 'auth/logout', { refresh_token: this.refreshToken }); } finally {
-        this._clearSession();
+      const qs = search.toString();
+      return qs ? '?' + qs : '';
+    }
+  
+    // Core request method
+    async request(method, endpoint, data = null, isFormData = false, extraParams = {}) {
+      let url = this.baseURL + endpoint;
+      const queryString = this.buildQuery(extraParams);
+      if (queryString) url += queryString;
+  
+      const headers = {};
+      if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
       }
-    },
-  };
-
-  /* ─── Products ─── */
-  products = {
-    list:       (params = {}) => this._req('GET', 'products&' + new URLSearchParams(params)),
-    show:       (id)          => this._req('GET', `products&id=${id}`),
-    featured:   ()            => this._req('GET', 'products&featured=1'),
-    discounted: ()            => this._req('GET', 'products&discounted=1'),
-    byCategory: (slug)        => this._req('GET', `products&category=${encodeURIComponent(slug)}`),
-    byEra:      (era)         => this._req('GET', `products&era=${encodeURIComponent(era)}`),
-    search:     (q)           => this._req('GET', `products&q=${encodeURIComponent(q)}`),
-  };
-
-  /* ─── Categories & Eras ─── */
-  categories = {
-    list: () => this._req('GET', 'categories'),
-    show: (id) => this._req('GET', `categories&id=${id}`),
-  };
-  eras = {
-    list: () => this._req('GET', 'eras'),
-  };
-
-  /* ─── Cart ─── */
-  cart = {
-    get:    ()                   => this._req('GET',    'cart'),
-    add:    (productId, qty = 1) => this._req('POST',   'cart', { product_id: productId, qty }),
-    update: (productId, qty)     => this._req('PUT',    'cart', { product_id: productId, qty }),
-    remove: (productId)          => this._req('DELETE', `cart&product_id=${productId}`),
-    clear:  ()                   => this._req('DELETE', 'cart'),
-  };
-
-  /* ─── Discounts ─── */
-  discounts = {
-    validate: (code) => this._req('GET', `discounts&action=validate&code=${encodeURIComponent(code)}`),
-  };
-
-  /* ─── Orders ─── */
-  orders = {
-    place:   (data)  => this._req('POST', 'orders', data),
-    list:    ()      => this._req('GET',  'orders'),
-    show:    (id)    => this._req('GET',  `orders&id=${id}`),
-    cancel:  (id)    => this._req('PUT',  `orders&id=${id}&action=cancel`),
-  };
-
-  /* ─── Payment (Card-to-Card) ─── */
-  payment = {
-    uploadReceipt: (orderNumber, file) => {
-      const fd = new FormData();
-      fd.append('order_number', orderNumber);
-      fd.append('receipt', file);
-      return this._req('POST', 'upload_receipt', fd, true);
-    },
-    status: (orderId) => this._req('GET', `payment-receipts&order_id=${orderId}`),
-  };
-
-  /* ─── Profile ─── */
-  profile = {
-    get:            ()          => this._req('GET', 'user/profile'),
-    update:         (data)      => this._req('PUT', 'user/profile', data),
-    changePassword: (old_, new_)=> this._req('PUT', 'user/password', { old_password: old_, new_password: new_ }),
-  };
-
-  /* ─── Addresses ─── */
-  addresses = {
-    list:   ()         => this._req('GET',    'user/addresses'),
-    add:    (addr)     => this._req('POST',   'user/addresses', addr),
-    update: (id, addr) => this._req('PUT',    `user/addresses&id=${id}`, addr),
-    delete: (id)       => this._req('DELETE', `user/addresses&id=${id}`),
-  };
-}
-
-/* singleton */
-const api = new CustomerApiClient({ debug: false });
-export default api;
+      const token = this.getToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+  
+      const options = {
+        method,
+        headers,
+        credentials: 'include', // for session-based cart/orders
+      };
+      if (data !== null) {
+        options.body = isFormData ? data : JSON.stringify(data);
+      }
+  
+      const response = await fetch(url, options);
+      let responseData;
+      try {
+        responseData = await response.json();
+      } catch (e) {
+        responseData = { error: 'Invalid JSON response from server' };
+      }
+  
+      if (!response.ok) {
+        const errorMsg = responseData.error || `HTTP ${response.status}`;
+        throw new Error(errorMsg);
+      }
+      return responseData;
+    }
+  
+    // Shortcuts for common methods
+    get(endpoint, params = {}) {
+      return this.request('GET', endpoint, null, false, params);
+    }
+    post(endpoint, data, isFormData = false, params = {}) {
+      return this.request('POST', endpoint, data, isFormData, params);
+    }
+    put(endpoint, data, isFormData = false, params = {}) {
+      return this.request('PUT', endpoint, data, isFormData, params);
+    }
+    delete(endpoint, params = {}) {
+      return this.request('DELETE', endpoint, null, false, params);
+    }
+  
+    // ------------------------------------------------------------------
+    // AUTH
+    // ------------------------------------------------------------------
+    async register(name, phone, password) {
+      const data = await this.post('?endpoint=auth&action=register', { name, phone, password });
+      if (data.token) this.setToken(data.token);
+      return data;
+    }
+  
+    async login(phone, password) {
+      const data = await this.post('?endpoint=auth&action=login', { phone, password });
+      if (data.token) this.setToken(data.token);
+      return data;
+    }
+  
+    async getMe() {
+      return this.get('?endpoint=auth&action=me');
+    }
+  
+    logout() {
+      this.clearToken();
+    }
+  
+    // ------------------------------------------------------------------
+    // PRODUCTS
+    // ------------------------------------------------------------------
+    getProducts(params = {}) {
+      return this.get('?endpoint=products', params);
+    }
+  
+    getProduct(id) {
+      return this.get('?endpoint=products', { id });
+    }
+  
+    getFeaturedProducts() {
+      return this.get('?endpoint=products', { featured: 1 });
+    }
+  
+    createProduct(productData) {
+      return this.post('?endpoint=products', productData);
+    }
+  
+    updateProduct(id, productData) {
+      return this.put('?endpoint=products', productData, false, { id });
+    }
+  
+    deleteProduct(id) {
+      return this.delete('?endpoint=products', { id });
+    }
+  
+    // Upload product image (admin)
+    async uploadProductImage(productId, file, isMain = 0, sortOrder = 0) {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('is_main', isMain);
+      formData.append('sort_order', sortOrder);
+      return this.post('?endpoint=products&action=upload-image', formData, true, { id: productId });
+    }
+  
+    // ------------------------------------------------------------------
+    // CATEGORIES
+    // ------------------------------------------------------------------
+    getCategories() {
+      return this.get('?endpoint=categories');
+    }
+  
+    createCategory(data) {
+      return this.post('?endpoint=categories', data);
+    }
+  
+    updateCategory(id, data) {
+      return this.put('?endpoint=categories', data, false, { id });
+    }
+  
+    deleteCategory(id) {
+      return this.delete('?endpoint=categories', { id });
+    }
+  
+    // ------------------------------------------------------------------
+    // ERAS
+    // ------------------------------------------------------------------
+    getEras() {
+      return this.get('?endpoint=eras');
+    }
+  
+    createEra(data) {
+      return this.post('?endpoint=eras', data);
+    }
+  
+    updateEra(id, data) {
+      return this.put('?endpoint=eras', data, false, { id });
+    }
+  
+    deleteEra(id) {
+      return this.delete('?endpoint=eras', { id });
+    }
+  
+    // ------------------------------------------------------------------
+    // CART (session‑based, no auth required)
+    // ------------------------------------------------------------------
+    getCart() {
+      return this.get('?endpoint=cart');
+    }
+  
+    addToCart(productId, qty = 1) {
+      return this.post('?endpoint=cart', { product_id: productId, qty });
+    }
+  
+    updateCartItem(productId, qty) {
+      return this.put('?endpoint=cart', { product_id: productId, qty });
+    }
+  
+    removeCartItem(productId) {
+      return this.delete('?endpoint=cart', { product_id: productId });
+    }
+  
+    clearCart() {
+      return this.delete('?endpoint=cart');
+    }
+  
+    // ------------------------------------------------------------------
+    // ORDERS
+    // ------------------------------------------------------------------
+    createOrder(orderData) {
+      // orderData: { items, customer_name, customer_phone, shipping_address, discount_code? }
+      return this.post('?endpoint=orders', orderData);
+    }
+  
+    getOrderByNumber(orderNumber) {
+      return this.get('?endpoint=orders', { number: orderNumber });
+    }
+  
+    getOrderById(id) {
+      return this.get('?endpoint=orders', { id });
+    }
+  
+    getOrders(params = {}) {
+      // For admin: status, search, start_date, end_date, page, limit
+      return this.get('?endpoint=orders', params);
+    }
+  
+    updateOrderStatus(id, status) {
+      return this.put('?endpoint=orders', { status }, false, { id });
+    }
+  
+    // Upload payment receipt (multipart/form-data)
+    async uploadReceipt(orderNumber, file) {
+      const formData = new FormData();
+      formData.append('receipt', file);
+      formData.append('order_number', orderNumber);
+      return this.post('?endpoint=upload_receipt', formData, true);
+    }
+  
+    // ------------------------------------------------------------------
+    // DISCOUNTS
+    // ------------------------------------------------------------------
+    validateDiscountCode(code) {
+      return this.get('?endpoint=discounts&action=validate', { code });
+    }
+  
+    createDiscountCode(data) {
+      // data: { code, type, value, valid_from, valid_to }
+      return this.post('?endpoint=discounts', data);
+    }
+  
+    deactivateDiscountCode(id) {
+      return this.delete('?endpoint=discounts', { id });
+    }
+  
+    // ------------------------------------------------------------------
+    // ADMIN (dashboard stats)
+    // ------------------------------------------------------------------
+    getAdminStats() {
+      return this.get('?endpoint=admin&action=stats');
+    }
+  
+    // ------------------------------------------------------------------
+    // USERS (admin only)
+    // ------------------------------------------------------------------
+    getUsers(params = {}) {
+      return this.get('?endpoint=users', params);
+    }
+  
+    getUserById(id) {
+      return this.get('?endpoint=users', { id });
+    }
+  
+    updateUserRole(id, role) {
+      return this.put('?endpoint=users', { role }, false, { id });
+    }
+  
+    deleteUser(id) {
+      return this.delete('?endpoint=users', { id });
+    }
+  }
+  
+  // Create and export a singleton instance with relative base URL (change if needed)
+  const apiClient = new ApiClient('');
+  
+  export default apiClient;
