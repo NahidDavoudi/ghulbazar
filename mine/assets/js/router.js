@@ -47,40 +47,22 @@
   }
 
   /**
-   * Lazy-load a page script from assets/js/pages/<name>.js
-   * Calls window.__pageInit_<name>() after load if defined.
+   * pages.js is pre-loaded — no lazy loading needed.
+   * Trigger the init hook registered via Router.onEnter().
+   * Retries if pages.js hasn't finished parsing yet.
    */
   function loadPageScript(name, params) {
-    const src = `assets/js/pages/${name}.js`;
-
-    if (loadedScripts.has(name)) {
-      // Script already in DOM – just (re)initialise
-      triggerPageInit(name, params);
-      return;
-    }
-
-    const tag    = document.createElement('script');
-    tag.src      = src;
-    tag.type     = 'text/javascript';
-    tag.onload   = () => {
-      loadedScripts.add(name);
-      triggerPageInit(name, params);
-    };
-    tag.onerror  = () =>
-      console.warn(`[Router] Could not load script: ${src}`);
-    document.body.appendChild(tag);
+    _triggerInit(name, params, 0);
   }
 
-  /**
-   * Call the page's init hook if it registered one.
-   * Convention: window.__pageInit = function(params){...}
-   * set by each page script, OR fall back to the legacy
-   * global functions that already exist in the codebase.
-   */
-  function triggerPageInit(name, params) {
-    const fnName = `__pageInit_${name}`;
-    if (typeof window[fnName] === 'function') {
-      window[fnName](params);
+  function _triggerInit(name, params, attempt) {
+    const fn = window[`__pageInit_${name}`];
+    if (typeof fn === 'function') {
+      fn(params);
+    } else if (attempt < 20) {
+      setTimeout(() => _triggerInit(name, params, attempt + 1), 50);
+    } else {
+      console.warn(`[Router] No init handler found for: ${name}`);
     }
   }
 
