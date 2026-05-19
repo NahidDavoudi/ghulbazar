@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "lucide": "^1.16.0",
+    "swiper": "^12.1.4",
+    "tailwindcss": "^4.3.0"
+  }
+}
