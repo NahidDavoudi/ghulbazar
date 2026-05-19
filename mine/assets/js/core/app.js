@@ -32,7 +32,8 @@ export function productCard(p) {
       <div class="relative overflow-hidden aspect-square">
         <img src="${img}" alt="${p.name}" loading="lazy"
              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-             onerror="this.src='https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=400&fit=crop'">
+             onerror="this.src='assets/images/placeholder.png'">
+        
         ${p.badge ? `<span class="absolute top-3 right-3 bg-dark/80 text-muted text-[10px] px-2.5 py-1 rounded-full backdrop-blur-sm">${p.badge}</span>` : ''}
         ${(p.stock <= 2 && p.stock > 0) ? `<span class="absolute top-3 left-3 bg-accent/90 text-white text-[10px] px-2.5 py-1 rounded-full">آخرین موجودی</span>` : ''}
       </div>
