@@ -74,7 +74,7 @@
       if (redirect) {
         location.href = redirect;
       } else if (data.user?.role === 'admin') {
-        location.href = 'admin/index.html';
+        location.href = 'admin.html';
       } else {
         location.href = 'app.html#/';
       }
