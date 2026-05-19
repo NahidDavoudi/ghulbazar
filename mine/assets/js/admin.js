@@ -137,7 +137,66 @@
       loading(true);
       const s = await API.admin.stats();
       loading(false);
-
+      function renderWeeklyChart(data, labels) {
+        const container = document.getElementById('weeklyChart');
+        if (!container) return;
+        const max = Math.max(...data, 1);
+        container.innerHTML = '';
+        data.forEach((value, idx) => {
+            const percent = (value / max) * 100;
+            const bar = document.createElement('div');
+            bar.className = 'flex-1 flex flex-col items-center gap-2';
+            bar.innerHTML = `
+                <div class="w-full bg-red-100 dark:bg-red-900/30 rounded-full overflow-hidden" style="height: 120px; display: flex; flex-direction: column-reverse;">
+                    <div class="bg-red-700 rounded-full transition-all duration-500" style="height: ${percent}%; width: 100%;"></div>
+                </div>
+                <span class="text-xs text-stone-500">${labels[idx]}</span>
+                <span class="text-xs font-bold text-stone-700 dark:text-stone-300">${API.utils.formatPrice(value)}</span>
+            `;
+            container.appendChild(bar);
+        });
+    }
+    
+    function renderOrderStatusChart(statusCounts) {
+        const container = document.getElementById('orderStatusChart');
+        if (!container) return;
+        const statusNames = {
+            pending: 'در انتظار',
+            paid: 'پرداخت شده',
+            shipped: 'ارسال شده',
+            delivered: 'تحویل داده',
+            cancelled: 'لغو شده'
+        };
+        const colors = {
+            pending: 'bg-yellow-500',
+            paid: 'bg-blue-500',
+            shipped: 'bg-purple-500',
+            delivered: 'bg-green-500',
+            cancelled: 'bg-stone-400'
+        };
+        const total = Object.values(statusCounts).reduce((a,b) => a+b, 0);
+        if (total === 0) {
+            container.innerHTML = '<div class="text-center text-stone-400 py-10">هیچ سفارشی وجود ندارد</div>';
+            return;
+        }
+        container.innerHTML = '';
+        for (const [status, count] of Object.entries(statusCounts)) {
+            const percent = (count / total) * 100;
+            const div = document.createElement('div');
+            div.className = 'space-y-1';
+            div.innerHTML = `
+                <div class="flex justify-between text-sm">
+                    <span>${statusNames[status] || status}</span>
+                    <span class="font-bold">${count}</span>
+                </div>
+                <div class="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-2 overflow-hidden">
+                    <div class="${colors[status] || 'bg-stone-500'} h-2 rounded-full" style="width: ${percent}%"></div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+    }
+    
       text('stat-products',  s.total_products?.toLocaleString('fa-IR')  ?? '۰');
       text('stat-total-orders',    s.total_orders?.toLocaleString('fa-IR')    ?? '۰');
       text('stat-total-revenue',   API.utils.formatPrice(s.total_revenue      ?? 0));
