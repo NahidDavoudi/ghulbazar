@@ -12,7 +12,7 @@
        AUTH CHECK
     ══════════════════════════════════════════════════════════ */
     if (!API.auth.isLoggedIn() || !API.auth.isAdmin()) {
-      location.replace('../login.html');
+      location.replace('login.html');
       return;
     }
   
