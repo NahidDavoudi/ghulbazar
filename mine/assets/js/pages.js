@@ -457,7 +457,7 @@
         <div class="bg-[#2d161a] border border-[#47242a] rounded-xl p-4 flex gap-4 items-center" id="ci-${item.id}">
           <img src="${item.image || ''}" alt="${item.name}"
                class="w-20 h-20 rounded-lg object-cover shrink-0"
-               onerror="this.src='https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=200&h=200&fit=crop'">
+               onerror="this.src='assets/images/placeholder.png?w=200&h=200&fit=crop'">
           <div class="flex-1 text-right min-w-0">
             <h3 class="font-medium mb-1 truncate">
               <a href="${hashHref('product', {id: item.id})}" data-link class="hover:text-[#c8939c]">${item.name}</a>

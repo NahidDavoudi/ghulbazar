@@ -194,7 +194,7 @@
             <div class="flex items-center gap-3">
               <img src="${img}" alt="${p.name}"
                    class="w-12 h-12 rounded-xl object-cover bg-stone-100 dark:bg-stone-800"
-                   onerror="this.src='../assets/images/placeholder.png'">
+                   onerror="this.src='assets/images/placeholder.png'">
               <div>
                 <p class="font-medium text-stone-800 dark:text-white text-sm">${p.name}</p>
                 <p class="text-xs text-stone-400">${p.category_name || '—'}</p>

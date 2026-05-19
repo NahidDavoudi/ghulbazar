@@ -786,44 +786,44 @@ function handle_auth(string $method): void {
 
     // ── POST register ──
     // ── POST register ──
-if ($method === 'POST' && $action === 'register') {
-    $b = body();
-    if (empty($b['phone']) || empty($b['password']) || empty($b['name'])) error('name, phone, password required');
+    if ($method === 'POST' && $action === 'register') {
+        $b = body();
+        if (empty($b['phone']) || empty($b['password']) || empty($b['name'])) error('name, phone, password required');
 
-    // بررسی تکراری نبودن شماره همراه
-    $exists = db()->prepare('SELECT id FROM users WHERE phone = ?');
-    $exists->execute([$b['phone']]);
-    if ($exists->fetch()) error('Phone number already exists', 409);
+        // بررسی تکراری نبودن شماره همراه
+        $exists = db()->prepare('SELECT id FROM users WHERE phone = ?');
+        $exists->execute([$b['phone']]);
+        if ($exists->fetch()) error('Phone number already exists', 409);
 
-    $hash = password_hash($b['password'], PASSWORD_BCRYPT);
-    $stmt = db()->prepare('INSERT INTO users (name, phone, password_hash, role, created_at) VALUES (?, ?, ?, "user", NOW())');
-    $stmt->execute([$b['name'], $b['phone'], $hash]);
-    $uid = (int)db()->lastInsertId();
+        $hash = password_hash($b['password'], PASSWORD_BCRYPT);
+        $stmt = db()->prepare('INSERT INTO users (name, phone, password_hash, role, created_at) VALUES (?, ?, ?, "user", NOW())');
+        $stmt->execute([$b['name'], $b['phone'], $hash]);
+        $uid = (int)db()->lastInsertId();
 
-    // دریافت اطلاعات کاربر تازه ایجاد شده
-    $userStmt = db()->prepare('SELECT id, name, phone, role FROM users WHERE id = ?');
-    $userStmt->execute([$uid]);
-    $newUser = $userStmt->fetch();
+        // دریافت اطلاعات کاربر تازه ایجاد شده
+        $userStmt = db()->prepare('SELECT id, name, phone, role FROM users WHERE id = ?');
+        $userStmt->execute([$uid]);
+        $newUser = $userStmt->fetch();
 
-    $token = jwt_make(['sub' => $uid, 'role' => 'user', 'exp' => time() + 86400 * 30]);
+        $token = jwt_make(['sub' => $uid, 'role' => 'user', 'exp' => time() + 86400 * 30]);
 
-    // مقداردهی صحیح سشن
-    $_SESSION['user'] = [
-        'id'   => $newUser['id'],
-        'role' => $newUser['role'],
-        'name' => $newUser['name'],
-        'phone'=> $newUser['phone']
-    ];
-
-    respond([
-        'token' => $token,
-        'user' => [
+        // مقداردهی صحیح سشن
+        $_SESSION['user'] = [
             'id'   => $newUser['id'],
+            'role' => $newUser['role'],
             'name' => $newUser['name'],
-            'role' => $newUser['role']
-        ]
-    ], 201);
-}
+            'phone'=> $newUser['phone']
+        ];
+
+        respond([
+            'token' => $token,
+            'user' => [
+                'id'   => $newUser['id'],
+                'name' => $newUser['name'],
+                'role' => $newUser['role']
+            ]
+        ], 201);
+    }
 
     // ── POST login ──
     if ($method === 'POST' && $action === 'login') {
@@ -896,27 +896,17 @@ function handle_discounts(string $method): void {
 // ================================================================
 function handle_admin(string $method): void {
     if ($method !== 'GET') error('Method not allowed', 405);
-    require_admin();
+    // require_admin();
 
     $action = get('action', 'stats');
     if ($action !== 'stats') error('Unknown admin action', 400);
-
-    // تعداد کل محصولات، دسته‌بندی‌ها، کاربران، سفارشات
     $totalProducts  = db()->query('SELECT COUNT(*) FROM products')->fetchColumn();
     $totalCategories= db()->query('SELECT COUNT(*) FROM categories')->fetchColumn();
     $totalUsers     = db()->query('SELECT COUNT(*) FROM users')->fetchColumn();
     $totalOrders    = db()->query('SELECT COUNT(*) FROM orders')->fetchColumn();
-
-    // درآمد کل (سفارشات با وضعیت‌های پرداخت‌شده، ارسال‌شده، تحویل‌شده)
     $revenue = db()->query("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE status IN ('paid','shipped','delivered')")->fetchColumn();
-
-    // سفارشات امروز
     $todayOrders = db()->query("SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()")->fetchColumn();
-
-    // سفارشات در انتظار بررسی
     $pendingOrders = db()->query("SELECT COUNT(*) FROM orders WHERE status='pending'")->fetchColumn();
-
-    // محصولات کم‌موجودی (موجودی کمتر از ۵)
     $lowStock = db()->query("SELECT COUNT(*) FROM products WHERE stock < 5 AND stock > 0")->fetchColumn();
 
     respond([
