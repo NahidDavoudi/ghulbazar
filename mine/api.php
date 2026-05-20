@@ -155,9 +155,18 @@ function handle_products(string $method): void {
         if (!in_array($file['type'], $allowed)) {
             error('Invalid image type. Allowed: jpeg, png, webp', 400);
         }
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('prod_') . '.' . $ext;
-        $dest = 'uploads/' . $filename;
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $filename = uniqid('prod_') . '_' . time() . '.' . $ext;
+
+        // ساخت پوشه اگه وجود نداره
+        $uploadDir = __DIR__ . '/uploads/products/';
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                error('Cannot create upload directory', 500);
+            }
+        }
+
+        $dest = $uploadDir . $filename;
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
             error('Failed to upload image', 500);
         }
@@ -165,9 +174,9 @@ function handle_products(string $method): void {
         $sortOrder = (int)($_POST['sort_order'] ?? 0);
 
         db()->prepare('INSERT INTO product_images (product_id, image_url, is_main, sort_order) VALUES (?, ?, ?, ?)')
-            ->execute([$productId, '/uploads/' . $filename, $isMain, $sortOrder]);
+            ->execute([$productId, '/uploads/products/' . $filename, $isMain, $sortOrder]);
 
-        respond(['message' => 'Image uploaded', 'url' => '/uploads/' . $filename], 201);
+        respond(['message' => 'Image uploaded', 'url' => '/uploads/products/' . $filename], 201);
     }
 
     $id = get('id');
@@ -896,18 +905,64 @@ function handle_discounts(string $method): void {
 // ================================================================
 function handle_admin(string $method): void {
     if ($method !== 'GET') error('Method not allowed', 405);
-    // require_admin();
+    require_admin();
 
     $action = get('action', 'stats');
     if ($action !== 'stats') error('Unknown admin action', 400);
-    $totalProducts  = db()->query('SELECT COUNT(*) FROM products')->fetchColumn();
-    $totalCategories= db()->query('SELECT COUNT(*) FROM categories')->fetchColumn();
-    $totalUsers     = db()->query('SELECT COUNT(*) FROM users')->fetchColumn();
-    $totalOrders    = db()->query('SELECT COUNT(*) FROM orders')->fetchColumn();
-    $revenue = db()->query("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE status IN ('paid','shipped','delivered')")->fetchColumn();
-    $todayOrders = db()->query("SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()")->fetchColumn();
-    $pendingOrders = db()->query("SELECT COUNT(*) FROM orders WHERE status='pending'")->fetchColumn();
-    $lowStock = db()->query("SELECT COUNT(*) FROM products WHERE stock < 5 AND stock > 0")->fetchColumn();
+
+    // ── آمار کلی ──
+    $totalProducts   = db()->query('SELECT COUNT(*) FROM products')->fetchColumn();
+    $totalCategories = db()->query('SELECT COUNT(*) FROM categories')->fetchColumn();
+    $totalUsers      = db()->query('SELECT COUNT(*) FROM users')->fetchColumn();
+    $totalOrders     = db()->query('SELECT COUNT(*) FROM orders')->fetchColumn();
+    $revenue         = db()->query("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE status IN ('paid','shipped','delivered')")->fetchColumn();
+    $todayOrders     = db()->query("SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()")->fetchColumn();
+    $pendingOrders   = db()->query("SELECT COUNT(*) FROM orders WHERE status='pending'")->fetchColumn();
+    $lowStock        = db()->query("SELECT COUNT(*) FROM products WHERE stock < 5 AND stock > 0")->fetchColumn();
+
+    // ── درآمد ۷ روز اخیر (برای نمودار میله‌ای) ──
+    $weeklyStmt = db()->query("
+        SELECT
+            DATE(created_at) AS date,
+            COALESCE(SUM(total_amount), 0) AS amount
+        FROM orders
+        WHERE
+            created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+            AND status IN ('paid','shipped','delivered')
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+    ");
+    $weeklyRaw = $weeklyStmt->fetchAll();
+    // پر کردن روزهای خالی
+    $weeklyMap = [];
+    foreach ($weeklyRaw as $row) {
+        $weeklyMap[$row['date']] = (int)$row['amount'];
+    }
+    $weekly = [];
+    for ($i = 6; $i >= 0; $i--) {
+        $d = date('Y-m-d', strtotime("-$i days"));
+        $label = date('m/d', strtotime($d));
+        $weekly[] = ['date' => $label, 'amount' => $weeklyMap[$d] ?? 0];
+    }
+
+    // ── وضعیت سفارش‌ها (برای دونات چارت) ──
+    $statusStmt = db()->query("
+        SELECT status, COUNT(*) AS cnt
+        FROM orders
+        GROUP BY status
+    ");
+    $orderStatus = [];
+    $statusLabels = [
+        'pending'   => 'در انتظار',
+        'paid'      => 'پرداخت شده',
+        'shipped'   => 'ارسال شده',
+        'delivered' => 'تحویل داده',
+        'cancelled' => 'لغو شده',
+    ];
+    foreach ($statusStmt->fetchAll() as $row) {
+        $label = $statusLabels[$row['status']] ?? $row['status'];
+        $orderStatus[$label] = (int)$row['cnt'];
+    }
 
     respond([
         'total_products'   => (int)$totalProducts,
@@ -918,6 +973,8 @@ function handle_admin(string $method): void {
         'today_orders'     => (int)$todayOrders,
         'pending_orders'   => (int)$pendingOrders,
         'low_stock_items'  => (int)$lowStock,
+        'weekly_revenue'   => $weekly,
+        'order_status'     => $orderStatus,
     ]);
 }
 
