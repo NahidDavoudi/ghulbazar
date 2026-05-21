@@ -127,8 +127,7 @@
     const max = Math.max(...data.map(d => +d.amount), 1);
 
     // wrapper
-    el.style.cssText = 'display:flex;align-items:flex-end;gap:8px;padding:0 8px;height:100%;position:relative;';
-
+    el.style.cssText = 'display:flex;align-items:flex-end;gap:8px;padding:0 8px;height:280px;position:relative;overflow:visible;';
     // Y-axis lines (4 خط راهنما)
     const guide = document.createElement('div');
     guide.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;padding-bottom:28px;';
@@ -148,8 +147,7 @@
       const pct = Math.max(2, Math.round((+d.amount / max) * 100));
       const amt = Number(d.amount).toLocaleString('fa-IR');
       const col = document.createElement('div');
-      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;';
-
+      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;height:100%;';
       // tooltip
       const tip = document.createElement('div');
       tip.style.cssText = `
@@ -160,8 +158,7 @@
 
       // bar wrapper
       const barWrap = document.createElement('div');
-      barWrap.style.cssText = 'width:100%;flex:1;display:flex;align-items:flex-end;';
-
+      barWrap.style.cssText = 'width:100%;flex:1;display:flex;align-items:flex-end;min-height:0;';
       const bar = document.createElement('div');
       bar.style.cssText = `
         width:100%;height:${pct}%;min-height:4px;border-radius:6px 6px 0 0;
