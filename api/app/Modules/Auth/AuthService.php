@@ -1,6 +1,7 @@
 <?php
 namespace App\Modules\Auth;
 use App\Modules\User\UserModel;
+use App\Core\Http\Response;
 class AuthService
 {
     protected UserModel $userModel;
@@ -8,5 +9,24 @@ class AuthService
     {
         $this->userModel = new UserModel();
     }
-    
+    public function register($data){
+        $user = $this->userModel->findByPhone($data['phone']);
+        if(!$user) {
+            Response::error('User not found', 404);
+        }
+        $data =[
+            'phone' => $data['phone'],
+            'password' => password_hash($data['password'] , PASSWORD_DEFAULT),
+            'full_name' => $data['full_name'],
+            'role' => 'costomer'
+        ];
+        $userId = $this->userModel->create($data);
+        $result =  [
+            'success' => true,
+            'user_id' => $userId,
+            'message' => 'Registration completed successfully.'
+        ];
+        Response::success($result ,200);
+
+    }
 }
