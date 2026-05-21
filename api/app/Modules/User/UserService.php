@@ -19,21 +19,30 @@ class UserService{
     public function updateName(int $id, string $name): bool {
         $user = $this->userModel->findById($id);
         if(!$user){
-            Response::error("کاربر مورد نظر یافت نشد" , 422);
+            Response::error("User not found", 422);
         }
         return $this->userModel->update($user['id'] , ['name' => $name]);
     }
     public function updatePhone(int $id, string $phone): bool {
         $user = $this->userModel->findById($id);
         if(!$user){
-            Response::error("کاربر مورد نظر یافت نشد" , 422);
+            Response::error("User not found", 422);
         }
-         // ۲. شماره جدید قبلاً ثبت نشده باشه
          $exists = $this->userModel->findByPhone($phone);
          if ($exists) {
-            Response::error("کاربر با این شماره تلفن وجود دارد" , 422);
+            Response::error("A user with this phone number already exists", 422);
         }        
-        // ۳. آپدیت کن
         return $this->userModel->update($user['id'] , ['phone' => $phone]);
+    }
+    public function updatePassword($id , $current , $new){
+        $user = $this->userModel->findById($id);
+        if(!$user){
+            Response::error("User not found", 422);
+        }
+        if(!password_verify($current , $user['password_hash'])){
+            Response::error("password is not correct", 422);
+        }
+        $password_hash = password_hash($new , PASSWORD_DEFAULT);
+        $result = $this->userModel->update($user['id'] , ['password_hash' => $password_hash]);
     }
 }
