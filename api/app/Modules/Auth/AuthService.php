@@ -10,8 +10,7 @@ class AuthService
     {
         $this->userModel = new UserModel();
     }
-    public function register($data)
-    {
+    public function register($data){
         $user = $this->userModel->findByPhone($data['phone']);
         if ($user) {
             Response::error('User with this phone already exists', 422);
@@ -38,8 +37,7 @@ class AuthService
         }
     }
 
-    public function login($data)
-    {
+    public function login($data){
         $user = $this->userModel->findByPhone($data['phone']);
         if (!$user) {
             Response::error('User not found', 404);
@@ -53,4 +51,5 @@ class AuthService
         ];
         Response::success($result, 200);
     }
+    
 }

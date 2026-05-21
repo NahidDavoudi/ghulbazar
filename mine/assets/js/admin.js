@@ -113,150 +113,332 @@
      نمودار میله‌ای — Vanilla CSS
      داده: [{date:'mm/dd', amount:1234567}, ...]
   ══════════════════════════════════════════════════════════ */
-  function renderWeeklyChart(data) {
-    const el = $('weeklyChart');
-    if (!el) return;
-    if (!data.length || data.every(d => +d.amount === 0)) {
-      el.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:center;width:100%;color:#a8a29e;font-size:14px;">
-          داده‌ای برای نمایش وجود ندارد
-        </div>`;
+// ========== نمودار درآمد هفتگی با D3 (بدون بک‌گراند و خطوط شبکه) ==========
+function renderWeeklyChart(data) {
+  const container = document.getElementById('weeklyChart');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!data?.length || data.every(d => +d.amount === 0)) {
+      container.innerHTML = `<div class="text-stone-400 text-center w-full py-20">داده‌ای برای نمایش وجود ندارد</div>`;
       return;
-    }
-
-    const max = Math.max(...data.map(d => +d.amount), 1);
-
-    // wrapper
-    el.style.cssText = 'display:flex;align-items:flex-end;gap:8px;padding:0 8px;height:280px;position:relative;overflow:visible;';
-    // Y-axis lines (4 خط راهنما)
-    const guide = document.createElement('div');
-    guide.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;padding-bottom:28px;';
-    [100,75,50,25,0].forEach(pct => {
-      const line = document.createElement('div');
-      line.style.cssText = 'width:100%;border-top:1px dashed #e7e5e4;position:relative;';
-      const label = document.createElement('span');
-      label.style.cssText = 'position:absolute;right:-4px;top:-9px;font-size:9px;color:#a8a29e;transform:translateX(100%);';
-      label.textContent = pct === 0 ? '۰' : API.utils.formatPrice(Math.round(max * pct / 100)).replace(' تومان','');
-      line.appendChild(label);
-      guide.appendChild(line);
-    });
-    el.innerHTML = '';
-    el.appendChild(guide);
-
-    data.forEach(d => {
-      const pct = Math.max(2, Math.round((+d.amount / max) * 100));
-      const amt = Number(d.amount).toLocaleString('fa-IR');
-      const col = document.createElement('div');
-      col.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;height:100%;';
-      // tooltip
-      const tip = document.createElement('div');
-      tip.style.cssText = `
-        position:absolute;bottom:calc(${pct}% + 32px);left:50%;transform:translateX(-50%);
-        background:#1c1917;color:#fff;font-size:11px;padding:4px 8px;border-radius:6px;
-        white-space:nowrap;opacity:0;transition:opacity .15s;pointer-events:none;z-index:10;`;
-      tip.textContent = amt + ' ت';
-
-      // bar wrapper
-      const barWrap = document.createElement('div');
-      barWrap.style.cssText = 'width:100%;flex:1;display:flex;align-items:flex-end;min-height:0;';
-      const bar = document.createElement('div');
-      bar.style.cssText = `
-        width:100%;height:${pct}%;min-height:4px;border-radius:6px 6px 0 0;
-        background:linear-gradient(to top,#7f1d1d,#dc2626);
-        transition:height .4s cubic-bezier(.4,0,.2,1), filter .15s;
-        cursor:pointer;`;
-      bar.addEventListener('mouseenter', () => { tip.style.opacity='1'; bar.style.filter='brightness(1.2)'; });
-      bar.addEventListener('mouseleave', () => { tip.style.opacity='0'; bar.style.filter=''; });
-
-      barWrap.appendChild(bar);
-
-      // label
-      const lbl = document.createElement('div');
-      lbl.style.cssText = 'font-size:10px;color:#a8a29e;white-space:nowrap;padding-bottom:2px;height:28px;display:flex;align-items:center;';
-      lbl.textContent = d.date || '';
-
-      col.appendChild(tip);
-      col.appendChild(barWrap);
-      col.appendChild(lbl);
-      el.appendChild(col);
-    });
   }
 
-  /* ══════════════════════════════════════════════════════════
-     دونات چارت — Vanilla CSS با conic-gradient
-     داده: { 'در انتظار': 10, 'پرداخت شده': 25, ... }
-  ══════════════════════════════════════════════════════════ */
-  function renderOrderStatusChart(data) {
-    const el = $('orderStatusChart');
-    if (!el) return;
+  // ابعاد - افزایش margin چپ برای فاصله بیشتر اعداد
+  const margin = { top: 20, right: 20, bottom: 50, left: 65 };
+  const width = container.clientWidth - margin.left - margin.right;
+  const height = 280 - margin.top - margin.bottom;
 
-    const entries = Object.entries(data).filter(([,v]) => v > 0);
-    if (!entries.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px 0;color:#a8a29e;font-size:14px;">داده‌ای موجود نیست</div>';
-      return;
-    }
+  const svg = d3.select(container)
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .style('background', 'transparent')  // بدون بک‌گراند
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    const COLORS = ['#b91c1c','#1d4ed8','#7c3aed','#15803d','#78716c','#c2410c'];
-    const total  = entries.reduce((s,[,v])=>s+v, 0) || 1;
+  const x = d3.scaleBand()
+      .domain(data.map(d => d.date))
+      .range([0, width])
+      .padding(0.35);
 
-    // ساخت conic-gradient
-    let deg = 0;
-    const gradient = entries.map(([,v],i) => {
-      const slice = (v / total) * 360;
-      const color = COLORS[i % COLORS.length];
-      const part  = `${color} ${deg}deg ${deg + slice}deg`;
-      deg += slice;
-      return part;
-    }).join(', ');
+  const yMax = d3.max(data, d => +d.amount) || 1;
+  const y = d3.scaleLinear()
+      .domain([0, yMax])
+      .range([height, 0]);
 
-    el.innerHTML = '';
-    el.style.cssText = 'display:flex;flex-direction:column;gap:16px;';
+  // فرمت خلاصه اعداد (K, M)
+  const formatAbbreviate = (num) => {
+      if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(0) + 'K';
+      return num.toString();
+  };
 
-    // دونات
-    const donutWrap = document.createElement('div');
-    donutWrap.style.cssText = 'display:flex;align-items:center;justify-content:center;';
+  // محور Y بدون خطوط شبکه، فقط خط محور و تیک‌ها
+  const yAxis = d3.axisLeft(y)
+      .ticks(4)
+      .tickFormat(d => formatAbbreviate(d))
+      .tickPadding(12)   // افزایش فاصله اعداد از نمودار
+      .tickSize(0)       // بدون خطوط تیک (اختیاری) یا می‌تونید 5 بذارید برای خطوط کوچک
+      .tickSizeOuter(0); // بدون خط انتهایی
 
-    const donut = document.createElement('div');
-    donut.style.cssText = `
-      width:160px;height:160px;border-radius:50%;
-      background:conic-gradient(${gradient});
-      position:relative;flex-shrink:0;`;
+  const yAxisGroup = svg.append('g')
+      .call(yAxis)
+      .style('font-size', '11px')
+      .style('fill', '#78716c');
 
-    // حلقه سفید وسط
-    const hole = document.createElement('div');
-    hole.style.cssText = `
-      position:absolute;inset:28px;background:#fff;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;
-      flex-direction:column;text-align:center;`;
-    hole.innerHTML = `
-      <span style="font-size:22px;font-weight:700;color:#1c1917;">${total.toLocaleString('fa-IR')}</span>
-      <span style="font-size:11px;color:#a8a29e;margin-top:2px;">سفارش</span>`;
+  // حذف خطوط شبکه (خطوط دش) – هیچ خطی نباید کشیده بشه
+  yAxisGroup.selectAll('.tick line').remove();   // پاک کردن خطوط تیک‌ها
+  yAxisGroup.selectAll('.domain').attr('stroke', '#e7e5e4'); // فقط خط اصلی محور
 
-    donut.appendChild(hole);
-    donutWrap.appendChild(donut);
-    el.appendChild(donutWrap);
+  // محور X با فاصله بیشتر
+  const xAxis = d3.axisBottom(x)
+      .tickSize(0)
+      .tickPadding(10);
 
-    // legend
-    const legend = document.createElement('div');
-    legend.style.cssText = 'display:flex;flex-direction:column;gap:8px;';
-    entries.forEach(([label, val], i) => {
-      const pct   = Math.round((val / total) * 100);
-      const color = COLORS[i % COLORS.length];
-      const row   = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;';
-      row.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px;min-width:0;">
-          <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></span>
-          <span style="font-size:12px;color:#57534e;white-space:nowrap;">${label}</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-          <span style="font-size:12px;font-weight:600;color:#1c1917;">${val.toLocaleString('fa-IR')}</span>
-          <span style="font-size:11px;color:#a8a29e;">(${pct}٪)</span>
-        </div>`;
-      legend.appendChild(row);
-    });
-    el.appendChild(legend);
+  const xAxisGroup = svg.append('g')
+      .attr('transform', `translate(0,${height})`)
+      .call(xAxis)
+      .style('font-size', '11px')
+      .style('fill', '#78716c');
+
+  xAxisGroup.selectAll('.tick text')
+      .attr('transform', 'rotate(-20)')
+      .style('text-anchor', 'end')
+      .attr('dx', '-0.5em')
+      .attr('dy', '0.3em');
+
+  xAxisGroup.select('.domain').attr('stroke', '#e7e5e4');
+  xAxisGroup.selectAll('.tick line').remove();
+
+  // گرادیان برای میله‌ها
+  const defs = svg.append('defs');
+  const gradient = defs.append('linearGradient')
+      .attr('id', 'barGradient')
+      .attr('gradientTransform', 'rotate(90)');
+  gradient.append('stop').attr('offset', '0%').attr('stop-color', '#dc2626');
+  gradient.append('stop').attr('offset', '100%').attr('stop-color', '#991b1b');
+
+  // انیمیشن و میله‌ها
+  svg.selectAll('.bar')
+      .data(data)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', d => x(d.date))
+      .attr('y', height)
+      .attr('width', x.bandwidth())
+      .attr('height', 0)
+      .attr('fill', 'url(#barGradient)')
+      .attr('rx', 6)
+      .attr('ry', 6)
+      .on('mouseenter', function(ev, d) {
+          d3.select(this)
+              .transition().duration(150)
+              .attr('fill', '#f97316')
+              .attr('filter', 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))');
+          showTooltip(ev, d.date, d.amount);
+      })
+      .on('mouseleave', function() {
+          d3.select(this)
+              .transition().duration(150)
+              .attr('fill', 'url(#barGradient)')
+              .attr('filter', '');
+          hideTooltip();
+      })
+      .transition()
+      .duration(800)
+      .delay((d, i) => i * 100)
+      .attr('y', d => y(+d.amount))
+      .attr('height', d => height - y(+d.amount));
+
+  // Tooltip
+  const tooltip = d3.select('body').append('div')
+      .attr('class', 'chart-tooltip')
+      .style('position', 'absolute')
+      .style('background', '#1c1917')
+      .style('color', '#fafaf9')
+      .style('padding', '8px 14px')
+      .style('border-radius', '12px')
+      .style('font-size', '12px')
+      .style('font-weight', '500')
+      .style('pointer-events', 'none')
+      .style('opacity', 0)
+      .style('transition', 'opacity 0.2s')
+      .style('z-index', 100)
+      .style('box-shadow', '0 4px 12px rgba(0,0,0,0.2)')
+      .style('backdrop-filter', 'blur(4px)')
+      .style('white-space', 'nowrap');
+
+  function showTooltip(ev, date, amount) {
+      tooltip.html(`${date}<br>💰 ${API.utils.formatPrice(amount)}`)
+          .style('left', (ev.pageX + 12) + 'px')
+          .style('top', (ev.pageY - 30) + 'px')
+          .transition()
+          .duration(100)
+          .style('opacity', 1);
   }
+  function hideTooltip() {
+      tooltip.transition().duration(200).style('opacity', 0);
+  }
+}
+
+// ========== نمودار دونات (بدون تغییر در بک‌گراند، فقط شفافیت) ==========
+function renderOrderStatusChart(data) {
+  const container = document.getElementById('orderStatusChart');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const entries = Object.entries(data).filter(([,v]) => v > 0);
+  if (!entries.length) {
+      container.innerHTML = '<div class="text-stone-400 text-center py-20">داده‌ای موجود نیست</div>';
+      return;
+  }
+
+  const total = entries.reduce((s, [,v]) => s + v, 0);
+  const width = container.clientWidth;
+  const size = Math.min(width - 40, 220);
+  const radius = size / 2;
+  const innerRadius = radius * 0.65;
+
+  const svg = d3.select(container)
+      .append('svg')
+      .attr('width', size)
+      .attr('height', size)
+      .style('background', 'transparent')
+      .append('g')
+      .attr('transform', `translate(${size/2},${size/2})`);
+
+  const color = d3.scaleOrdinal()
+      .domain(entries.map(([l]) => l))
+      .range(['#dc2626', '#3b82f6', '#8b5cf6', '#10b981', '#78716c', '#f59e0b']);
+
+  const pie = d3.pie().value(([,v]) => v).sort(null);
+  const arc = d3.arc().innerRadius(innerRadius).outerRadius(radius);
+  const arcs = pie(entries);
+
+  svg.selectAll('path')
+      .data(arcs)
+      .enter()
+      .append('path')
+      .attr('d', arc)
+      .attr('fill', d => color(d.data[0]))
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 2)
+      .attr('cursor', 'pointer')
+      .transition()
+      .duration(600)
+      .attrTween('d', function(d) {
+          const interpolate = d3.interpolate({ startAngle: 0, endAngle: 0 }, d);
+          return t => arc(interpolate(t));
+      })
+      .on('end', function() {
+          d3.select(this)
+              .on('mouseenter', function(ev, d) {
+                  d3.select(this)
+                      .transition().duration(150)
+                      .attr('transform', 'scale(1.02)')
+                      .attr('stroke-width', 3);
+                  showDonutTooltip(ev, d.data[0], d.data[1], (d.data[1]/total*100).toFixed(1));
+              })
+              .on('mouseleave', function() {
+                  d3.select(this)
+                      .transition().duration(150)
+                      .attr('transform', 'scale(1)')
+                      .attr('stroke-width', 2);
+                  hideDonutTooltip();
+              });
+      });
+
+  // انیمیشن شمارش وسط
+  const centerText = svg.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '0.3em')
+      .style('font-size', '22px')
+      .style('font-weight', 'bold')
+      .style('fill', '#1c1917')
+      .text('0');
+
+  svg.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '1.8em')
+      .style('font-size', '11px')
+      .style('fill', '#a8a29e')
+      .text('سفارش');
+
+  let current = 0;
+  const step = Math.ceil(total / 50);
+  const counter = setInterval(() => {
+      current += step;
+      if (current >= total) {
+          clearInterval(counter);
+          current = total;
+      }
+      centerText.text(current.toLocaleString('fa-IR'));
+  }, 20);
+
+  // Tooltip
+  const donutTooltip = d3.select('body').append('div')
+      .attr('class', 'donut-tooltip')
+      .style('position', 'absolute')
+      .style('background', '#292524')
+      .style('color', '#fafaf9')
+      .style('padding', '6px 12px')
+      .style('border-radius', '10px')
+      .style('font-size', '12px')
+      .style('font-weight', '500')
+      .style('pointer-events', 'none')
+      .style('opacity', 0)
+      .style('transition', 'opacity 0.2s')
+      .style('z-index', 100)
+      .style('box-shadow', '0 2px 8px rgba(0,0,0,0.15)');
+
+  function showDonutTooltip(ev, label, value, percent) {
+      donutTooltip.html(`${label}<br>${value.toLocaleString('fa-IR')} سفارش (${percent}%)`)
+          .style('left', (ev.pageX + 10) + 'px')
+          .style('top', (ev.pageY - 28) + 'px')
+          .transition().duration(100).style('opacity', 1);
+  }
+  function hideDonutTooltip() {
+      donutTooltip.transition().duration(200).style('opacity', 0);
+  }
+
+  // Legend (بدون تغییر)
+  const legendContainer = d3.select(container)
+      .append('div')
+      .style('display', 'flex')
+      .style('flex-direction', 'column')
+      .style('gap', '8px')
+      .style('margin-top', '24px')
+      .style('width', '100%');
+
+  entries.forEach(([label, val]) => {
+      const pct = Math.round((val / total) * 100);
+      const row = legendContainer.append('div')
+          .style('display', 'flex')
+          .style('align-items', 'center')
+          .style('justify-content', 'space-between')
+          .style('gap', '12px')
+          .style('cursor', 'pointer')
+          .style('padding', '4px 8px')
+          .style('border-radius', '10px')
+          .style('transition', 'background 0.2s')
+          .on('mouseenter', function() {
+              d3.select(this).style('background', '#f5f5f4');
+              svg.selectAll('path')
+                  .filter(d => d.data[0] === label)
+                  .transition().duration(150)
+                  .attr('stroke-width', 3)
+                  .attr('transform', 'scale(1.02)');
+          })
+          .on('mouseleave', function() {
+              d3.select(this).style('background', 'transparent');
+              svg.selectAll('path')
+                  .filter(d => d.data[0] === label)
+                  .transition().duration(150)
+                  .attr('stroke-width', 2)
+                  .attr('transform', 'scale(1)');
+          });
+
+      row.append('div')
+          .style('display', 'flex')
+          .style('align-items', 'center')
+          .style('gap', '8px')
+          .html(`
+              <span style="width:12px;height:12px;border-radius:50%;background:${color(label)};display:inline-block;"></span>
+              <span style="font-size:13px;color:#44403c;font-weight:500;">${label}</span>
+          `);
+
+      row.append('div')
+          .style('display', 'flex')
+          .style('align-items', 'center')
+          .style('gap', '6px')
+          .html(`
+              <span style="font-size:13px;font-weight:600;color:#1c1917;">${val.toLocaleString('fa-IR')}</span>
+              <span style="font-size:11px;color:#a8a29e;background:#f5f5f4;padding:2px 6px;border-radius:20px;">${pct}%</span>
+          `);
+  });
+}   
 
   /* ══ PRODUCTS ═══════════════════════════════════════════════ */
   let _products = [], _categories = [], _editingProdId = null;
