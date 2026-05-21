@@ -1,33 +1,33 @@
 <?php
+// app/Core/Env.php
+
 namespace App\Core;
+
+use RuntimeException;
 
 class Env
 {
+    private static array $data = [];
+    private static bool $loaded = false;
     public static function load($path = null)
     {
-        $path = $path ?? dirname(__DIR__, 2) . '/.env'; // ریشه پروژه
-
+   
+    if (self::$loaded) {
+            return;
+        }
+        $path = $path ?? dirname(__DIR__, 2) . '/.env';
         if (!file_exists($path)) {
-            throw new \RuntimeException(".env فایل یافت نشد: {$path}");
+            throw new RuntimeException(".env file not found at: {$path}");
         }
-
-        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            if (str_starts_with(trim($line), '#')) {
-                continue;
-            }
-            if (str_contains($line, '=')) {
-                [$name, $value] = explode('=', $line, 2);
-                $name = trim($name);
-                $value = trim($value);
-                $value = trim($value, '"\'');
-                putenv("{$name}={$value}");
-                $_ENV[$name] = $value;
-            }
+        self::$data = parse_ini_file($path);
+        foreach (self::$data as $key => $value) {
+            putenv("{$key}={$value}");
+            $_ENV[$key] = $value;
         }
+        self::$loaded = true;
     }
-    public static function get(string $key, mixed $default = null): mixed
+    public static function get(string $key, mixed $default = null)
     {
-        return $_ENV[$key] ?? getenv($key) ?? $default;
+        return self::$data[$key] ?? $_ENV[$key] ?? getenv($key) ?: $default;
     }
 }
