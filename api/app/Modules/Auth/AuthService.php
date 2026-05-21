@@ -51,5 +51,4 @@ class AuthService
         ];
         Response::success($result, 200);
     }
-    
 }
