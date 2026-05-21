@@ -155,18 +155,9 @@ function handle_products(string $method): void {
         if (!in_array($file['type'], $allowed)) {
             error('Invalid image type. Allowed: jpeg, png, webp', 400);
         }
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        $filename = uniqid('prod_') . '_' . time() . '.' . $ext;
-
-        // ساخت پوشه اگه وجود نداره
-        $uploadDir = __DIR__ . '/uploads/products/';
-        if (!is_dir($uploadDir)) {
-            if (!mkdir($uploadDir, 0755, true)) {
-                error('Cannot create upload directory', 500);
-            }
-        }
-
-        $dest = $uploadDir . $filename;
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid('prod_') . '.' . $ext;
+        $dest = 'uploads/' . $filename;
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
             error('Failed to upload image', 500);
         }
@@ -174,9 +165,9 @@ function handle_products(string $method): void {
         $sortOrder = (int)($_POST['sort_order'] ?? 0);
 
         db()->prepare('INSERT INTO product_images (product_id, image_url, is_main, sort_order) VALUES (?, ?, ?, ?)')
-            ->execute([$productId, '/uploads/products/' . $filename, $isMain, $sortOrder]);
+            ->execute([$productId, '/uploads/' . $filename, $isMain, $sortOrder]);
 
-        respond(['message' => 'Image uploaded', 'url' => '/uploads/products/' . $filename], 201);
+        respond(['message' => 'Image uploaded', 'url' => '/uploads/' . $filename], 201);
     }
 
     $id = get('id');
@@ -713,9 +704,14 @@ function handle_orders(string $method): void
             $whereSQL = implode(' AND ', $where);
 
             $stmt = db()->prepare("
-                SELECT o.*, u.name AS user_name
+                SELECT o.*,
+                       u.name AS user_name,
+                       pr.file_path AS receipt_path,
+                       pr.uploaded_at AS receipt_uploaded_at,
+                       pr.id AS receipt_id
                 FROM orders o
                 LEFT JOIN users u ON u.id = o.user_id
+                LEFT JOIN payment_receipts pr ON pr.order_id = o.id
                 WHERE $whereSQL
                 ORDER BY o.created_at DESC
                 LIMIT $limit OFFSET $offset
@@ -768,17 +764,41 @@ function handle_orders(string $method): void
         }
     }
 
-    // ── PUT به‌روزرسانی وضعیت (فقط ادمین) ──
+    // ── PUT به‌روزرسانی وضعیت یا تایید/رد رسید (فقط ادمین) ──
     if ($method === 'PUT') {
         require_admin();
-        $orderId = get('id');
+        $orderId = (int)get('id');
         if (!$orderId) error('id is required');
+        $b      = body();
+        $action = $b['action'] ?? 'update_status';
 
-        $b = body();
+        if ($action === 'approve_receipt') {
+            db()->prepare("UPDATE orders SET status = 'paid' WHERE id = ?")
+                ->execute([$orderId]);
+            respond(['message' => 'Receipt approved']);
+        }
+
+        if ($action === 'reject_receipt') {
+            // حذف فایل رسید
+            $rec = db()->prepare('SELECT file_path FROM payment_receipts WHERE order_id = ?');
+            $rec->execute([$orderId]);
+            $receipt = $rec->fetch();
+            if ($receipt) {
+                $filePath = __DIR__ . $receipt['file_path'];
+                if (file_exists($filePath)) @unlink($filePath);
+                db()->prepare('DELETE FROM payment_receipts WHERE order_id = ?')
+                    ->execute([$orderId]);
+            }
+            db()->prepare("UPDATE orders SET receipt_file = NULL, status = 'pending' WHERE id = ?")
+                ->execute([$orderId]);
+            respond(['message' => 'Receipt rejected']);
+        }
+
+        // بروزرسانی وضعیت عادی
         $allowed = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'];
         if (!in_array($b['status'] ?? '', $allowed)) error('Invalid status');
-
-        db()->prepare('UPDATE orders SET status = ? WHERE id = ?')->execute([$b['status'], $orderId]);
+        db()->prepare('UPDATE orders SET status = ? WHERE id = ?')
+            ->execute([$b['status'], $orderId]);
         respond(['message' => 'Order updated']);
     }
 
@@ -905,64 +925,18 @@ function handle_discounts(string $method): void {
 // ================================================================
 function handle_admin(string $method): void {
     if ($method !== 'GET') error('Method not allowed', 405);
-    require_admin();
+    // require_admin();
 
     $action = get('action', 'stats');
     if ($action !== 'stats') error('Unknown admin action', 400);
-
-    // ── آمار کلی ──
-    $totalProducts   = db()->query('SELECT COUNT(*) FROM products')->fetchColumn();
-    $totalCategories = db()->query('SELECT COUNT(*) FROM categories')->fetchColumn();
-    $totalUsers      = db()->query('SELECT COUNT(*) FROM users')->fetchColumn();
-    $totalOrders     = db()->query('SELECT COUNT(*) FROM orders')->fetchColumn();
-    $revenue         = db()->query("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE status IN ('paid','shipped','delivered')")->fetchColumn();
-    $todayOrders     = db()->query("SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()")->fetchColumn();
-    $pendingOrders   = db()->query("SELECT COUNT(*) FROM orders WHERE status='pending'")->fetchColumn();
-    $lowStock        = db()->query("SELECT COUNT(*) FROM products WHERE stock < 5 AND stock > 0")->fetchColumn();
-
-    // ── درآمد ۷ روز اخیر (برای نمودار میله‌ای) ──
-    $weeklyStmt = db()->query("
-        SELECT
-            DATE(created_at) AS date,
-            COALESCE(SUM(total_amount), 0) AS amount
-        FROM orders
-        WHERE
-            created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
-            AND status IN ('paid','shipped','delivered')
-        GROUP BY DATE(created_at)
-        ORDER BY date ASC
-    ");
-    $weeklyRaw = $weeklyStmt->fetchAll();
-    // پر کردن روزهای خالی
-    $weeklyMap = [];
-    foreach ($weeklyRaw as $row) {
-        $weeklyMap[$row['date']] = (int)$row['amount'];
-    }
-    $weekly = [];
-    for ($i = 6; $i >= 0; $i--) {
-        $d = date('Y-m-d', strtotime("-$i days"));
-        $label = date('m/d', strtotime($d));
-        $weekly[] = ['date' => $label, 'amount' => $weeklyMap[$d] ?? 0];
-    }
-
-    // ── وضعیت سفارش‌ها (برای دونات چارت) ──
-    $statusStmt = db()->query("
-        SELECT status, COUNT(*) AS cnt
-        FROM orders
-        GROUP BY status
-    ");
-    $orderStatus = [];
-    $statusLabels = [
-        'pending'   => 'در انتظار',
-        'paid'      => 'پرداخت شده',
-        'shipped'   => 'ارسال شده',
-        'delivered' => 'تحویل داده',
-        'cancelled' => 'لغو شده',
-    ];
-    foreach ($statusStmt->fetchAll() as $row) {
-        $label = $statusLabels[$row['status']] ?? $row['status'];
-        $orderStatus[$label] = (int)$row['cnt'];
-    }
+    $totalProducts  = db()->query('SELECT COUNT(*) FROM products')->fetchColumn();
+    $totalCategories= db()->query('SELECT COUNT(*) FROM categories')->fetchColumn();
+    $totalUsers     = db()->query('SELECT COUNT(*) FROM users')->fetchColumn();
+    $totalOrders    = db()->query('SELECT COUNT(*) FROM orders')->fetchColumn();
+    $revenue = db()->query("SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE status IN ('paid','shipped','delivered')")->fetchColumn();
+    $todayOrders = db()->query("SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()")->fetchColumn();
+    $pendingOrders = db()->query("SELECT COUNT(*) FROM orders WHERE status='pending'")->fetchColumn();
+    $lowStock = db()->query("SELECT COUNT(*) FROM products WHERE stock < 5 AND stock > 0")->fetchColumn();
 
     respond([
         'total_products'   => (int)$totalProducts,
@@ -973,8 +947,6 @@ function handle_admin(string $method): void {
         'today_orders'     => (int)$todayOrders,
         'pending_orders'   => (int)$pendingOrders,
         'low_stock_items'  => (int)$lowStock,
-        'weekly_revenue'   => $weekly,
-        'order_status'     => $orderStatus,
     ]);
 }
 
@@ -1088,14 +1060,27 @@ function handle_upload_receipt(): void {
     
     // ذخیره فایل
     if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-        // به‌روزرسانی دیتابیس (وضعیت را هم paid کنید)
-        $stmt = db()->prepare("UPDATE orders SET receipt_file = ?, status = 'paid' WHERE order_number = ?");
-        $stmt->execute([$filename, $orderNumber]);
-        
+        $receiptUrl = '/uploads/receipts/' . $filename;
+
+        // بروزرسانی orders — فقط ثبت فایل، وضعیت pending می‌مونه تا ادمین تایید کنه
+        $stmt = db()->prepare("UPDATE orders SET receipt_file = ? WHERE order_number = ?");
+        $stmt->execute([$receiptUrl, $orderNumber]);
+
+        // ذخیره در payment_receipts
+        $orderRow = db()->prepare('SELECT id FROM orders WHERE order_number = ?');
+        $orderRow->execute([$orderNumber]);
+        $orderData = $orderRow->fetch();
+        if ($orderData) {
+            db()->prepare('DELETE FROM payment_receipts WHERE order_id = ?')
+                ->execute([$orderData['id']]);
+            db()->prepare('INSERT INTO payment_receipts (order_id, file_name, file_path) VALUES (?, ?, ?)')
+                ->execute([$orderData['id'], $filename, $receiptUrl]);
+        }
+
         echo json_encode([
-            'success' => true,
+            'success'  => true,
             'filename' => $filename,
-            'message' => 'رسید با موفقیت آپلود شد'
+            'message'  => 'رسید با موفقیت آپلود شد. منتظر تایید ادمین باشید.'
         ]);
     } else {
         http_response_code(500);

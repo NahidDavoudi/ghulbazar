@@ -353,6 +353,22 @@
         body:   { status },
       });
     },
+
+    approveReceipt(id) {
+      return request('orders', {
+        method: 'PUT',
+        params: { id },
+        body:   { action: 'approve_receipt' },
+      });
+    },
+
+    rejectReceipt(id) {
+      return request('orders', {
+        method: 'PUT',
+        params: { id },
+        body:   { action: 'reject_receipt' },
+      });
+    },
   };
 
   /* ─── کدهای تخفیف ───────────────────────────────────────── */
@@ -407,10 +423,8 @@
      * }>}
      */
     stats() {
-      
       return request('admin', { params: { action: 'stats' } });
     },
-    
   };
 
   /* ─── مدیریت کاربران (ادمین) ────────────────────────────── */
