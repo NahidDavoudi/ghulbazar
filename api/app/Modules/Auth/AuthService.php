@@ -1,54 +1,57 @@
 <?php
 namespace App\Modules\Auth;
+
+use App\Core\Auth\Auth as JwtAuth;
+use App\Core\Database\Database;
 use App\Modules\User\UserModel;
-use App\Core\Http\Response;
+use Exception;
 
 class AuthService
 {
-    protected UserModel $userModel;
+    private UserModel $userModel;
+
     public function __construct()
     {
         $this->userModel = new UserModel();
     }
-    public function register($data){
-        $user = $this->userModel->findByPhone($data['phone']);
-        if ($user) {
-            Response::error('User with this phone already exists', 422);
+
+    public function register(array $data): array
+    {
+        if (empty($data['name']) || empty($data['phone']) || empty($data['password'])) {
+            throw new Exception('نام، تلفن و رمز عبور الزامی است');
         }
-        $userData = [
-            'phone' => $data['phone'],
-            'password' => password_hash($data['password'], PASSWORD_DEFAULT),
-            'full_name' => $data['full_name'],
-            'role' => 'costumer'
-        ];
-        try {
-            $userId = $this->userModel->create($userData);
-            $result = [
-                'user_id' => $userId,
-                'message' => 'Registration completed successfully.'
-            ];
-            Response::success($result, 200);
-        } catch (\Exception $e) {
-            $result = [
-                'user_id' => null,
-                'message' => $e->getMessage()
-            ];
-            Response::error($result);
+        // چک تکراری بودن تلفن
+        if ($this->userModel->exists('phone', $data['phone'])) {
+            throw new Exception('شماره تلفن قبلاً ثبت شده است', 409);
         }
+        $hashed = password_hash($data['password'], PASSWORD_BCRYPT);
+        $userId = $this->userModel->create([
+            'name'          => $data['name'],
+            'phone'         => $data['phone'],
+            'password_hash' => $hashed,
+            'role'          => 'user'
+        ]);
+        $user = $this->userModel->find($userId);
+        unset($user['password_hash']);
+        $token = JwtAuth::generateToken(['user_id' => $userId, 'role' => 'user'], 86400 * 30);
+        return ['token' => $token, 'user' => $user];
     }
 
-    public function login($data){
-        $user = $this->userModel->findByPhone($data['phone']);
-        if (!$user) {
-            Response::error('User not found', 404);
+    public function login(string $phone, string $password): array
+    {
+        $user = $this->userModel->findBy('phone', $phone);
+        if (!$user || !password_verify($password, $user['password_hash'])) {
+            throw new Exception('اطلاعات ورود نادرست است', 401);
         }
-        if (!password_verify($data['password'], $user['password'])) {
-            Response::error('Invalid password', 401);
-        }
-        $result = [
-            'user_id' => $user['id'],
-            'message' => 'Login successful.'
-        ];
-        Response::success($result, 200);
+        unset($user['password_hash']);
+        $token = JwtAuth::generateToken(['user_id' => $user['id'], 'role' => $user['role']], 86400 * 30);
+        return ['token' => $token, 'user' => $user];
+    }
+
+    public function me(int $userId): ?array
+    {
+        $user = $this->userModel->find($userId);
+        if ($user) unset($user['password_hash']);
+        return $user;
     }
 }
