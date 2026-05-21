@@ -37,8 +37,10 @@ class UserService {
             Response::error("password does'nt match");
         }
         $result = $this->update($id , $new);
-        
-
+        Response::success($result , 200);
+    }
+    public function UpdatePhone($phone , $new){
 
     }
+
 }
