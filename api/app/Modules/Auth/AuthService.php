@@ -18,15 +18,23 @@ class AuthService
             'phone' => $data['phone'],
             'password' => password_hash($data['password'] , PASSWORD_DEFAULT),
             'full_name' => $data['full_name'],
-            'role' => 'costomer'
+            'role' => 'costumer'
         ];
-        $userId = $this->userModel->create($data);
-        $result =  [
-            'success' => true,
-            'user_id' => $userId,
-            'message' => 'Registration completed successfully.'
-        ];
-        Response::success($result ,200);
+        try{
+            $userId = $this->userModel->create($data);
+            $result =  [
+                'user_id' => $userId,
+                'message' => 'Registration completed successfully.'
+            ];
+            Response::success($result ,200);
+        } catch (\Exception $e){
+            $result = [
+                'user_id' => null,
+                'message' => $e->getMessage()
+            ];
+            Response::error($result);
+        } 
+       
 
     }
 }
