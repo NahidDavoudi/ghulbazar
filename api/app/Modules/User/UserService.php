@@ -21,7 +21,9 @@ class UserService{
         if(!$user){
             Response::error("User not found", 422);
         }
-        return $this->userModel->update($user['id'] , ['name' => $name]);
+        $result =  $this->userModel->update($user['id'] , ['name' => $name]);
+        Response::success($result , 200);
+
     }
     public function updatePhone(int $id, string $phone): bool {
         $user = $this->userModel->findById($id);
@@ -32,7 +34,9 @@ class UserService{
          if ($exists) {
             Response::error("A user with this phone number already exists", 422);
         }        
-        return $this->userModel->update($user['id'] , ['phone' => $phone]);
+        $result =  $this->userModel->update($user['id'] , ['phone' => $phone]);
+        Response::success($result , 200);
+
     }
     public function updatePassword($id , $current , $new){
         $user = $this->userModel->findById($id);
@@ -44,5 +48,14 @@ class UserService{
         }
         $password_hash = password_hash($new , PASSWORD_DEFAULT);
         $result = $this->userModel->update($user['id'] , ['password_hash' => $password_hash]);
+        Response::success($result , 200);
+    }
+    public function getInfo($id){
+        $user = $this->userModel->findById($id);
+        if(!$user){
+            Response::error("User not found", 422);
+        }
+        $result = $user;
+        Response::success($result , 200);
     }
 }
