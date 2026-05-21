@@ -1,5 +1,5 @@
 <?php
-namespace App\Core;
+namespace App\Core\Http;
 
 class Request {
     private array $params = [];
@@ -21,11 +21,29 @@ class Request {
             $this->body = array_merge($this->body, $_FILES);
         }
 
-        // Collect headers
+        // Collect headers - استفاده از getallheaders()
+        $this->loadHeaders();
+    }
+
+    private function loadHeaders(): void {
+        // روش اول: استفاده از getallheaders()
+        if (function_exists('getallheaders')) {
+            $headers = getallheaders();
+            foreach ($headers as $key => $value) {
+                $this->headers[$key] = $value;
+                // همچنین با فرمت استاندارد شده هم ذخیره کن
+                $normalizedKey = strtoupper(str_replace('-', '_', $key));
+                $this->headers[$normalizedKey] = $value;
+            }
+        }
+        
+        // روش دوم: از $_SERVER به عنوان fallback
         foreach ($_SERVER as $key => $value) {
             if (str_starts_with($key, 'HTTP_')) {
                 $headerName = str_replace('_', '-', substr($key, 5));
-                $this->headers[$headerName] = $value;
+                if (!isset($this->headers[$headerName])) {
+                    $this->headers[$headerName] = $value;
+                }
             }
         }
     }
@@ -61,14 +79,43 @@ class Request {
     }
 
     public function header(string $key, mixed $default = null): mixed {
-        return $this->headers[$key] ?? $default;
+        // جستجو در کلیدهای مختلف
+        $variations = [
+            $key,
+            strtolower($key),
+            strtoupper($key),
+            str_replace('-', '_', $key),
+            str_replace('_', '-', $key)
+        ];
+        
+        foreach ($variations as $variant) {
+            if (isset($this->headers[$variant])) {
+                return $this->headers[$variant];
+            }
+        }
+        
+        return $default;
     }
 
     public function bearerToken(): ?string {
-        $auth = $this->header('AUTHORIZATION', '');
-        if (preg_match('/Bearer\s+(.*)$/i', $auth, $matches)) {
-            return $matches[1];
+        // روش اول: از هدر Authorization
+        $auth = $this->header('Authorization', '');
+        
+        if (empty($auth)) {
+            $auth = $this->header('AUTHORIZATION', '');
         }
+        
+        // روش دوم: مستقیماً از getallheaders()
+        if (empty($auth) && function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        }
+        
+        // استخراج توکن
+        if (preg_match('/Bearer\s+(.*)$/i', $auth, $matches)) {
+            return trim($matches[1]);
+        }
+        
         return null;
     }
 
