@@ -109,11 +109,21 @@
     }
   }
 
-  /* ══════════════════════════════════════════════════════════
-     نمودار میله‌ای — Vanilla CSS
-     داده: [{date:'mm/dd', amount:1234567}, ...]
-  ══════════════════════════════════════════════════════════ */
-// ========== نمودار درآمد هفتگی با D3 (بدون بک‌گراند و خطوط شبکه) ==========
+  // تابع تبدیل تاریخ میلادی به شمسی با استفاده از persian-date
+  function toPersianDate(gregorianDateStr) {
+    try {
+        const date = new Date(gregorianDateStr);
+        if (isNaN(date.getTime())) return gregorianDateStr;
+        return new Intl.DateTimeFormat('fa-IR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(date).replace(/\//g, '/'); // خروجی: ۱۴۰۴/۰۳/۰۱
+    } catch(e) {
+        console.warn('Date conversion error:', e);
+        return gregorianDateStr;
+    }
+}
 function renderWeeklyChart(data) {
   const container = document.getElementById('weeklyChart');
   if (!container) return;
@@ -124,7 +134,7 @@ function renderWeeklyChart(data) {
       return;
   }
 
-  // ابعاد - افزایش margin چپ برای فاصله بیشتر اعداد
+  // 🔹 مستقیماً از تاریخ موجود استفاده کن (بدون تبدیل)
   const margin = { top: 20, right: 20, bottom: 50, left: 65 };
   const width = container.clientWidth - margin.left - margin.right;
   const height = 280 - margin.top - margin.bottom;
@@ -133,65 +143,54 @@ function renderWeeklyChart(data) {
       .append('svg')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
-      .style('background', 'transparent')  // بدون بک‌گراند
+      .style('background', 'transparent')
+      .style('font-family', 'Vazirmatn, sans-serif')  // اضافه کردن فونت
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
+  // محور X با تاریخ اصلی
   const x = d3.scaleBand()
-      .domain(data.map(d => d.date))
+      .domain(data.map(d => d.date))   // 🔁 بدون تغییر
       .range([0, width])
       .padding(0.35);
 
   const yMax = d3.max(data, d => +d.amount) || 1;
-  const y = d3.scaleLinear()
-      .domain([0, yMax])
-      .range([height, 0]);
+  const y = d3.scaleLinear().domain([0, yMax]).range([height, 0]);
 
-  // فرمت خلاصه اعداد (K, M)
   const formatAbbreviate = (num) => {
       if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
       if (num >= 1e3) return (num / 1e3).toFixed(0) + 'K';
       return num.toString();
   };
 
-  // محور Y بدون خطوط شبکه، فقط خط محور و تیک‌ها
-  const yAxis = d3.axisLeft(y)
-      .ticks(4)
-      .tickFormat(d => formatAbbreviate(d))
-      .tickPadding(12)   // افزایش فاصله اعداد از نمودار
-      .tickSize(0)       // بدون خطوط تیک (اختیاری) یا می‌تونید 5 بذارید برای خطوط کوچک
-      .tickSizeOuter(0); // بدون خط انتهایی
-
-  const yAxisGroup = svg.append('g')
-      .call(yAxis)
+  // محور Y
+  const yAxis = d3.axisLeft(y).ticks(4).tickFormat(d => formatAbbreviate(d))
+      .tickPadding(12).tickSize(0).tickSizeOuter(0);
+  const yAxisGroup = svg.append('g').call(yAxis)
       .style('font-size', '11px')
-      .style('fill', '#78716c');
+      .style('fill', '#78716c')
+      .style('font-family', 'Vazirmatn, sans-serif');
+  yAxisGroup.selectAll('.tick line').remove();
+  yAxisGroup.selectAll('.domain').attr('stroke', '#e7e5e4');
 
-  // حذف خطوط شبکه (خطوط دش) – هیچ خطی نباید کشیده بشه
-  yAxisGroup.selectAll('.tick line').remove();   // پاک کردن خطوط تیک‌ها
-  yAxisGroup.selectAll('.domain').attr('stroke', '#e7e5e4'); // فقط خط اصلی محور
-
-  // محور X با فاصله بیشتر
-  const xAxis = d3.axisBottom(x)
-      .tickSize(0)
-      .tickPadding(10);
-
+  // محور X
+  const xAxis = d3.axisBottom(x).tickSize(0).tickPadding(10);
   const xAxisGroup = svg.append('g')
       .attr('transform', `translate(0,${height})`)
       .call(xAxis)
       .style('font-size', '11px')
-      .style('fill', '#78716c');
+      .style('fill', '#78716c')
+      .style('font-family', 'Vazirmatn, sans-serif');
 
   xAxisGroup.selectAll('.tick text')
       .attr('transform', 'rotate(-20)')
       .style('text-anchor', 'end')
       .attr('dx', '-0.5em')
       .attr('dy', '0.3em');
-
   xAxisGroup.select('.domain').attr('stroke', '#e7e5e4');
   xAxisGroup.selectAll('.tick line').remove();
 
-  // گرادیان برای میله‌ها
+  // گرادیان میله‌ها
   const defs = svg.append('defs');
   const gradient = defs.append('linearGradient')
       .attr('id', 'barGradient')
@@ -199,7 +198,7 @@ function renderWeeklyChart(data) {
   gradient.append('stop').attr('offset', '0%').attr('stop-color', '#dc2626');
   gradient.append('stop').attr('offset', '100%').attr('stop-color', '#991b1b');
 
-  // انیمیشن و میله‌ها
+  // میله‌ها
   svg.selectAll('.bar')
       .data(data)
       .enter()
@@ -213,15 +212,13 @@ function renderWeeklyChart(data) {
       .attr('rx', 6)
       .attr('ry', 6)
       .on('mouseenter', function(ev, d) {
-          d3.select(this)
-              .transition().duration(150)
+          d3.select(this).transition().duration(150)
               .attr('fill', '#f97316')
               .attr('filter', 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))');
           showTooltip(ev, d.date, d.amount);
       })
       .on('mouseleave', function() {
-          d3.select(this)
-              .transition().duration(150)
+          d3.select(this).transition().duration(150)
               .attr('fill', 'url(#barGradient)')
               .attr('filter', '');
           hideTooltip();
@@ -242,6 +239,7 @@ function renderWeeklyChart(data) {
       .style('border-radius', '12px')
       .style('font-size', '12px')
       .style('font-weight', '500')
+      .style('font-family', 'Vazirmatn, sans-serif')
       .style('pointer-events', 'none')
       .style('opacity', 0)
       .style('transition', 'opacity 0.2s')
@@ -254,15 +252,12 @@ function renderWeeklyChart(data) {
       tooltip.html(`${date}<br>💰 ${API.utils.formatPrice(amount)}`)
           .style('left', (ev.pageX + 12) + 'px')
           .style('top', (ev.pageY - 30) + 'px')
-          .transition()
-          .duration(100)
-          .style('opacity', 1);
+          .transition().duration(100).style('opacity', 1);
   }
   function hideTooltip() {
       tooltip.transition().duration(200).style('opacity', 0);
   }
 }
-
 // ========== نمودار دونات (بدون تغییر در بک‌گراند، فقط شفافیت) ==========
 function renderOrderStatusChart(data) {
   const container = document.getElementById('orderStatusChart');
@@ -286,6 +281,7 @@ function renderOrderStatusChart(data) {
       .attr('width', size)
       .attr('height', size)
       .style('background', 'transparent')
+      .style('font-family', 'Vazirmatn, sans-serif')   // اضافه شود
       .append('g')
       .attr('transform', `translate(${size/2},${size/2})`);
 
