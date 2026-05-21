@@ -1,5 +1,5 @@
 <?php
-namespace App\Models;
+namespace App\Modules\User\Models;
 use App\Core\Database;
 
 class UserModel extends Model{

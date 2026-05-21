@@ -1,6 +1,6 @@
 <?php
-namespace App\Services;
-use App\Models\UserModel;
+namespace App\Modules\Use\Services;
+namespace App\Modules\User\Models\UserModel;
 use App\Core\Http\Response;
 
 class UserService {
