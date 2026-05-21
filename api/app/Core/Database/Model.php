@@ -1,5 +1,5 @@
 <?php
-namespace App\Core;
+namespace App\Core\Database;
 
 use PDO;
 use PDOException;
@@ -15,10 +15,12 @@ abstract class Model
     protected string $createdAt = 'created_at';
     protected string $updatedAt = 'updated_at';
 
+
     public function __construct()
     {
         $this->pdo = Database::getInstance()->getConnection();
     }
+    
     public function getTable(): string
     {
         return $this->table;
@@ -31,9 +33,6 @@ abstract class Model
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
     }
-    /**
-     * Find record by specific column
-     */
     public function findBy(string $column, mixed $value): ?array
     {
         $sql = "SELECT * FROM {$this->table} WHERE {$column} = :value LIMIT 1";
@@ -43,10 +42,6 @@ abstract class Model
 
         return $result ?: null;
     }
-
-    /**
-     * Get all records
-     */
     public function all(array $orderBy = []): array
     {
         $sql = "SELECT * FROM {$this->table}";
@@ -57,16 +52,12 @@ abstract class Model
                 $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
                 $orderClauses[] = "{$column} {$direction}";
             }
-            $sql .= " ORDER BY " . implode(', ', $orderClauses);
+            // $sql .= " ORDER BY " . implode(', ', $orderClauses);
         }
 
         $stmt = $this->pdo->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    /**
-     * Get paginated records
-     */
     public function paginate(int $page = 1, int $perPage = 15, array $conditions = [], array $orderBy = []): array
     {
         $offset = ($page - 1) * $perPage;
@@ -125,53 +116,34 @@ abstract class Model
             'last_page' => (int)ceil($total / $perPage)
         ];
     }
-
-    /**
-     * Create new record
-     *
-     * @throws \PDOException If duplicate entry or other DB error occurs
-     */
-    public function create(array $data): int
+    public function create(array $data)
     {
         $data = $this->filterFillable($data);
-
         if ($this->timestamps) {
             $data[$this->createdAt] = date('Y-m-d H:i:s');
             $data[$this->updatedAt] = date('Y-m-d H:i:s');
         }
-
         $columns = implode(', ', array_keys($data));
         $placeholders = ':' . implode(', :', array_keys($data));
-
         $sql = "INSERT INTO {$this->table} ({$columns}) VALUES ({$placeholders})";
-
         try {
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($data);
         } catch (PDOException $e) {
-            // Detect duplicate entry error
             if ($e->getCode() == '23000' && strpos($e->getMessage(), '1062 Duplicate entry') !== false) {
-                // Get duplicate field key from error message, if possible
                 preg_match("/for key '([^']+)'/", $e->getMessage(), $matches);
                 $key = $matches[1] ?? null;
-
-                // Response in Farsi for username field
                 if ($key && (stripos($key, 'phone') !== false)) {
                     throw new \Exception('شماره تلفن یا نام کاربری تکراری است و قبلا ثبت شده است.');
                 } else {
                     throw new \Exception('رکورد با این مقدار از قبل وجود دارد.');
                 }
             }
-            // Re-throw any other error
             throw $e;
         }
 
         return (int)$this->pdo->lastInsertId();
     }
-
-    /**
-     * Update record
-     */
     public function update(int|string $id, array $data): bool
     {
         $data = $this->filterFillable($data);
@@ -192,28 +164,16 @@ abstract class Model
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute($data);
     }
-
-    /**
-     * Delete record
-     */
     public function delete(int|string $id): bool
     {
         $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute(['id' => $id]);
     }
-
-    /**
-     * Soft delete
-     */
     public function softDelete(int|string $id): bool
     {
         return $this->update($id, ['deleted_at' => date('Y-m-d H:i:s')]);
     }
-
-    /**
-     * Check if record exists
-     */
     public function exists(string $column, mixed $value, ?int $excludeId = null): bool
     {
         $sql = "SELECT COUNT(*) FROM {$this->table} WHERE {$column} = :value";
@@ -229,10 +189,6 @@ abstract class Model
 
         return (bool)$stmt->fetchColumn();
     }
-
-    /**
-     * Count records
-     */
     public function count(array $conditions = []): int
     {
         $where = '';
@@ -253,15 +209,11 @@ abstract class Model
 
         return (int)$stmt->fetchColumn();
     }
-    /**
-     * Filter only fillable fields
-     */
     protected function filterFillable(array $data): array
     {
         if (empty($this->fillable)) {
             return $data;
         }
-
         return array_intersect_key($data, array_flip($this->fillable));
     }
 }
