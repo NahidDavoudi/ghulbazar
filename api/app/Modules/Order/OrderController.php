@@ -67,6 +67,27 @@ class OrderController extends Controller
         $this->success(null, 'وضعیت سفارش تغییر کرد');
     }
 
+    // POST /order/upload-receipt
+    public function uploadReceipt(Request $request): void
+    {
+        $orderNumber = $request->input('order_number');
+        if (!$orderNumber) {
+            $this->error('شماره سفارش الزامی است');
+        }
+
+        $file = $_FILES['receipt'] ?? null;
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            $this->error('فایل رسید ارسال نشده');
+        }
+
+        try {
+            $this->service->uploadReceiptForOrder($orderNumber, $file);
+            $this->success(null, 'رسید با موفقیت آپلود شد و سفارش به حالت پرداخت شده تغییر یافت');
+        } catch (\Exception $e) {
+            $this->error($e->getMessage(), 400);
+        }
+    }
+
     private function requireAdmin(): void
     {
         if (!$this->isAuthenticated() || Auth::role() !== 'admin') $this->forbidden();
