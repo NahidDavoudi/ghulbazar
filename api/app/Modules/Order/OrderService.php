@@ -141,4 +141,36 @@ class OrderService
     {
         $this->orderModel->update($id, ['status' => $status]);
     }
+
+    public function uploadReceiptForOrder(string $orderNumber, array $file): void
+    {
+        $pdo = Database::getInstance()->getConnection();
+        $stmt = $pdo->prepare('SELECT id FROM orders WHERE order_number = ?');
+        $stmt->execute([$orderNumber]);
+        $order = $stmt->fetch();
+
+        if (!$order) {
+            throw new \Exception('سفارش یافت نشد');
+        }
+
+        $orderId = $order['id'];
+
+        $uploadDir = __DIR__ . '/../../../public/uploads/receipts/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+        $filename = $orderNumber . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.jpg';
+        $path = $uploadDir . $filename;
+        if (!move_uploaded_file($file['tmp_name'], $path)) {
+            throw new \Exception('خطا در ذخیره فایل');
+        }
+        $url = '/uploads/receipts/' . $filename;
+
+        // ذخیره در جدول payment_receipts
+        $this->receiptModel->create([
+            'order_id'  => $orderId,
+            'file_name' => $filename,
+            'file_path' => $url
+        ]);
+        // به‌روزرسانی وضعیت سفارش به paid
+        $this->orderModel->update($orderId, ['status' => 'paid', 'receipt_url' => $url]);
+    }
 }
