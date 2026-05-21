@@ -22,7 +22,7 @@ class Router {
                 die("کنترلر {$controllerName} یافت نشد.");
             }
         } else {
-            $className = "App\\Modules\\{$this->currentController}\\{$this->currentController}Controller";
+            $className = "App\\Controllers\\{$this->currentController}Controller";
             $this->currentController = $className;
         }
         
