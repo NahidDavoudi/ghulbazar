@@ -14,12 +14,23 @@ class AuthService
     {
         $this->userModel = new UserModel();
     }
+    protected function validatePhone($phone){
+        // Iranian mobile: starts with +98 or 0, followed by 9 and 9 digits (total 11 digits if starts with 0, 13 with +98)
+        $pattern = '/^(?:\+98|0)?9\d{9}$/';
 
-    public function register(array $data): array
-    {
+        if (!preg_match($pattern, $phone)) {
+            throw new Exception('شماره تلفن وارد شده نامعتبر است');
+        }
+        return true;
+    }
+
+    public function register(array $data): array{
         if (empty($data['name']) || empty($data['phone']) || empty($data['password'])) {
             throw new Exception('نام، تلفن و رمز عبور الزامی است');
         }
+        // Validate phone number before proceeding
+        $this->validatePhone($data['phone']);
+
         // چک تکراری بودن تلفن
         if ($this->userModel->exists('phone', $data['phone'])) {
             throw new Exception('شماره تلفن قبلاً ثبت شده است', 409);
@@ -39,6 +50,9 @@ class AuthService
 
     public function login(string $phone, string $password): array
     {
+        // Validate phone number before proceeding
+        $this->validatePhone($phone);
+
         $user = $this->userModel->findBy('phone', $phone);
         if (!$user || !password_verify($password, $user['password_hash'])) {
             throw new Exception('اطلاعات ورود نادرست است', 401);
