@@ -11,11 +11,11 @@ class UserModel extends Model
     protected array $fillable = [
         'name',
         'phone',
-        'password',        
+        'password_hash',        
         'is_active'
     ];
     protected array $hidden = [
-        'password',
+        'password_hash',
     ];
     protected bool $timestamps = true;
     protected string $createdAt = 'created_at';

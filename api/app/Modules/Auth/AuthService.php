@@ -35,7 +35,7 @@ class AuthService
         if ($this->userModel->exists('phone', $data['phone'])) {
             throw new Exception('شماره تلفن قبلاً ثبت شده است', 409);
         }
-        $hashed = password_hash($data['password'], PASSWORD_BCRYPT);
+        $hashed = password_hash($data['password'], PASSWORD_DEFAULT);
         $userId = $this->userModel->create([
             'name'          => $data['name'],
             'phone'         => $data['phone'],
