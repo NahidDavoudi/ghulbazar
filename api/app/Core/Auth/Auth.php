@@ -12,7 +12,6 @@ use App\Core\Env;
 class Auth {
     private static string $algorithm = 'HS256';
 
-    // کلید جداگانه برای رفرش توکن (از .env بخوان)
     private static function getRefreshSecretKey(): string {
         return Env::get('REFRESH_SECRET');
     }

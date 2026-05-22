@@ -318,9 +318,29 @@ function handle_products(string $method): void {
 //  CATEGORIES (گسترش‌یافته برای پنل ادمین)
 // ================================================================
 function handle_categories(string $method): void {
+    // ── آپلود تصویر دسته‌بندی (ادمین) ──
+    if ($method === 'POST' && get('action') === 'upload-image') {
+        require_admin();
+        $catId = (int)get('id', 0);
+        if (!$catId) error('id is required');
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK)
+            error('No image uploaded', 400);
+        $file = $_FILES['image'];
+        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!in_array($file['type'], $allowed)) error('Invalid image type', 400);
+        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'cat_' . uniqid() . '.' . $ext;
+        $dest = 'uploads/categories/' . $filename;
+        if (!is_dir('uploads/categories')) mkdir('uploads/categories', 0755, true);
+        if (!move_uploaded_file($file['tmp_name'], $dest)) error('Upload failed', 500);
+        $url = '/uploads/categories/' . $filename;
+        db()->prepare('UPDATE categories SET image_url = ? WHERE id = ?')->execute([$url, $catId]);
+        respond(['message' => 'Image uploaded', 'url' => $url]);
+    }
+
     // ── GET list (عمومی) ──
     if ($method === 'GET') {
-        $rows = db()->query('SELECT id, name, slug FROM categories ORDER BY name')->fetchAll();
+        $rows = db()->query('SELECT id, name, slug, image_url FROM categories ORDER BY name')->fetchAll();
         respond($rows);
     }
 
@@ -779,19 +799,12 @@ function handle_orders(string $method): void
         }
 
         if ($action === 'reject_receipt') {
-            // حذف فایل رسید
-            $rec = db()->prepare('SELECT file_path FROM payment_receipts WHERE order_id = ?');
-            $rec->execute([$orderId]);
-            $receipt = $rec->fetch();
-            if ($receipt) {
-                $filePath = __DIR__ . $receipt['file_path'];
-                if (file_exists($filePath)) @unlink($filePath);
-                db()->prepare('DELETE FROM payment_receipts WHERE order_id = ?')
-                    ->execute([$orderId]);
-            }
-            db()->prepare("UPDATE orders SET receipt_file = NULL, status = 'pending' WHERE id = ?")
+            // آرشیو رسید — فقط وضعیت تغییر می‌کند، فایل حذف نمی‌شود
+            db()->prepare("UPDATE payment_receipts SET status = 'rejected', reviewed_at = NOW() WHERE order_id = ?")
                 ->execute([$orderId]);
-            respond(['message' => 'Receipt rejected']);
+            db()->prepare("UPDATE orders SET status = 'pending' WHERE id = ?")
+                ->execute([$orderId]);
+            respond(['message' => 'Receipt archived as rejected']);
         }
 
         // بروزرسانی وضعیت عادی
@@ -938,6 +951,49 @@ function handle_admin(string $method): void {
     $pendingOrders = db()->query("SELECT COUNT(*) FROM orders WHERE status='pending'")->fetchColumn();
     $lowStock = db()->query("SELECT COUNT(*) FROM products WHERE stock < 5 AND stock > 0")->fetchColumn();
 
+    // ── درآمد ۷ روز اخیر ──
+    $weeklyRows = db()->query("
+        SELECT DATE(created_at) AS date,
+               COALESCE(SUM(total_amount), 0) AS amount
+        FROM orders
+        WHERE status IN ('paid','shipped','delivered')
+          AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+    ")->fetchAll();
+
+    // پر کردن روزهای خالی
+    $weekly = [];
+    for ($i = 6; $i >= 0; $i--) {
+        $d = date('Y-m-d', strtotime("-$i days"));
+        $weekly[] = ['date' => date('m/d', strtotime($d)), 'amount' => 0];
+    }
+    foreach ($weeklyRows as $row) {
+        foreach ($weekly as &$w) {
+            if ($w['date'] === date('m/d', strtotime($row['date']))) {
+                $w['amount'] = (int)$row['amount'];
+            }
+        }
+        unset($w);
+    }
+
+    // ── وضعیت سفارش‌ها ──
+    $statusRows = db()->query("
+        SELECT status, COUNT(*) AS cnt FROM orders GROUP BY status
+    ")->fetchAll();
+    $statusLabels = [
+        'pending'   => 'در انتظار',
+        'paid'      => 'پرداخت شده',
+        'shipped'   => 'ارسال شده',
+        'delivered' => 'تحویل داده شده',
+        'cancelled' => 'لغو شده',
+    ];
+    $orderStatus = [];
+    foreach ($statusRows as $row) {
+        $label = $statusLabels[$row['status']] ?? $row['status'];
+        $orderStatus[$label] = (int)$row['cnt'];
+    }
+
     respond([
         'total_products'   => (int)$totalProducts,
         'total_categories' => (int)$totalCategories,
@@ -947,6 +1003,8 @@ function handle_admin(string $method): void {
         'today_orders'     => (int)$todayOrders,
         'pending_orders'   => (int)$pendingOrders,
         'low_stock_items'  => (int)$lowStock,
+        'weekly_revenue'   => $weekly,
+        'order_status'     => $orderStatus,
     ]);
 }
 

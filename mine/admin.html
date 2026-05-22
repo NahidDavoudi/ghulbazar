@@ -257,7 +257,7 @@
                             <thead>
                                 <tr class="bg-red-800 text-white">
                                     <th class="text-right px-5 py-4 font-medium">#</th>
-                                    <th class="text-right px-5 py-4 font-medium">نام</th>
+                                    <th class="text-right px-5 py-4 font-medium">نام / پوستر</th>
                                     <th class="text-right px-5 py-4 font-medium">شناسه (slug)</th>
                                     <th class="text-right px-5 py-4 font-medium">عملیات</th>
                                 </tr>
@@ -459,6 +459,16 @@
                     <div>
                         <label class="block text-stone-600 mb-2 text-sm">شناسه (slug)</label>
                         <input type="text" id="categorySlug" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-stone-600 mb-2 text-sm">پوستر دسته‌بندی</label>
+                        <div class="flex items-center gap-3">
+                            <img id="catImagePreview" src="" alt="" class="hidden w-16 h-16 rounded-xl object-cover bg-stone-100">
+                            <input type="file" id="catImageInput" accept="image/*" class="hidden" onchange="const p=$('catImagePreview');if(this.files[0]){const r=new FileReader();r.onload=e=>{p.src=e.target.result;p.classList.remove('hidden')};r.readAsDataURL(this.files[0])}">
+                            <button type="button" onclick="document.getElementById('catImageInput').click()" class="bg-stone-100 hover:bg-stone-200 text-stone-600 px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition">
+                                <i data-lucide="image-plus" class="w-4 h-4"></i> انتخاب پوستر
+                            </button>
+                        </div>
                     </div>
                     <div class="flex gap-3 pt-4">
                         <button type="submit" class="bg-red-800 hover:bg-red-900 text-white px-8 py-3 rounded-xl font-medium transition-all flex items-center gap-2">
