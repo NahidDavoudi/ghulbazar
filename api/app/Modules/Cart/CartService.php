@@ -1,10 +1,15 @@
 <?php
 namespace App\Modules\Cart;
-
 use App\Core\Database\Database;
+use App\Modules\Cart\CartModel;
 
 class CartService
 {
+    protected CartModel $model;
+    public function __construct(){
+        $this->model = new CartModel();
+    }
+    
     private function getCart(): array
     {
         if (session_status() === PHP_SESSION_NONE) {
