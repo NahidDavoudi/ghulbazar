@@ -28,6 +28,7 @@ class CategoryController extends Controller
         $id = $this->service->create($data);
         $this->created(['id' => $id]);
     }
+    
 
     // PUT /categories/123
     public function update(Request $request, int $id): void
