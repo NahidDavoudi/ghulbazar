@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پنل ادمین - Navigo SPA</title>
+  <script src="https://unpkg.com/navigo@8.11.1/lib/navigo.min.js"></script>
+  <!-- اضافه کردن لوسید آیکونز -->
+  <script src="@assets/js/libs/lucide.min.js"></script>
+  <link href="@assets/css/output.css" rel="stylesheet" />
+</head>
+<body class="font-sans bg-slate-100 flex min-h-screen">
+  <div class="sidebar w-[220px] bg-slate-800 text-slate-200 p-6 flex flex-col gap-3 shadow-[2px_0_10px_rgba(0,0,0,0.1)]">
+    <h2 class="text-[1.3rem] mb-4 text-slate-50 border-b border-slate-700 pb-2 flex items-center gap-1.5">
+      <i data-lucide="settings"></i>
+      پنل ادمین
+    </h2>
+    <a href="/admin" data-navigo class="text-slate-300 no-underline py-2 px-3 rounded-lg transition-colors flex items-center gap-2 font-medium hover:bg-slate-700 hover:text-white">
+      <i data-lucide="layout-dashboard"></i>
+      داشبورد
+    </a>
+    <a href="/admin/users" data-navigo class="text-slate-300 no-underline py-2 px-3 rounded-lg transition-colors flex items-center gap-2 font-medium hover:bg-slate-700 hover:text-white">
+      <i data-lucide="users"></i>
+      کاربران
+    </a>
+    <a href="/admin/users/add" data-navigo class="text-slate-300 no-underline py-2 px-3 rounded-lg transition-colors flex items-center gap-2 font-medium hover:bg-slate-700 hover:text-white">
+      <i data-lucide="user-plus"></i>
+      افزودن کاربر
+    </a>
+    <a href="/admin/products" data-navigo class="text-slate-300 no-underline py-2 px-3 rounded-lg transition-colors flex items-center gap-2 font-medium hover:bg-slate-700 hover:text-white">
+      <i data-lucide="package"></i>
+      محصولات
+    </a>
+  </div>
+
+  <div class="main flex-1 p-8 overflow-y-auto" id="app"></div>
+
+  <script>
+    // ================= داده‌های فیک =================
+    let users = [
+      { id: 1, name: 'علی رضایی', email: 'ali@example.com', role: 'مدیر' },
+      { id: 2, name: 'مریم حسینی', email: 'maryam@example.com', role: 'نویسنده' },
+      { id: 3, name: 'حسام محمدی', email: 'hesam@example.com', role: 'کاربر' },
+    ];
+
+    const products = [
+      { id: 1, name: 'لپ‌تاپ ایسوس', price: '۲۵,۰۰۰,۰۰۰ تومان', stock: 12 },
+      { id: 2, name: 'گوشی شیائومی', price: '۱۲,۸۰۰,۰۰۰ تومان', stock: 30 },
+      { id: 3, name: 'هدفون بی‌سیم', price: '۲,۲۰۰,۰۰۰ تومان', stock: 55 },
+    ];
+
+    // ================= توابع رندر =================
+    const appDiv = document.getElementById('app');
+
+    function renderDashboard() {
+      const userCount = users.length;
+      const productCount = products.length;
+      const orders = 47; // فیک
+      appDiv.innerHTML = `
+        <h1 class="text-slate-800 mb-6 flex items-center gap-2 text-2xl font-bold">
+          <i data-lucide="layout-dashboard"></i>
+          داشبورد
+        </h1>
+        <div class="stats-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+          <div class="stat-card bg-white p-6 rounded-xl shadow flex flex-col items-center gap-2">
+            <div class="number text-3xl font-bold text-slate-800 mb-1">${userCount}</div>
+            <div class="label text-slate-500 text-base flex items-center gap-1 justify-center">
+              <i data-lucide="users" class="w-5 h-5"></i>
+              کاربران
+            </div>
+          </div>
+          <div class="stat-card bg-white p-6 rounded-xl shadow flex flex-col items-center gap-2">
+            <div class="number text-3xl font-bold text-slate-800 mb-1">${productCount}</div>
+            <div class="label text-slate-500 text-base flex items-center gap-1 justify-center">
+              <i data-lucide="package" class="w-5 h-5"></i>
+              محصولات
+            </div>
+          </div>
+          <div class="stat-card bg-white p-6 rounded-xl shadow flex flex-col items-center gap-2">
+            <div class="number text-3xl font-bold text-slate-800 mb-1">${orders}</div>
+            <div class="label text-slate-500 text-base flex items-center gap-1 justify-center">
+              <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+              سفارش‌ها
+            </div>
+          </div>
+        </div>
+        <p class="text-slate-500">به پنل مدیریت خوش آمدید. از منوی کناری می‌تونید بخش‌های مختلف رو ببینید.</p>
+      `;
+      lucide.createIcons();
+    }
+
+    function renderUserList() {
+      const rows = users.map(u => `
+        <tr class="border-b last:border-b-0">
+          <td class="py-3 px-4">${u.id}</td>
+          <td class="py-3 px-4"><a href="/admin/users/${u.id}" class="text-blue-600 hover:underline" data-navigo>${u.name}</a></td>
+          <td class="py-3 px-4">${u.email}</td>
+          <td class="py-3 px-4">${u.role}</td>
+          <td class="py-3 px-4">
+            <button class="btn btn-danger btn-sm inline-block px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm" data-delete="${u.id}">حذف</button>
+          </td>
+        </tr>
+      `).join('');
+
+      appDiv.innerHTML = `
+        <h1 class="text-slate-800 mb-6 flex items-center gap-2 text-2xl font-bold">
+          <i data-lucide="users"></i>
+          لیست کاربران
+        </h1>
+        <a href="admin/users/add" class="btn btn-success inline-block px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600 font-medium text-base mb-6 flex items-center gap-1" data-navigo>
+          <i data-lucide="user-plus" class="w-[17px] h-[17px] ml-[2px]"></i>
+          افزودن کاربر جدید
+        </a>
+        ${
+          users.length === 0
+          ? '<p class="empty text-center text-slate-400 py-8">هیچ کاربری وجود ندارد</p>'
+          : `
+          <div class="overflow-x-auto">
+          <table class="w-full bg-white rounded-xl overflow-hidden shadow border-collapse mt-4">
+            <thead>
+              <tr>
+                <th class="bg-slate-50 font-semibold text-slate-700 py-3 px-4 text-right">شناسه</th>
+                <th class="bg-slate-50 font-semibold text-slate-700 py-3 px-4 text-right">نام</th>
+                <th class="bg-slate-50 font-semibold text-slate-700 py-3 px-4 text-right">ایمیل</th>
+                <th class="bg-slate-50 font-semibold text-slate-700 py-3 px-4 text-right">نقش</th>
+                <th class="bg-slate-50 font-semibold text-slate-700 py-3 px-4 text-right">عملیات</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          </div>
+        `
+        }
+      `;
+
+      // هندلر حذف کاربر
+      document.querySelectorAll('[data-delete]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(e.target.dataset.delete);
+          if (confirm('مطمئنی می‌خوای این کاربر رو حذف کنی؟')) {
+            users = users.filter(u => u.id !== id);
+            renderUserList(); // بازخوانی لیست
+            router.updatePageLinks();
+            lucide.createIcons();
+          }
+        });
+      });
+
+      router.updatePageLinks();
+      lucide.createIcons();
+    }
+
+    function renderAddUserForm() {
+      appDiv.innerHTML = `
+        <h1 class="text-slate-800 mb-6 flex items-center gap-2 text-2xl font-bold">
+          <i data-lucide="user-plus"></i>
+          افزودن کاربر جدید
+        </h1>
+        <form id="add-user-form" class="max-w-md">
+          <div class="form-group mb-4">
+            <label class="block mb-1 text-slate-700 font-medium">نام</label>
+            <input name="name" required placeholder="مثال: سارا احمدی" class="w-full p-3 border border-slate-300 rounded focus:outline-blue-300" />
+          </div>
+          <div class="form-group mb-4">
+            <label class="block mb-1 text-slate-700 font-medium">ایمیل</label>
+            <input name="email" type="email" required placeholder="sara@example.com" class="w-full p-3 border border-slate-300 rounded focus:outline-blue-300" />
+          </div>
+          <div class="form-group mb-4">
+            <label class="block mb-1 text-slate-700 font-medium">نقش</label>
+            <input name="role" required placeholder="مدیر / نویسنده / کاربر" class="w-full p-3 border border-slate-300 rounded focus:outline-blue-300" />
+          </div>
+          <div class="flex gap-2">
+            <button type="submit" class="btn btn-success px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">ثبت کاربر</button>
+            <a href="admin/users" class="btn px-4 py-2 bg-slate-400 text-white rounded hover:bg-slate-600" data-navigo>انصراف</a>
+          </div>
+        </form>
+      `;
+
+      document.getElementById('add-user-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const newUser = {
+          id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+          name: form.name.value.trim(),
+          email: form.email.value.trim(),
+          role: form.role.value.trim()
+        };
+        users.push(newUser);
+        // هدایت به لیست کاربران
+        router.navigate('/admin/users');
+      });
+
+      router.updatePageLinks();
+      lucide.createIcons();
+    }
+
+    function renderUserDetail(id) {
+      const user = users.find(u => u.id === id);
+      if (!user) {
+        appDiv.innerHTML = `
+          <h1 class="flex items-center gap-2 text-2xl font-bold text-slate-800">
+            <i data-lucide="alert-triangle" class="text-red-500"></i>
+            کاربر پیدا نشد
+          </h1>
+          <p class="mb-4">شناسه ${id} معتبر نیست.</p>
+          <a href="/admin/users" data-navigo class="inline-flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            بازگشت به لیست
+          </a>`;
+        router.updatePageLinks();
+        lucide.createIcons();
+        return;
+      }
+      appDiv.innerHTML = `
+        <h1 class="flex items-center gap-2 text-2xl font-bold text-slate-800 mb-6">
+          <i data-lucide="user"></i>
+          جزئیات کاربر
+        </h1>
+        <div class="bg-white p-6 rounded-lg shadow max-w-md">
+          <p><strong>شناسه:</strong> ${user.id}</p>
+          <p><strong>نام:</strong> ${user.name}</p>
+          <p><strong>ایمیل:</strong> ${user.email}</p>
+          <p><strong>نقش:</strong> ${user.role}</p>
+        </div>
+        <br>
+        <a href="admin/users" class="btn inline-flex items-center gap-1 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" data-navigo>
+          <i data-lucide="arrow-right"></i>
+          بازگشت به لیست
+        </a>
+
+      `;
+      router.updatePageLinks();
+      lucide.createIcons();
+    }
+
+    function renderProductList() {
+      const rows = products.map(p => `
+        <tr class="border-b last:border-b-0">
+          <td class="py-3 px-4">${p.id}</td>
+          <td class="py-3 px-4">${p.name}</td>
+          <td class="py-3 px-4">${p.price}</td>
+          <td class="py-3 px-4">${p.stock}</td>
+        </tr>
+      `).join('');
+
+      appDiv.innerHTML = `
+        <h1 class="text-slate-800 mb-6 flex items-center gap-2 text-2xl font-bold">
+          <i data-lucide="package"></i>
+          لیست محصولات
+        </h1>
+        <div class="overflow-x-auto">
+        <table class="w-full bg-white rounded-xl overflow-hidden shadow border-collapse mt-4">
+          <thead>
+            <tr>
+              <th class="bg-slate-50 font-semibold text-slate-700 py-3 px-4 text-right">شناسه</th>
+              <th class="bg-slate-50 font-semibold text-slate-700 py-3 px-4 text-right">نام</th>
+              <th class="bg-slate-50 font-semibold text-slate-700 py-3 px-4 text-right">قیمت</th>
+              <th class="bg-slate-50 font-semibold text-slate-700 py-3 px-4 text-right">موجودی</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        </div>
+      `;
+      router.updatePageLinks();
+      lucide.createIcons();
+    }
+
+    function renderNotFound() {
+      appDiv.innerHTML = `
+        <h1 class="text-3xl mb-4">۴۰۴</h1>
+        <p class="mb-4">صفحه‌ای که به دنبال آن هستید وجود ندارد.</p>
+        <a href="/admin" data-navigo class="inline-flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+          <i data-lucide="arrow-right"></i>
+          بازگشت به داشبورد
+        </a>
+      `;
+      router.updatePageLinks();
+      lucide.createIcons();
+    }
+
+    // ================= راه‌اندازی Navigo =================
+    const router = new Navigo('/');
+
+    router
+      .on('/admin', renderDashboard)
+      .on('/admin/users', renderUserList)
+      .on('/admin/users/add', renderAddUserForm)
+      .on('/admin/users/:id', (match) => {
+        const id = parseInt(match.data.id);
+        renderUserDetail(id);
+      })
+      .on('/admin/products', renderProductList)
+      .notFound(renderNotFound)
+      .resolve();
+
+    // ساخت آیکون‌ها پس از بارگیری
+    lucide.createIcons();
+  </script>
+</body>
+</html>
