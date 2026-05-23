@@ -1,77 +1,61 @@
 <?php
+
 namespace App\Modules\Cart;
 
 use App\Core\Database\Model;
-use PDO;
 
 class CartModel extends Model
 {
-    protected string $table = 'products';
-    protected string $primaryKey = 'id';
+    protected string $table = 'carts';
+    protected bool $timestamps = true;
+    protected array $fillable = ['user_id'];
 
-    /**
-     * Retrieve product details by ID
-     */
-    public function getProduct(int $productId): ?array
+    // سبد فعال کاربر — اگه نداشت می‌سازه
+    public function getOrCreateForUser(int $userId): array
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT p.id, p.name, p.slug, p.price, p.stock,
-                (SELECT image_url FROM product_images WHERE product_id = p.id AND is_main = 1 LIMIT 1) AS image
-             FROM products p WHERE p.id = ?'
-        );
-        $stmt->execute([$productId]);
-        $product = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $product ?: null;
+        $cart = $this->findBy('user_id', $userId);
+        if ($cart) return $cart;
+
+        $id = $this->create(['user_id' => $userId]);
+        return $this->find($id);
     }
 
-    /**
-     * Get stock for a given product
-     */
-    public function getStock(int $productId): ?int
+    public function findByUserId(int $userId): ?array
     {
-        $stmt = $this->pdo->prepare('SELECT stock FROM products WHERE id = ?');
-        $stmt->execute([$productId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? (int)$result['stock'] : null;
+        return $this->findBy('user_id', $userId);
     }
 
-    /**
-     * Fetch cart items data from a list of product IDs with quantity
-     * @param array $cartAssoc Array of [productId => qty]
-     * @return array ['items' => [...], 'total' => ..., 'count' => ...]
-     */
-    public function getCartItemsWithDetails(array $cartAssoc): array
+    // سبد کامل با آیتم‌ها و اطلاعات محصول
+    public function getCartWithItems(int $userId): ?array
     {
-        $items = [];
-        $total = 0;
-        if (empty($cartAssoc)) {
-            return ['items' => [], 'total' => 0, 'count' => 0];
-        }
+        $cart = $this->findByUserId($userId);
+        if (!$cart) return null;
 
-        $ids = array_keys($cartAssoc);
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = $this->pdo->prepare("
+            SELECT ci.*,
+                   p.name, p.slug, p.price, p.stock, p.era, p.material,
+                   p.is_active,
+                   (SELECT pi.image_url FROM product_images pi
+                    WHERE pi.product_id = ci.product_id AND pi.is_main = 1
+                    LIMIT 1) AS image
+            FROM cart_items ci
+            JOIN products p ON p.id = ci.product_id
+            WHERE ci.cart_id = ?
+            ORDER BY ci.created_at ASC
+        ");
+        $stmt->execute([$cart['id']]);
+        $cart['items'] = $stmt->fetchAll();
 
-        $stmt = $this->pdo->prepare(
-            "SELECT p.id, p.name, p.slug, p.price, p.stock,
-                (SELECT image_url FROM product_images WHERE product_id = p.id AND is_main = 1 LIMIT 1) AS image
-            FROM products p
-            WHERE p.id IN ($placeholders)"
-        );
-        $stmt->execute($ids);
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $cart['total'] = array_reduce($cart['items'], function ($carry, $item) {
+            return $carry + ($item['price'] * $item['quantity']);
+        }, 0);
 
-        foreach ($products as $product) {
-            $pid = $product['id'];
-            $qty = $cartAssoc[$pid] ?? 0;
-            $product['qty'] = $qty;
-            $product['subtotal'] = $product['price'] * $qty;
-            $total += $product['subtotal'];
-            $items[] = $product;
-        }
-        return ['items' => $items, 'total' => $total, 'count' => array_sum($cartAssoc)];
+        return $cart;
     }
 
-    /**
-     * Utility: Add more cart/product-specific DB functions here as needed
-     */
+    public function clearCart(int $cartId): bool
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM cart_items WHERE cart_id = ?");
+        return $stmt->execute([$cartId]);
+    }
 }

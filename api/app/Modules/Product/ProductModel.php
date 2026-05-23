@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Modules\Product;
 
 use App\Core\Database\Model;
@@ -6,76 +7,192 @@ use App\Core\Database\Model;
 class ProductModel extends Model
 {
     protected string $table = 'products';
-    protected array $fillable = ['name', 'slug', 'description', 'price', 'category_id', 'era', 'material', 'badge', 'stock', 'featured'];
+    protected array $fillable = [
+        'name',
+        'slug',
+        'description',
+        'price',
+        'category_id',
+        'era',
+        'material',
+        'badge',
+        'stock',
+        'featured',
+        'is_active',
+    ];
+    protected bool $timestamps = true;
 
+    public function findBySlug(string $slug): ?array
+    {
+        return $this->findBy('slug', $slug);
+    }
+
+    public function slugExists(string $slug, ?int $excludeId = null): bool
+    {
+        return $this->exists('slug', $slug, $excludeId);
+    }
+
+    // لیست محصولات با فیلتر، مرتب‌سازی و صفحه‌بندی
     public function paginateWithFilters(array $filters): array
     {
-        $where = ['1=1'];
+        $where  = ['p.is_active = 1'];
         $params = [];
-        if (!empty($filters['category'])) {
-            $where[] = 'category_id = ?';
-            $params[] = $filters['category'];
+
+        if (!empty($filters['category_id'])) {
+            $where[]               = 'p.category_id = ?';
+            $params[]              = $filters['category_id'];
         }
         if (!empty($filters['era'])) {
-            $where[] = 'era LIKE ?';
+            $where[]  = 'p.era LIKE ?';
             $params[] = "%{$filters['era']}%";
         }
-        if ($filters['featured'] !== null) {
-            $where[] = 'featured = ?';
-            $params[] = (int)$filters['featured'];
+        if (isset($filters['featured']) && $filters['featured'] !== null) {
+            $where[]  = 'p.featured = ?';
+            $params[] = (int) $filters['featured'];
         }
         if (!empty($filters['q'])) {
-            $where[] = '(name LIKE ? OR description LIKE ?)';
+            $where[]  = '(p.name LIKE ? OR p.description LIKE ?)';
             $params[] = "%{$filters['q']}%";
             $params[] = "%{$filters['q']}%";
         }
-        $sortMap = [
-            'price_asc'  => 'price ASC',
-            'price_desc' => 'price DESC',
-            'newest'     => 'created_at DESC',
-            'id_desc'    => 'id DESC',
-        ];
-        $orderBy = $sortMap[$filters['sort']] ?? 'id DESC';
-        $limit = min($filters['limit'], 100);
-        $offset = ($filters['page'] - 1) * $limit;
 
-        $sql = "SELECT p.*, (SELECT image_url FROM product_images WHERE product_id = p.id AND is_main = 1 LIMIT 1) AS image
-                FROM products p WHERE " . implode(' AND ', $where) . " ORDER BY $orderBy LIMIT $limit OFFSET $offset";
+        $sortMap = [
+            'price_asc'  => 'p.price ASC',
+            'price_desc' => 'p.price DESC',
+            'newest'     => 'p.created_at DESC',
+            'popular'    => 'p.views DESC',
+        ];
+        $orderBy = $sortMap[$filters['sort'] ?? ''] ?? 'p.id DESC';
+
+        $limit  = min((int)($filters['limit'] ?? 12), 100);
+        $page   = max((int)($filters['page'] ?? 1), 1);
+        $offset = ($page - 1) * $limit;
+
+        $whereStr = implode(' AND ', $where);
+
+        $sql = "
+            SELECT p.*,
+                   (SELECT pi.image_url FROM product_images pi
+                    WHERE pi.product_id = p.id AND pi.is_main = 1
+                    LIMIT 1) AS main_image,
+                   c.name AS category_name
+            FROM {$this->table} p
+            LEFT JOIN categories c ON c.id = p.category_id
+            WHERE {$whereStr}
+            ORDER BY {$orderBy}
+            LIMIT {$limit} OFFSET {$offset}
+        ";
+
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
         $items = $stmt->fetchAll();
 
-        $countSql = "SELECT COUNT(*) FROM products p WHERE " . implode(' AND ', $where);
+        $countSql  = "SELECT COUNT(*) FROM {$this->table} p WHERE {$whereStr}";
         $countStmt = $this->pdo->prepare($countSql);
         $countStmt->execute($params);
-        $total = (int)$countStmt->fetchColumn();
+        $total = (int) $countStmt->fetchColumn();
 
-        return ['data' => $items, 'total' => $total, 'page' => $filters['page'], 'limit' => $limit];
+        return [
+            'data'       => $items,
+            'total'      => $total,
+            'page'       => $page,
+            'limit'      => $limit,
+            'last_page'  => (int) ceil($total / $limit),
+        ];
     }
 
-    public function getOptions(int $productId): array
+    // محصول کامل با تصاویر و آپشن‌ها
+    public function getFullProduct(int $id): ?array
     {
-        $stmt = $this->pdo->prepare('SELECT option_type, option_value FROM product_options WHERE product_id = ?');
+        $product = $this->find($id);
+        if (!$product) return null;
+
+        $product['images']  = $this->getImages($id);
+        $product['options'] = $this->getOptions($id);
+
+        return $product;
+    }
+
+    public function getImages(int $productId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM product_images
+            WHERE product_id = ?
+            ORDER BY is_main DESC, sort_order ASC
+        ");
         $stmt->execute([$productId]);
         return $stmt->fetchAll();
     }
 
-    public function getRelated(int $productId): array
+    public function getOptions(int $productId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT option_type, option_value FROM product_options WHERE product_id = ?'
+        );
+        $stmt->execute([$productId]);
+        return $stmt->fetchAll();
+    }
+
+    public function getRelated(int $productId, int $limit = 4): array
     {
         $product = $this->find($productId);
-        if (!$product) return [];
-        $stmt = $this->pdo->prepare('
-            SELECT id, name, slug, price, era, material,
-                (SELECT image_url FROM product_images WHERE product_id = p.id AND is_main = 1 LIMIT 1) AS image
-            FROM products p
-            WHERE category_id = ? AND id != ? AND stock > 0 LIMIT 4
-        ');
-        $stmt->execute([$product['category_id'], $productId]);
+        if (!$product || !$product['category_id']) return [];
+
+        $stmt = $this->pdo->prepare("
+            SELECT p.*,
+                   (SELECT pi.image_url FROM product_images pi
+                    WHERE pi.product_id = p.id AND pi.is_main = 1
+                    LIMIT 1) AS main_image
+            FROM {$this->table} p
+            WHERE p.category_id = ?
+              AND p.id != ?
+              AND p.stock > 0
+              AND p.is_active = 1
+            ORDER BY p.featured DESC, p.views DESC
+            LIMIT ?
+        ");
+        $stmt->execute([$product['category_id'], $productId, $limit]);
+        return $stmt->fetchAll();
+    }
+
+    public function getFeatured(int $limit = 8): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT p.*,
+                   (SELECT pi.image_url FROM product_images pi
+                    WHERE pi.product_id = p.id AND pi.is_main = 1
+                    LIMIT 1) AS main_image
+            FROM {$this->table} p
+            WHERE p.featured = 1 AND p.is_active = 1 AND p.stock > 0
+            ORDER BY p.created_at DESC
+            LIMIT ?
+        ");
+        $stmt->execute([$limit]);
         return $stmt->fetchAll();
     }
 
     public function incrementViews(int $id): void
     {
-        $this->pdo->prepare('UPDATE products SET views = views + 1 WHERE id = ?')->execute([$id]);
+        $this->pdo->prepare(
+            "UPDATE {$this->table} SET views = views + 1 WHERE id = ?"
+        )->execute([$id]);
+    }
+
+    public function decrementStock(int $id, int $qty = 1): bool
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE {$this->table}
+            SET stock = stock - ?
+            WHERE id = ? AND stock >= ?
+        ");
+        $stmt->execute([$qty, $id, $qty]);
+        return $stmt->rowCount() > 0;
+    }
+
+    public function incrementStock(int $id, int $qty = 1): void
+    {
+        $this->pdo->prepare("
+            UPDATE {$this->table} SET stock = stock + ? WHERE id = ?
+        ")->execute([$qty, $id]);
     }
 }

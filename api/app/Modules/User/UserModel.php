@@ -11,37 +11,30 @@ class UserModel extends Model
     protected array $fillable = [
         'name',
         'phone',
-        'password_hash',        
-        'is_active'
-    ];
-    protected array $hidden = [
+        'email',
         'password_hash',
+        'role',
+        'is_active',
     ];
+    protected array $hidden = ['password_hash'];
     protected bool $timestamps = true;
-    protected string $createdAt = 'created_at';
-    protected string $updatedAt = 'updated_at';
 
     public function create(array $data): int
     {
         if (isset($data['password'])) {
-            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+            $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
+            unset($data['password']);
         }
         return parent::create($data);
     }
 
-    public function update(int|string $id, array $data): bool {
+    public function update(int|string $id, array $data): bool
+    {
         if (isset($data['password'])) {
-            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+            $data['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
+            unset($data['password']);
         }
         return parent::update($id, $data);
-    }
-
-    public function getAll(): array {
-        return $this->all();
-    }
-    
-    public function findById(int $id): ?array {
-        return $this->find($id);
     }
 
     public function findByPhone(string $phone): ?array
@@ -49,15 +42,46 @@ class UserModel extends Model
         return $this->findBy('phone', $phone);
     }
 
+    public function findByEmail(string $email): ?array
+    {
+        return $this->findBy('email', $email);
+    }
+
     public function phoneExists(string $phone, ?int $excludeId = null): bool
     {
         return $this->exists('phone', $phone, $excludeId);
     }
+
+    public function emailExists(string $email, ?int $excludeId = null): bool
+    {
+        return $this->exists('email', $email, $excludeId);
+    }
+
     public function getActiveUsers(): array
     {
-        $sql = "SELECT * FROM {$this->table} WHERE is_active = '1'";
-        $stmt = $this->pdo->prepare($sql);
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM {$this->table} WHERE is_active = 1 ORDER BY created_at DESC"
+        );
         $stmt->execute();
         return $stmt->fetchAll();
+    }
+
+    public function getAdmins(): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT * FROM {$this->table} WHERE role = 'admin' AND is_active = 1"
+        );
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function deactivate(int $id): bool
+    {
+        return parent::update($id, ['is_active' => 0]);
+    }
+
+    public function activate(int $id): bool
+    {
+        return parent::update($id, ['is_active' => 1]);
     }
 }
