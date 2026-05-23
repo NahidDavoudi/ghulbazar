@@ -1,11 +1,96 @@
 <?php
+
 namespace App\Modules\Category;
 
-use App\Modules\Category\CategoryImageModel;
+class CategoryImageService
+{
+    public function __construct(
+        private CategoryImageModel $imageModel,
+        private CategoryModel      $categoryModel,
+    ) {}
 
-class CategoryImageService {
-    protected CategoryImageModel $model;
-    public function __construct(){
-        $this->model = new CategoryImageModel();
+    public function getImages(int $categoryId): array
+    {
+        $this->assertCategoryExists($categoryId);
+        return $this->imageModel->getByCategoryId($categoryId);
+    }
+
+    public function getMainImage(int $categoryId): ?array
+    {
+        $this->assertCategoryExists($categoryId);
+        return $this->imageModel->getMainImage($categoryId);
+    }
+
+    public function addImage(int $categoryId, array $data): array
+    {
+        $this->assertCategoryExists($categoryId);
+
+        if (empty($data['image_url'])) {
+            throw new \RuntimeException('آدرس تصویر الزامی است.', 422);
+        }
+
+        $existing = $this->imageModel->getByCategoryId($categoryId);
+        $isMain   = empty($existing) ? 1 : (int) ($data['is_main'] ?? 0);
+
+        if ($isMain) {
+            $this->imageModel->unsetMain($categoryId);
+        }
+
+        $id = $this->imageModel->create([
+            'category_id' => $categoryId,
+            'image_url'   => trim($data['image_url']),
+            'alt_text'    => trim($data['alt_text'] ?? ''),
+            'is_main'     => $isMain,
+            'sort_order'  => (int) ($data['sort_order'] ?? count($existing)),
+        ]);
+
+        return $this->imageModel->find($id);
+    }
+
+    public function setMain(int $categoryId, int $imageId): void
+    {
+        $this->assertCategoryExists($categoryId);
+
+        $image = $this->imageModel->find($imageId);
+        if (!$image || (int) $image['category_id'] !== $categoryId) {
+            throw new \RuntimeException('تصویر یافت نشد.', 404);
+        }
+
+        $this->imageModel->setMain($imageId, $categoryId);
+    }
+
+    public function delete(int $categoryId, int $imageId): void
+    {
+        $this->assertCategoryExists($categoryId);
+
+        $image = $this->imageModel->find($imageId);
+        if (!$image || (int) $image['category_id'] !== $categoryId) {
+            throw new \RuntimeException('تصویر یافت نشد.', 404);
+        }
+
+        $this->imageModel->delete($imageId);
+
+        // اگه تصویر اصلی بود، اولین باقیمانده رو اصلی کن
+        if ($image['is_main']) {
+            $remaining = $this->imageModel->getByCategoryId($categoryId);
+            if (!empty($remaining)) {
+                $this->imageModel->setMain($remaining[0]['id'], $categoryId);
+            }
+        }
+    }
+
+    public function deleteAll(int $categoryId): void
+    {
+        $this->assertCategoryExists($categoryId);
+        $this->imageModel->deleteAllForCategory($categoryId);
+    }
+
+    // ─── Private ─────────────────────────────────────────────────
+
+    private function assertCategoryExists(int $categoryId): void
+    {
+        if (!$this->categoryModel->find($categoryId)) {
+            throw new \RuntimeException('دسته‌بندی یافت نشد.', 404);
+        }
     }
 }

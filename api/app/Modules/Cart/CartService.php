@@ -1,91 +1,170 @@
 <?php
+
 namespace App\Modules\Cart;
-use App\Core\Database\Database;
-use App\Modules\Cart\CartModel;
+
+use App\Modules\Product\ProductModel;
+use App\Modules\Discount\DiscountModel;
 
 class CartService
 {
-    protected CartModel $model;
-    public function __construct(){
-        $this->model = new CartModel();
-    }
-    
-    private function getCart(): array
+    public function __construct(
+        private CartModel     $cartModel,
+        private CartItemModel $itemModel,
+        private ProductModel  $productModel,
+        private DiscountModel $discountModel,
+    ) {}
+
+    // ─── View ────────────────────────────────────────────────────
+
+    public function getCart(int $userId): array
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        $cart = $this->cartModel->getCartWithItems($userId);
+
+        if (!$cart) {
+            // سبد هنوز وجود نداشته — یکی خالی برمی‌گردونه
+            $this->cartModel->getOrCreateForUser($userId);
+            return $this->emptyCart();
         }
-        return $_SESSION['cart'] ?? [];
+
+        return $cart;
     }
 
-    private function saveCart(array $cart): void
+    // ─── Add / Update ────────────────────────────────────────────
+
+    public function addItem(int $userId, int $productId, int $qty = 1): array
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+        if ($qty < 1) {
+            throw new \RuntimeException('تعداد باید حداقل ۱ باشد.', 422);
         }
-        $_SESSION['cart'] = $cart;
+
+        $product = $this->productModel->find($productId);
+        if (!$product || !$product['is_active']) {
+            throw new \RuntimeException('محصول یافت نشد.', 404);
+        }
+
+        // بررسی موجودی کافی
+        $cart        = $this->cartModel->getOrCreateForUser($userId);
+        $existing    = $this->itemModel->findByCartAndProduct($cart['id'], $productId);
+        $currentQty  = $existing ? $existing['quantity'] : 0;
+        $totalNeeded = $currentQty + $qty;
+
+        if ($product['stock'] < $totalNeeded) {
+            throw new \RuntimeException(
+                "موجودی کافی نیست. فقط {$product['stock']} عدد در انبار موجود است.",
+                422
+            );
+        }
+
+        $this->itemModel->addOrIncrement($cart['id'], $productId, $qty);
+
+        return $this->getCart($userId);
     }
 
-    public function getItems(): array
+    public function updateItem(int $userId, int $productId, int $qty): array
     {
-        $cart = $this->getCart();
-        $items = [];
-        $total = 0;
-        $pdo = Database::getInstance()->getConnection();
+        $product = $this->productModel->find($productId);
+        if (!$product || !$product['is_active']) {
+            throw new \RuntimeException('محصول یافت نشد.', 404);
+        }
 
-        foreach ($cart as $productId => $qty) {
-            $stmt = $pdo->prepare('
-                SELECT p.id, p.name, p.slug, p.price, p.stock,
-                    (SELECT image_url FROM product_images WHERE product_id = p.id AND is_main = 1 LIMIT 1) AS image
-                FROM products p WHERE p.id = ?
-            ');
-            $stmt->execute([$productId]);
-            $product = $stmt->fetch();
-            if ($product) {
-                $product['qty'] = $qty;
-                $product['subtotal'] = $product['price'] * $qty;
-                $total += $product['subtotal'];
-                $items[] = $product;
+        if ($qty > $product['stock']) {
+            throw new \RuntimeException(
+                "موجودی کافی نیست. فقط {$product['stock']} عدد در انبار موجود است.",
+                422
+            );
+        }
+
+        $cart = $this->cartModel->findByUserId($userId);
+        if (!$cart) {
+            throw new \RuntimeException('سبد خرید یافت نشد.', 404);
+        }
+
+        // qty <= 0 باعث حذف آیتم میشه (داخل model هندل شده)
+        $this->itemModel->updateQuantity($cart['id'], $productId, $qty);
+
+        return $this->getCart($userId);
+    }
+
+    public function removeItem(int $userId, int $productId): array
+    {
+        $cart = $this->cartModel->findByUserId($userId);
+        if (!$cart) {
+            throw new \RuntimeException('سبد خرید یافت نشد.', 404);
+        }
+
+        $this->itemModel->removeItem($cart['id'], $productId);
+
+        return $this->getCart($userId);
+    }
+
+    public function clearCart(int $userId): void
+    {
+        $cart = $this->cartModel->findByUserId($userId);
+        if ($cart) {
+            $this->cartModel->clearCart($cart['id']);
+        }
+    }
+
+    // ─── Discount ────────────────────────────────────────────────
+
+    public function applyDiscount(int $userId, string $code): array
+    {
+        $cart = $this->getCart($userId);
+
+        if (empty($cart['items'])) {
+            throw new \RuntimeException('سبد خرید خالی است.', 422);
+        }
+
+        $discount = $this->discountModel->findValidCode($code);
+        if (!$discount) {
+            throw new \RuntimeException('کد تخفیف معتبر نیست یا منقضی شده.', 422);
+        }
+
+        $discountAmount = $this->discountModel->calculateDiscount($discount, $cart['total']);
+
+        return [
+            'cart'            => $cart,
+            'discount_code'   => $discount,
+            'discount_amount' => $discountAmount,
+            'final_total'     => max(0, $cart['total'] - $discountAmount),
+        ];
+    }
+
+    // ─── Checkout helper ─────────────────────────────────────────
+
+    /**
+     * قبل از ثبت سفارش فراخوانی میشه — موجودی همه آیتم‌ها رو چک میکنه
+     */
+    public function validateForCheckout(int $userId): array
+    {
+        $cart = $this->getCart($userId);
+
+        if (empty($cart['items'])) {
+            throw new \RuntimeException('سبد خرید خالی است.', 422);
+        }
+
+        $errors = [];
+        foreach ($cart['items'] as $item) {
+            if (!$item['is_active']) {
+                $errors[] = "محصول «{$item['name']}» دیگر فعال نیست.";
+                continue;
+            }
+            if ($item['stock'] < $item['quantity']) {
+                $errors[] = "موجودی «{$item['name']}» کافی نیست (موجود: {$item['stock']}).";
             }
         }
-        return ['items' => $items, 'total' => $total, 'count' => array_sum($cart)];
-    }
 
-    public function addItem(int $productId, int $qty = 1): void
-    {
-        // بررسی موجودی محصول
-        $pdo = Database::getInstance()->getConnection();
-        $stmt = $pdo->prepare('SELECT stock FROM products WHERE id = ?');
-        $stmt->execute([$productId]);
-        $product = $stmt->fetch();
-        if (!$product || $product['stock'] < 1) {
-            throw new \Exception('محصول یافت نشد یا موجودی کافی نیست');
+        if (!empty($errors)) {
+            throw new \RuntimeException(implode(' | ', $errors), 422);
         }
-        $cart = $this->getCart();
-        $cart[$productId] = ($cart[$productId] ?? 0) + $qty;
-        $this->saveCart($cart);
+
+        return $cart;
     }
 
-    public function updateItem(int $productId, int $qty): void
-    {
-        $cart = $this->getCart();
-        if ($qty <= 0) {
-            unset($cart[$productId]);
-        } else {
-            $cart[$productId] = $qty;
-        }
-        $this->saveCart($cart);
-    }
+    // ─── Private ─────────────────────────────────────────────────
 
-    public function removeItem(int $productId): void
+    private function emptyCart(): array
     {
-        $cart = $this->getCart();
-        unset($cart[$productId]);
-        $this->saveCart($cart);
-    }
-
-    public function clear(): void
-    {
-        $this->saveCart([]);
+        return ['items' => [], 'total' => 0];
     }
 }

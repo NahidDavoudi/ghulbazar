@@ -1,10 +1,9 @@
 <?php
+
 namespace App\Modules\Auth;
 
 use App\Core\Auth\Auth as JwtAuth;
-use App\Core\Database\Database;
 use App\Modules\User\UserModel;
-use Exception;
 
 class AuthService
 {
@@ -14,58 +13,149 @@ class AuthService
     {
         $this->userModel = new UserModel();
     }
-    protected function validatePhone($phone){
-        // Iranian mobile: starts with +98 or 0, followed by 9 and 9 digits (total 11 digits if starts with 0, 13 with +98)
-        $pattern = '/^(?:\+98|0)?9\d{9}$/';
 
-        if (!preg_match($pattern, $phone)) {
-            throw new Exception('شماره تلفن وارد شده نامعتبر است');
-        }
-        return true;
-    }
+    // ─── Register ────────────────────────────────────────────────
 
-    public function register(array $data): array{
+    public function register(array $data): array
+    {
         if (empty($data['name']) || empty($data['phone']) || empty($data['password'])) {
-            throw new Exception('نام، تلفن و رمز عبور الزامی است');
+            throw new \Exception('نام، تلفن و رمز عبور الزامی است.');
         }
-        // Validate phone number before proceeding
-        $this->validatePhone($data['phone']);
 
-        // چک تکراری بودن تلفن
+        $this->validatePhone($data['phone']);
+        $this->validatePassword($data['password']);
+
         if ($this->userModel->exists('phone', $data['phone'])) {
-            throw new Exception('شماره تلفن قبلاً ثبت شده است', 409);
+            throw new \Exception('شماره تلفن قبلاً ثبت شده است.', 409);
         }
-        $hashed = password_hash($data['password'], PASSWORD_DEFAULT);
+
         $userId = $this->userModel->create([
-            'name'          => $data['name'],
+            'name'          => trim($data['name']),
             'phone'         => $data['phone'],
-            'password_hash' => $hashed,
-            'role'          => 'user'
+            'password'      => $data['password'],   // UserModel هش میکنه
+            'role'          => 'user',
+            'is_active'     => 1,
         ]);
-        $user = $this->userModel->find($userId);
+
+        $user  = $this->userModel->find($userId);
         unset($user['password_hash']);
-        $token = JwtAuth::generateToken(['user_id' => $userId, 'role' => 'user'], 86400 * 30);
+
+        $token = JwtAuth::generateToken(
+            ['user_id' => $userId, 'role' => 'user'],
+            86400 * 30
+        );
+
         return ['token' => $token, 'user' => $user];
     }
+
+    // ─── Login ────────────────────────────────────────────────────
 
     public function login(string $phone, string $password): array
     {
-        // Validate phone number before proceeding
         $this->validatePhone($phone);
 
         $user = $this->userModel->findBy('phone', $phone);
+
         if (!$user || !password_verify($password, $user['password_hash'])) {
-            throw new Exception('اطلاعات ورود نادرست است', 401);
+            throw new \Exception('شماره تلفن یا رمز عبور اشتباه است.', 401);
         }
+
+        if (!$user['is_active']) {
+            throw new \Exception('حساب کاربری شما غیرفعال شده است.', 403);
+        }
+
         unset($user['password_hash']);
-        $token = JwtAuth::generateToken(['user_id' => $user['id'], 'role' => $user['role']], 86400 * 30);
+
+        $token = JwtAuth::generateToken(
+            ['user_id' => $user['id'], 'role' => $user['role']],
+            86400 * 30
+        );
+
         return ['token' => $token, 'user' => $user];
     }
 
-    public function me(int $userId): ?array
+    // ─── Admin Login ──────────────────────────────────────────────
+
+    public function adminLogin(string $phone, string $password): array
+    {
+        $this->validatePhone($phone);
+
+        $user = $this->userModel->findBy('phone', $phone);
+
+        if (!$user || !password_verify($password, $user['password_hash'])) {
+            throw new \Exception('اطلاعات ورود نادرست است.', 401);
+        }
+
+        if ($user['role'] !== 'admin') {
+            throw new \Exception('دسترسی مجاز نیست.', 403);
+        }
+
+        if (!$user['is_active']) {
+            throw new \Exception('حساب کاربری غیرفعال است.', 403);
+        }
+
+        unset($user['password_hash']);
+
+        $token = JwtAuth::generateToken(
+            ['user_id' => $user['id'], 'role' => 'admin'],
+            86400 * 7    // ادمین توکن کوتاه‌تر
+        );
+
+        return ['token' => $token, 'user' => $user];
+    }
+
+    // ─── Me ───────────────────────────────────────────────────────
+
+    public function me(int $userId): array
     {
         $user = $this->userModel->find($userId);
-        if ($user) unset($user['password_hash']);
+
+        if (!$user) {
+            throw new \Exception('کاربر یافت نشد.', 404);
+        }
+
+        if (!$user['is_active']) {
+            throw new \Exception('حساب کاربری غیرفعال است.', 403);
+        }
+
+        unset($user['password_hash']);
         return $user;
+    }
+
+    // ─── Refresh Token ────────────────────────────────────────────
+
+    public function refreshToken(int $userId, string $role): array
+    {
+        $user = $this->userModel->find($userId);
+
+        if (!$user || !$user['is_active']) {
+            throw new \Exception('کاربر یافت نشد یا غیرفعال است.', 401);
+        }
+
+        $ttl   = $role === 'admin' ? 86400 * 7 : 86400 * 30;
+        $token = JwtAuth::generateToken(
+            ['user_id' => $userId, 'role' => $role],
+            $ttl
+        );
+
+        unset($user['password_hash']);
+
+        return ['token' => $token, 'user' => $user];
+    }
+
+    // ─── Validation Helpers ───────────────────────────────────────
+
+    protected function validatePhone(string $phone): void
+    {
+        if (!preg_match('/^(?:\+98|0)?9\d{9}$/', $phone)) {
+            throw new \Exception('شماره تلفن وارد شده نامعتبر است.');
+        }
+    }
+
+    protected function validatePassword(string $password): void
+    {
+        if (strlen($password) < 8) {
+            throw new \Exception('رمز عبور باید حداقل ۸ کاراکتر باشد.');
+        }
     }
 }
