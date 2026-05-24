@@ -150,5 +150,22 @@
       toast(e.message, 'error');
     }
   });
+/* ── Image picker wiring ───────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function () {
+  const btn      = $('catImageBtn');
+  const input    = $('catImageInput');
+  const preview  = $('catImagePreview');
 
+  btn?.addEventListener('click', () => input?.click());
+
+  input?.addEventListener('change', function () {
+    const file = this.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    if (preview) {
+      preview.src = url;
+      preview.classList.remove('hidden');
+    }
+  });
+});
 })();
