@@ -30,7 +30,7 @@
         .animate-scaleIn { animation: scaleIn 0.25s ease-out; }
     </style>
 </head>
-<body class="bg-stone-100 text-stone-800 antialiased transition-colors duration-300" style="font-family:'Vazirmatn',sans-serif;">
+<body class="bg-stone-100 text-stone-800 font-sans antialiased transition-colors duration-300">
 
     <div id="loadingOverlay" class="hidden fixed inset-0 bg-stone-100/80 backdrop-blur-sm z-[100] flex items-center justify-center">
         <div class="animate-spin rounded-full h-12 w-12 border-4 border-red-700 border-t-transparent"></div>
@@ -257,7 +257,7 @@
                             <thead>
                                 <tr class="bg-red-800 text-white">
                                     <th class="text-right px-5 py-4 font-medium">#</th>
-                                    <th class="text-right px-5 py-4 font-medium">نام / پوستر</th>
+                                    <th class="text-right px-5 py-4 font-medium">نام</th>
                                     <th class="text-right px-5 py-4 font-medium">شناسه (slug)</th>
                                     <th class="text-right px-5 py-4 font-medium">عملیات</th>
                                 </tr>
@@ -462,19 +462,19 @@
                     </div>
                     <div>
                         <label class="block text-stone-600 mb-2 text-sm">پوستر دسته‌بندی</label>
-                        <div class="flex items-center gap-3">
-                            <img id="catImagePreview" src="" alt="" class="hidden w-16 h-16 rounded-xl object-cover bg-stone-100">
-                            <input type="file" id="catImageInput" accept="image/*" class="hidden" onchange="const p=$('catImagePreview');if(this.files[0]){const r=new FileReader();r.onload=e=>{p.src=e.target.result;p.classList.remove('hidden')};r.readAsDataURL(this.files[0])}">
-                            <button type="button" onclick="document.getElementById('catImageInput').click()" class="bg-stone-100 hover:bg-stone-200 text-stone-600 px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition">
-                                <i data-lucide="image-plus" class="w-4 h-4"></i> انتخاب پوستر
-                            </button>
-                        </div>
+                        <img id="catImagePreview" src="" alt="پیش‌نمایش"
+                             class="hidden w-full h-36 object-cover rounded-xl mb-3 border border-stone-200">
+                        <input type="file" id="catImageInput" accept="image/jpeg,image/png,image/webp" class="hidden">
+                        <button type="button" id="catImageBtn"
+                                class="bg-stone-100 hover:bg-stone-200 text-stone-600 px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition">
+                            <i data-lucide="image-plus" class="w-4 h-4"></i> انتخاب تصویر
+                        </button>
                     </div>
-                    <div class="flex gap-3 pt-4">
+                    <div class="flex gap-3 p-5 mt-2 bg-stone-50 border border-stone-200 rounded-2xl">
                         <button type="submit" class="bg-red-800 hover:bg-red-900 text-white px-8 py-3 rounded-xl font-medium transition-all flex items-center gap-2">
                             <i data-lucide="check" class="w-5 h-5"></i><span id="categorySubmitText">ذخیره</span>
                         </button>
-                        <button type="button" onclick="hideModal('categoryModal')" class="bg-stone-100 hover:bg-stone-200 text-stone-600 px-8 py-3 rounded-xl font-medium transition-all">انصراف</button>
+                        <button type="button" onclick="hideModal('categoryModal')" class="bg-white hover:bg-stone-100 border border-stone-200 text-stone-600 px-8 py-3 rounded-xl font-medium transition-all">انصراف</button>
                     </div>
                 </form>
             </div>
@@ -529,8 +529,6 @@
     </div>
     <script src="assets/js/api.js"></script>
     <script src="assets/js/libs/lucide.min.js"></script>
-    <script src="assets/js/libs/d3.min.js"></script>
-    <script src="assets/js/libs/persian-date.min.js"></script>
     <script src="assets/js/admin.js"></script>
 </body>
 </html>

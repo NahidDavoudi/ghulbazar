@@ -542,31 +542,31 @@ var API = (function () {
 
   var dashboard = {
     overview: function () {
-      return get('/admin-dashboard/index');
+      return get('/adminDashboard/index');
     },
 
     stats: function () {
-      return get('/admin-dashboard/stats');
+      return get('/adminDashboard/stats');
     },
 
     recentOrders: function (limit) {
-      return get('/admin-dashboard/recentOrders', { limit: limit || 10 });
+      return get('/adminDashboard/recentOrders', { limit: limit || 10 });
     },
 
     lowStock: function (threshold) {
-      return get('/admin-dashboard/lowStock', { threshold: threshold || 5 });
+      return get('/adminDashboard/lowStock', { threshold: threshold || 5 });
     },
 
     revenue: function (days) {
-      return get('/admin-dashboard/revenue', { days: days || 7 });
+      return get('/adminDashboard/revenue', { days: days || 7 });
     },
 
     topProducts: function (limit) {
-      return get('/admin-dashboard/topProducts', { limit: limit || 10 });
+      return get('/adminDashboard/topProducts', { limit: limit || 10 });
     },
 
     ordersByStatus: function () {
-      return get('/admin-dashboard/ordersByStatus');
+      return get('/adminDashboard/ordersByStatus');
     },
   };
 
