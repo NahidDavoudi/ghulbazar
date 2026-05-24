@@ -193,7 +193,7 @@
   /* ── Save / update form ────────────────────────────────────── */
   $('productForm')?.addEventListener('submit', async function (e) {
     e.preventDefault();
-    const rawPrice = getVal('productPrice').replace(/[^0-9]/g, '');
+    const rawPrice = toEnDigit(getVal('productPrice')).replace(/[^0-9]/g, '');
     const rawStock = getVal('productStock').replace(/[^0-9]/g, '');
     const payload  = {
       name:        getVal('productName'),

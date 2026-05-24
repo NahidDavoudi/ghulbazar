@@ -13,7 +13,9 @@
   window.hide    = id => window.$(id)?.classList.add('hidden');
   window.setText = (id, v) => { const e = window.$(id); if (e) e.textContent = v; };
   window.getVal  = id => window.$(id)?.value.trim() ?? '';
-
+  /* ── price formatter  ──────────────────────────────────────── */
+  window.toEnDigit = s => s.replace(/[۰-۹]/g, d => d.charCodeAt(0) - 1776)
+  .replace(/[٠-٩]/g, d => d.charCodeAt(0) - 1632);
   /* ── Loading overlay ───────────────────────────────────────── */
   window.setLoading = function (on) {
     on ? window.show('loadingOverlay') : window.hide('loadingOverlay');

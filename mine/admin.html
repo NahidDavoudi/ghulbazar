@@ -391,7 +391,7 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-stone-600 mb-2 text-sm">قیمت (تومان) *</label>
-                            <input type="number" id="productPrice" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                            <input type="text" id="productPrice" inputmode="numeric"  required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
                         </div>
                         <div>
                             <label class="block text-stone-600 mb-2 text-sm">موجودی</label>
@@ -527,15 +527,26 @@
             </div>
         </div>
     </div>
-     <script src="api.js"></script>
-    <script src="admin/utils/helpers.js"></script>
-    <script src="admin/utils/priceFormatter.js"></script>
-    <script src="admin/pages/dashboard.js"></script>
-    <script src="admin/pages/products.js"></script>
-    <script src="admin/pages/categories.js"></script>
-    <script src="admin/pages/orders.js"></script>
-    <script src="admin/pages/users.js"></script>
-    <script src="admin/pages/discounts.js"></script>
-    <script src="admin/admin.js"></script>  <!-- آخر از همه -->
+     <script src="assets/js/api.js"></script>
+    <script src="assets/js/admin/utils/helpers.js"></script>
+    <script src="assets/js/admin/utils/priceFormatter.js"></script>
+    <script src="assets/js/admin/pages/dashboard.js"></script>
+    <script src="assets/js/admin/pages/products.js"></script>
+    <script src="assets/js/admin/pages/categories.js"></script>
+    <script src="assets/js/admin/pages/orders.js"></script>
+    <script src="assets/js/admin/pages/users.js"></script>
+    <script src="assets/js/admin/pages/discounts.js"></script>
+    <script src="assets/js/admin/admin.js"></script>  <!-- آخر از همه -->
+    <script>
+        new MutationObserver((mutations) => {
+          if (!window.lucide) return;
+          mutations.forEach(m => {
+            m.addedNodes.forEach(node => {
+              if (node.nodeType !== 1) return;
+              lucide.createIcons({ nodes: [node] });
+            });
+          });
+        }).observe(document.body, { childList: true, subtree: true });
+      </script>
 </body>
 </html>
