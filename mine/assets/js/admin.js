@@ -90,7 +90,8 @@
   async function loadDashboard() {
     try {
       setLoading(true);
-      const s = await API.admin.stats();
+      const _res = await API.admin.stats();
+      const s = _res.data || _res;
       setLoading(false);
 
       setText('stat-products',      (s.total_products  ??0).toLocaleString('fa-IR'));
@@ -380,13 +381,13 @@
   async function loadProducts() {
     try {
       setLoading(true);
-      const [data, cats] = await Promise.all([
+      const [data, catsRes] = await Promise.all([
         API.products.list({ limit: 100 }),
         API.categories.list(),
       ]);
       setLoading(false);
-      _products   = data.data || [];
-      _categories = cats || [];
+      _products   = data.data?.data || data.data || [];
+      _categories = catsRes.data || catsRes || [];
       _renderProducts(_products);
       _fillCatFilter();
     } catch(e) { setLoading(false); toast(e.message,'error'); }
@@ -413,7 +414,7 @@
       return;
     }
     tbody.innerHTML = list.map(p => {
-      const img = p.images?.find(i=>i.is_main)?.url || p.images?.[0]?.url || p.image || '';
+      const img = p.main_image || p.images?.find(i=>i.is_main)?.url || p.images?.[0]?.url || p.image || '';
       const stockCls = p.stock==0?'text-red-600':p.stock<5?'text-yellow-600':'text-green-600';
       return `<tr class="hover:bg-stone-50 transition-colors">
         <td class="px-4 py-3">
@@ -430,8 +431,8 @@
         <td class="px-4 py-3 text-sm font-bold ${stockCls}">${p.stock}</td>
         <td class="px-4 py-3 text-sm text-stone-500">${p.category_name||'—'}</td>
         <td class="px-4 py-3">
-          <span class="px-2 py-1 rounded-full text-xs font-medium ${p.is_featured?'bg-amber-100 text-amber-800':'bg-stone-100 text-stone-500'}">
-            ${p.is_featured?'ویژه':'عادی'}
+          <span class="px-2 py-1 rounded-full text-xs font-medium ${(p.featured||p.is_featured)?'bg-amber-100 text-amber-800':'bg-stone-100 text-stone-500'}">
+            ${(p.featured||p.is_featured)?'ویژه':'عادی'}
           </span>
         </td>
         <td class="px-4 py-3 text-sm text-stone-400">${p.views||0}</td>
@@ -487,8 +488,12 @@
   window.editProduct = async function(id) {
     try {
       setLoading(true);
-      const [p] = await Promise.all([API.products.get(id)]);
-      if (!_categories.length) _categories = await API.categories.list();
+      const pRes = await API.products.get(id);
+      const p = pRes.data || pRes;
+      if (!_categories.length) {
+        const cRes = await API.categories.list();
+        _categories = cRes.data || cRes || [];
+      }
       setLoading(false);
       _editingProdId = id;
 
@@ -499,7 +504,7 @@
       const _pDs = $('productDesc'); if (_pDs) _pDs.value = p.description||'';
       const _pBd = $('productBadge'); if (_pBd) _pBd.value = p.badge||'';
       const _pEr = $('productEra'); if (_pEr) _pEr.value = p.era||'';
-      const _pFt = $('productFeatured'); if (_pFt) _pFt.checked = !!p.is_featured;
+      const _pFt = $('productFeatured'); if (_pFt) _pFt.checked = !!(p.featured || p.is_featured);
 
       _fillCatFilter();
       const _pCat = $('productCategory');
@@ -560,7 +565,7 @@
         await _uploadPendingImages(_editingProdId);
       } else {
         const res = await API.products.create(payload);
-        const newId = res.id || res.product_id;
+        const newId = res.data?.id || res.id || res.product_id;
         toast('محصول ایجاد شد');
         /* آپلود تصاویر برای محصول جدید */
         if (newId) await _uploadPendingImages(newId);
@@ -633,7 +638,8 @@
   async function loadCategories() {
     try {
       setLoading(true);
-      const cats = await API.categories.list();
+      const catsRes = await API.categories.list();
+      const cats = catsRes.data || catsRes || [];
       setLoading(false);
       _renderCategories(cats);
     } catch(e) { setLoading(false); toast(e.message,'error'); }
@@ -729,7 +735,7 @@
         toast('دسته‌بندی بروزرسانی شد');
       } else {
         const res = await API.categories.create(payload);
-        catId = res.id;
+        catId = res.data?.id || res.id;
         toast('دسته‌بندی ایجاد شد');
       }
       // آپلود پوستر اگه انتخاب شده
@@ -757,7 +763,7 @@
       setLoading(true);
       const data = await API.orders.list({ limit: 200 });
       setLoading(false);
-      _orders = Array.isArray(data) ? data : (data.data||data.orders||[]);
+      _orders = Array.isArray(data.data) ? data.data : (data.data?.data || data.data?.orders || []);
       _renderOrders(_orders);
     } catch(e) { setLoading(false); toast(e.message,'error'); }
   }
@@ -864,9 +870,9 @@
   async function loadUsers() {
     try {
       setLoading(true);
-      const data = await API.users.list({ limit: 100 });
+      const data = await API.users.list();
       setLoading(false);
-      _users = data.data || [];
+      _users = data.data?.data || data.data || [];
       _renderUsers(_users);
     } catch(e) { setLoading(false); toast(e.message,'error'); }
   }

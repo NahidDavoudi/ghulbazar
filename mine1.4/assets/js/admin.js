@@ -416,21 +416,37 @@
     } catch(e) { setLoading(false); toast(e.message,'error'); }
   };
 
-  /* ذخیره / بروزرسانی محصول */
-  $('productForm')?.addEventListener('submit', async function(e) {
+  function toEnglishDigits(str) {
+    if (!str) return '';
+    const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+    const arabicDigits  = '٠١٢٣٤٥٦٧٨٩';
+    return str.replace(/[۰-۹]/g, d => persianDigits.indexOf(d))
+              .replace(/[٠-٩]/g, d => arabicDigits.indexOf(d));
+}
+
+$('productForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
-    const rawPrice = getVal('productPrice').replace(/[^0-9]/g, '');
-    const rawStock = getVal('productStock').replace(/[^0-9]/g, '');
+    
+    // گرفتن مقدار قیمت و تبدیل ارقام فارسی/عربی به انگلیسی
+    let rawPrice = getVal('productPrice');
+    rawPrice = toEnglishDigits(rawPrice);               // تبدیل ارقام
+    rawPrice = rawPrice.replace(/[^0-9]/g, '');         // حذف هر کاراکتر غیرعددی
+    
+    let rawStock = getVal('productStock');
+    rawStock = toEnglishDigits(rawStock);
+    rawStock = rawStock.replace(/[^0-9]/g, '');
+    
     const payload = {
-      name:        getVal('productName'),
-      price:       parseInt(rawPrice, 10) || 0,
-      stock:       parseInt(rawStock, 10) ?? 1,
-      description: getVal('productDesc'),
-      badge:       getVal('productBadge'),
-      era:         getVal('productEra'),
-      category_id: getVal('productCategory') || null,
-      is_featured: $('productFeatured')?.checked ? 1 : 0,
+        name:        getVal('productName'),
+        price:       parseInt(rawPrice, 10) || 0,
+        stock:       parseInt(rawStock, 10) ?? 1,
+        description: getVal('productDesc'),
+        badge:       getVal('productBadge'),
+        era:         getVal('productEra'),
+        category_id: getVal('productCategory') || null,
+        is_featured: $('productFeatured')?.checked ? 1 : 0,
     };
+    
     if (!payload.name) { toast('نام محصول الزامی است','error'); return; }
     if (!payload.price) { toast('قیمت محصول الزامی است','error'); return; }
     try {

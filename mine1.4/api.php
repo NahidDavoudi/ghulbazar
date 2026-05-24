@@ -205,7 +205,7 @@ function handle_products(string $method): void {
         db()->prepare('UPDATE products SET views = views + 1 WHERE id = ?')->execute([$id]);
 
         $rel = db()->prepare('
-            SELECT p.id, p.name, p.slug, p.price, p.era, p.material,
+            SELECT p.id, p.name, p.price, p.era, p.material,
                 (SELECT image_url FROM product_images WHERE product_id = p.id AND is_main = 1 LIMIT 1) AS image
             FROM products p
             WHERE p.category_id = ? AND p.id != ? AND p.stock > 0
@@ -253,7 +253,7 @@ function handle_products(string $method): void {
         $whereSQL = implode(' AND ', $where);
 
         $stmt = db()->prepare("
-            SELECT p.id, p.name, p.slug, p.price, p.era, p.material, p.badge, p.stock, p.rating, p.reviews, p.featured,
+            SELECT p.id, p.name, p.price, p.era, p.material, p.badge, p.stock, p.rating, p.reviews, p.featured,
                 c.name AS category_name,
                 (SELECT image_url FROM product_images WHERE product_id = p.id AND is_main = 1 LIMIT 1) AS image
             FROM products p
@@ -281,14 +281,14 @@ function handle_products(string $method): void {
         require_admin();
         $b = body();
         if (empty($b['name']) || empty($b['price'])) error('name and price are required');
-        $slug = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $b['name']), '-'));
+        // $slug = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $b['name']), '-'));
 
         $stmt = db()->prepare('
-            INSERT INTO products (name, slug, description, price, category_id, era, material, badge, stock, featured, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            INSERT INTO products (name, description, price, category_id, era, material, badge, stock, featured, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ');
         $stmt->execute([
-            $b['name'], $slug, $b['description'] ?? '', $b['price'],
+            $b['name'], $b['description'] ?? '', $b['price'],
             !empty($b['category_id']) ? (int)$b['category_id'] : null,
             $b['era'] ?? '', $b['material'] ?? '',
             $b['badge'] ?? null, $b['stock'] ?? 1, $b['featured'] ?? 0,
