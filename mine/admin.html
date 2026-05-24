@@ -65,25 +65,25 @@
             </div>
 
             <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
-                <a href="#" data-page="dashboard" onclick="switchPage('dashboard', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200 active-link">
+                <a data-page="dashboard" onclick="switchPage('dashboard', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200 cursor-pointer active-link">
                     <i data-lucide="pie-chart" class="w-5 h-5"></i><span>داشبورد</span>
                 </a>
-                <a href="#" data-page="products" onclick="switchPage('products', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                <a data-page="products" onclick="switchPage('products', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200 cursor-pointer">
                     <i data-lucide="package" class="w-5 h-5"></i><span>محصولات</span>
                 </a>
-                <a href="#" data-page="categories" onclick="switchPage('categories', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                <a data-page="categories" onclick="switchPage('categories', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200 cursor-pointer">
                     <i data-lucide="tags" class="w-5 h-5"></i><span>دسته‌بندی‌ها</span>
                 </a>
-                <a href="#" data-page="orders" onclick="switchPage('orders', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                <a data-page="orders" onclick="switchPage('orders', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200 cursor-pointer">
                     <i data-lucide="shopping-cart" class="w-5 h-5"></i><span>سفارش‌ها</span>
                 </a>
-                <a href="#" data-page="users" onclick="switchPage('users', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                <a data-page="users" onclick="switchPage('users', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200 cursor-pointer">
                     <i data-lucide="users" class="w-5 h-5"></i><span>کاربران</span>
                 </a>
-                <a href="#" data-page="discounts" onclick="switchPage('discounts', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                <a data-page="discounts" onclick="switchPage('discounts', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200 cursor-pointer">
                     <i data-lucide="percent" class="w-5 h-5"></i><span>کدهای تخفیف</span>
                 </a>
-                <a href="#" data-page="settings" onclick="switchPage('settings', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                <a data-page="settings" onclick="switchPage('settings', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200 cursor-pointer">
                     <i data-lucide="settings" class="w-5 h-5"></i><span>تنظیمات</span>
                 </a>
             </nav>
@@ -99,7 +99,6 @@
                 </button>
             </div>
         </aside>
-
         <!-- Main Content -->
         <main class="flex-1 lg:mr-0 mt-16 lg:mt-0 overflow-y-auto">
             <div class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
@@ -527,7 +526,8 @@
             </div>
         </div>
     </div>
-     <script src="assets/js/api.js"></script>
+    <script src="assets/js/libs/lucide.min.js"></script>
+    <script src="assets/js/api.js"></script>
     <script src="assets/js/admin/utils/helpers.js"></script>
     <script src="assets/js/admin/utils/priceFormatter.js"></script>
     <script src="assets/js/admin/pages/dashboard.js"></script>
@@ -537,7 +537,7 @@
     <script src="assets/js/admin/pages/users.js"></script>
     <script src="assets/js/admin/pages/discounts.js"></script>
     <script src="assets/js/admin/admin.js"></script>  <!-- آخر از همه -->
-    <script>
+    <!-- <script>
         new MutationObserver((mutations) => {
           if (!window.lucide) return;
           mutations.forEach(m => {
@@ -547,6 +547,6 @@
             });
           });
         }).observe(document.body, { childList: true, subtree: true });
-      </script>
+      </script> -->
 </body>
 </html>

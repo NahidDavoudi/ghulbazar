@@ -57,14 +57,12 @@
       const stockCls = p.stock === 0 ? 'text-red-600' : p.stock < 5 ? 'text-yellow-600' : 'text-green-600';
       return `<tr class="hover:bg-stone-50 transition-colors">
         <td class="px-4 py-3">
-          <div class="flex items-center gap-3">
-            <img src="${img}" class="w-12 h-12 rounded-xl object-cover bg-stone-100"
-                 onerror="this.src='assets/images/placeholder.png'">
-            <div>
-              <p class="font-medium text-stone-800 text-sm">${p.name}</p>
-              <p class="text-xs text-stone-400">${p.era || ''}</p>
-            </div>
-          </div>
+          <img src="${img}" class="w-12 h-12 rounded-xl object-cover bg-stone-100"
+              onerror="this.src='assets/images/placeholder.png'">
+        </td>
+        <td class="px-4 py-3">
+          <p class="font-medium text-stone-800 text-sm">${p.name}</p>
+          <p class="text-xs text-stone-400">${p.era || ''}</p>
         </td>
         <td class="px-4 py-3 text-sm">${API.utils.formatPrice(p.price)}</td>
         <td class="px-4 py-3 text-sm font-bold ${stockCls}">${p.stock}</td>
@@ -74,7 +72,6 @@
             ${(p.featured || p.is_featured) ? 'ویژه' : 'عادی'}
           </span>
         </td>
-        <td class="px-4 py-3 text-sm text-stone-400">${p.views || 0}</td>
         <td class="px-4 py-3">
           <div class="flex gap-1">
             <button onclick="editProduct(${p.id})" title="ویرایش"

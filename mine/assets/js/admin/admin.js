@@ -46,15 +46,15 @@
   window.switchPage = function (name, linkEl) {
     document.querySelectorAll('.page-section').forEach(s => s.classList.add('hidden'));
     document.getElementById(`page-${name}`)?.classList.remove('hidden');
-
+  
     document.querySelectorAll('.nav-link').forEach(a =>
       a.classList.remove('bg-red-50', 'text-red-800', 'font-semibold'));
     if (linkEl) linkEl.classList.add('bg-red-50', 'text-red-800', 'font-semibold');
-
+  
     window.closeSidebar();
     PAGE_LOADERS[name]?.();
+    location.hash = name; // ← اضافه کن
   };
-
   /* ── 3. Sidebar (mobile) ───────────────────────────────────── */
   window.toggleSidebar = () => {
     document.getElementById('sidebar')?.classList.toggle('translate-x-full');
@@ -69,11 +69,16 @@
   /* ── 4. Logout ─────────────────────────────────────────────── */
   window.handleLogout = () => API.auth.logout();
 
-  /* ── 5. Boot ───────────────────────────────────────────────── */
-  document.addEventListener('DOMContentLoaded', function () {
-    if (window.lucide) lucide.createIcons();
-    attachPriceFormatter('productPrice');
-    window.loadDashboard();
-  });
+
+// ── 5. Boot
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.lucide) lucide.createIcons();
+  attachPriceFormatter('productPrice');
+  
+  console.log('hash:', location.hash);
+  const page = location.hash.replace('#', '') || 'dashboard';
+  console.log('page:', page);
+  window.switchPage(page);
+});
 
 })();
