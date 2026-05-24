@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#fff">
+    <title>پنل مدیریت | داشبورد فروشگاه</title>
+    
+    <link rel="stylesheet" href="assets/css/libs/swiper-bundle.min.css">
+    <link rel="stylesheet" href="assets/css/output.css">
+    <link rel="stylesheet" href="assets/css/fonts.css">
+    <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
+    <style>
+        /* اسکرول‌بار شخصی برای مودال‌ها و نواحی خاص */
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+            margin-block: 32px;
+            border-radius: 20px;
+        }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #a8a29e; border-radius: 20px; }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-scaleIn { animation: scaleIn 0.25s ease-out; }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans antialiased transition-colors duration-300">
+
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-stone-100/80 backdrop-blur-sm z-[100] flex items-center justify-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-red-700 border-t-transparent"></div>
+    </div>
+
+    <div id="mobileOverlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40" onclick="closeSidebar()"></div>
+
+    <div class="flex min-h-screen">
+        <!-- Mobile Header -->
+        <header class="lg:hidden fixed top-0 right-0 left-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200 px-4 py-3 flex items-center justify-between">
+            <button onclick="toggleSidebar()" class="text-stone-600 hover:text-stone-800 p-2 rounded-lg hover:bg-stone-100 transition-colors">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <h1 class="font-bold text-stone-800 text-lg">پنل مدیریت</h1>
+            <button disabled class="w-9 h-9 bg-stone-100 rounded-xl flex items-center justify-center text-stone-600 opacity-50 cursor-not-allowed">
+                <i id="mobileThemeIcon" data-lucide="sun" class="w-5 h-5"></i>
+            </button>
+        </header>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed lg:static inset-y-0 right-0 z-50 w-72 bg-white border-l border-stone-200 transform translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col shadow-2xl lg:shadow-none">
+            <div class="p-6 border-b border-stone-200">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-red-800 to-red-900 rounded-2xl flex items-center justify-center shadow-lg shadow-red-900/20">
+                        <i data-lucide="store" class="text-white w-7 h-7"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-lg text-stone-800">فروشگاه من</h2>
+                        <p id="sidebarUsername" class="text-sm text-stone-500">پنل مدیریت</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
+                <a href="#" data-page="dashboard" onclick="switchPage('dashboard', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200 active-link">
+                    <i data-lucide="pie-chart" class="w-5 h-5"></i><span>داشبورد</span>
+                </a>
+                <a href="#" data-page="products" onclick="switchPage('products', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                    <i data-lucide="package" class="w-5 h-5"></i><span>محصولات</span>
+                </a>
+                <a href="#" data-page="categories" onclick="switchPage('categories', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                    <i data-lucide="tags" class="w-5 h-5"></i><span>دسته‌بندی‌ها</span>
+                </a>
+                <a href="#" data-page="orders" onclick="switchPage('orders', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                    <i data-lucide="shopping-cart" class="w-5 h-5"></i><span>سفارش‌ها</span>
+                </a>
+                <a href="#" data-page="users" onclick="switchPage('users', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                    <i data-lucide="users" class="w-5 h-5"></i><span>کاربران</span>
+                </a>
+                <a href="#" data-page="discounts" onclick="switchPage('discounts', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                    <i data-lucide="percent" class="w-5 h-5"></i><span>کدهای تخفیف</span>
+                </a>
+                <a href="#" data-page="settings" onclick="switchPage('settings', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-200">
+                    <i data-lucide="settings" class="w-5 h-5"></i><span>تنظیمات</span>
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-stone-200 flex items-center justify-between">
+                <button disabled class="flex items-center gap-2 px-3 py-2 rounded-lg text-stone-500 bg-stone-100 opacity-50 cursor-not-allowed transition-colors">
+                    <i id="sidebarThemeIcon" data-lucide="sun" class="w-5 h-5"></i>
+                    <span id="sidebarThemeLabel" class="text-sm">حالت روشن</span>
+                </button>
+                <button onclick="handleLogout()" class="flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors">
+                    <i data-lucide="log-out" class="w-5 h-5"></i>
+                    <span class="text-sm">خروج</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 lg:mr-0 mt-16 lg:mt-0 overflow-y-auto">
+            <div class="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+                <div id="alertBox" class="hidden mb-6 px-4 py-3 rounded-xl border shadow-lg"></div>
+
+                <!-- ========== DASHBOARD ========== -->
+                <section id="page-dashboard" class="page-section animate-fadeIn">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-stone-800">داشبورد</h1>
+                            <p class="text-stone-500 mt-1">خلاصه عملکرد فروشگاه</p>
+                        </div>
+                        <button onclick="loadDashboardStats()" class="bg-white border border-stone-200 text-stone-600 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 hover:bg-stone-50">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>بروزرسانی
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+                        <div class="bg-white border border-stone-200 rounded-2xl p-5 hover:border-red-700/30 transition-all group shadow-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="package" class="text-red-700 w-6 h-6"></i>
+                                </div>
+                            </div>
+                            <div id="stat-products" class="text-3xl font-bold text-stone-800 mb-1">-</div>
+                            <div class="text-stone-500 text-sm">محصولات</div>
+                        </div>
+                        <div class="bg-white border border-stone-200 rounded-2xl p-5 hover:border-red-700/30 transition-all group shadow-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="shopping-bag" class="text-red-700 w-6 h-6"></i>
+                                </div>
+                            </div>
+                            <div id="stat-orders-today" class="text-3xl font-bold text-stone-800 mb-1">-</div>
+                            <div class="text-stone-500 text-sm">سفارش‌های امروز</div>
+                        </div>
+                        <div class="bg-white border border-stone-200 rounded-2xl p-5 hover:border-red-700/30 transition-all group shadow-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="alert-triangle" class="text-amber-700 w-6 h-6"></i>
+                                </div>
+                            </div>
+                            <div id="stat-low-stock" class="text-3xl font-bold text-stone-800 mb-1">-</div>
+                            <div class="text-stone-500 text-sm">موجودی کم</div>
+                        </div>
+                        <div class="bg-white border border-stone-200 rounded-2xl p-5 hover:border-red-700/30 transition-all group shadow-lg">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="clock" class="text-red-700 w-6 h-6"></i>
+                                </div>
+                            </div>
+                            <div id="stat-pending" class="text-3xl font-bold text-stone-800 mb-1">-</div>
+                            <div class="text-stone-500 text-sm">در انتظار بررسی</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="lg:col-span-2 bg-white border border-stone-200 rounded-2xl p-6 shadow-lg">
+                            <h3 class="text-stone-800 font-bold text-lg mb-6">درآمد ۷ روز اخیر</h3>
+                            <div id="weeklyChart" class="h-72 flex items-end gap-3 px-2">
+                                <div class="text-stone-400 text-center w-full py-20">در حال بارگذاری...</div>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-stone-200 rounded-2xl p-6 shadow-lg">
+                            <h3 class="text-stone-800 font-bold text-lg mb-4">وضعیت سفارش‌ها</h3>
+                            <div id="orderStatusChart" class="space-y-3">
+                                <div class="text-stone-400 text-center py-20">در حال بارگذاری...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-stone-800 font-bold text-lg">خلاصه مالی</h3>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="bg-stone-50 rounded-xl p-4">
+                                <div class="text-stone-500 text-sm mb-1">کل سفارش‌ها</div>
+                                <div id="stat-total-orders" class="text-2xl font-bold text-stone-800">-</div>
+                            </div>
+                            <div class="bg-stone-50 rounded-xl p-4">
+                                <div class="text-stone-500 text-sm mb-1">کل درآمد</div>
+                                <div id="stat-total-revenue" class="text-2xl font-bold text-emerald-600">-</div>
+                            </div>
+                            <div class="bg-stone-50 rounded-xl p-4">
+                                <div class="text-stone-500 text-sm mb-1">کاربران</div>
+                                <div id="stat-total-users" class="text-2xl font-bold text-stone-800">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========== PRODUCTS PAGE ========== -->
+                <section id="page-products" class="page-section hidden animate-fadeIn">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-stone-800">محصولات</h1>
+                            <p class="text-stone-500 mt-1">مدیریت محصولات فروشگاه</p>
+                        </div>
+                        <button onclick="showProductModal()" class="bg-red-800 hover:bg-red-900 text-white px-5 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-red-900/20">
+                            <i data-lucide="plus" class="w-5 h-5"></i><span>افزودن محصول</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-2xl p-5 mb-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <input type="text" id="productSearch" placeholder="جستجوی محصول..." class="bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-red-700 outline-none">
+                            <select id="productCategoryFilter" class="bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none"><option value="">همه دسته‌بندی‌ها</option></select>
+                            <select id="productSort" class="bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                                <option value="newest">جدیدترین</option>
+                                <option value="price_asc">قیمت: کم به زیاد</option>
+                                <option value="price_desc">قیمت: زیاد به کم</option>
+                            </select>
+                            <button onclick="loadProducts()" class="bg-red-800 hover:bg-red-900 text-white px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="search" class="w-4 h-4"></i><span>جستجو</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="bg-red-800 text-white">
+                                        <th class="text-right px-5 py-4 font-medium">تصویر</th>
+                                        <th class="text-right px-5 py-4 font-medium">نام محصول</th>
+                                        <th class="text-right px-5 py-4 font-medium">قیمت</th>
+                                        <th class="text-right px-5 py-4 font-medium">موجودی</th>
+                                        <th class="text-right px-5 py-4 font-medium">دسته</th>
+                                        <th class="text-right px-5 py-4 font-medium">وضعیت</th>
+                                        <th class="text-right px-5 py-4 font-medium">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTableBody" class="divide-y divide-stone-200"></tbody>
+                            </table>
+                        </div>
+                        <div class="p-4 border-t border-stone-200 flex items-center justify-between" id="productsPagination"></div>
+                    </div>
+                </section>
+
+                <!-- ========== CATEGORIES PAGE ========== -->
+                <section id="page-categories" class="page-section hidden animate-fadeIn">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-stone-800">دسته‌بندی‌ها</h1>
+                            <p class="text-stone-500 mt-1">مدیریت دسته‌بندی محصولات</p>
+                        </div>
+                        <button onclick="showCategoryModal()" class="bg-red-800 hover:bg-red-900 text-white px-5 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-red-900/20">
+                            <i data-lucide="plus" class="w-5 h-5"></i><span>افزودن دسته‌بندی</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-red-800 text-white">
+                                    <th class="text-right px-5 py-4 font-medium">#</th>
+                                    <th class="text-right px-5 py-4 font-medium">نام</th>
+                                    <th class="text-right px-5 py-4 font-medium">شناسه (slug)</th>
+                                    <th class="text-right px-5 py-4 font-medium">عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTableBody" class="divide-y divide-stone-200"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- ========== ORDERS PAGE ========== -->
+                <section id="page-orders" class="page-section hidden animate-fadeIn">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-stone-800">سفارش‌ها</h1>
+                            <p class="text-stone-500 mt-1">مدیریت سفارشات</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-2xl p-5 mb-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <input type="text" id="orderSearch" placeholder="جستجوی سفارش..." class="bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-red-700 outline-none">
+                            <select id="orderStatusFilter" class="bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                                <option value="">همه وضعیت‌ها</option>
+                                <option value="pending">در انتظار</option>
+                                <option value="paid">پرداخت شده</option>
+                                <option value="shipped">ارسال شده</option>
+                                <option value="delivered">تحویل داده</option>
+                                <option value="cancelled">لغو شده</option>
+                            </select>
+                            <button onclick="loadOrders()" class="bg-red-800 hover:bg-red-900 text-white px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="search" class="w-4 h-4"></i><span>فیلتر</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="bg-red-800 text-white">
+                                        <th class="text-right px-5 py-4 font-medium">شماره</th>
+                                        <th class="text-right px-5 py-4 font-medium">مشتری</th>
+                                        <th class="text-right px-5 py-4 font-medium">مبلغ</th>
+                                        <th class="text-right px-5 py-4 font-medium">تاریخ</th>
+                                        <th class="text-right px-5 py-4 font-medium">وضعیت</th>
+                                        <th class="text-right px-5 py-4 font-medium">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordersTableBody" class="divide-y divide-stone-200"></tbody>
+                            </table>
+                        </div>
+                        <div class="p-4 border-t border-stone-200" id="ordersPagination"></div>
+                    </div>
+                </section>
+
+                <!-- ========== USERS PAGE ========== -->
+                <section id="page-users" class="page-section hidden animate-fadeIn">
+                    <div class="mb-8">
+                        <h1 class="text-2xl md:text-3xl font-bold text-stone-800">کاربران</h1>
+                        <p class="text-stone-500 mt-1">مدیریت کاربران</p>
+                    </div>
+
+                    <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="bg-red-800 text-white">
+                                        <th class="text-right px-5 py-4 font-medium">نام</th>
+                                        <th class="text-right px-5 py-4 font-medium">تلفن</th>
+                                        <th class="text-right px-5 py-4 font-medium">نقش</th>
+                                        <th class="text-right px-5 py-4 font-medium">تاریخ عضویت</th>
+                                        <th class="text-right px-5 py-4 font-medium">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody" class="divide-y divide-stone-200"></tbody>
+                            </table>
+                        </div>
+                        <div class="p-4 border-t border-stone-200" id="usersPagination"></div>
+                    </div>
+                </section>
+
+                <!-- ========== DISCOUNTS PAGE ========== -->
+                <section id="page-discounts" class="page-section hidden animate-fadeIn">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-stone-800">کدهای تخفیف</h1>
+                            <p class="text-stone-500 mt-1">مدیریت کدهای تخفیف</p>
+                        </div>
+                        <button onclick="showDiscountModal()" class="bg-red-800 hover:bg-red-900 text-white px-5 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-red-900/20">
+                            <i data-lucide="plus" class="w-5 h-5"></i><span>کد تخفیف جدید</span>
+                        </button>
+                    </div>
+                    <div id="discountsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </section>
+
+                <!-- ========== SETTINGS PAGE ========== -->
+                <section id="page-settings" class="page-section hidden animate-fadeIn">
+                    <div class="mb-8">
+                        <h1 class="text-2xl md:text-3xl font-bold text-stone-800">تنظیمات</h1>
+                        <p class="text-stone-500 mt-1">تنظیمات فروشگاه</p>
+                    </div>
+                    <div class="bg-white border border-stone-200 rounded-2xl p-8">
+                        <p class="text-stone-400 text-center py-12">تنظیمات فروشگاه شما در این بخش قرار می‌گیرد.</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========== PRODUCT MODAL ========== -->
+    <div id="productModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-stone-200 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scroll animate-scaleIn">
+            <div class="p-6 border-b border-stone-200 flex items-center justify-between sticky top-0 bg-white">
+                <h3 class="text-xl font-bold text-stone-800" id="productModalTitle">افزودن محصول</h3>
+                <button onclick="hideModal('productModal')" class="text-stone-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <!-- فرم محصول مشابه قبل با کلاس‌های جدید -->
+            <div class="p-6">
+                <form id="productForm" class="space-y-5">
+                    <input type="hidden" id="productId" value="">
+                    <div>
+                        <label class="block text-stone-600 mb-2 text-sm">نام محصول *</label>
+                        <input type="text" id="productName" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-stone-600 mb-2 text-sm">توضیحات</label>
+                        <textarea id="productDesc" rows="3" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-stone-600 mb-2 text-sm">قیمت (تومان) *</label>
+                            <input type="text" inputmode="numeric" id="productPrice" required placeholder="مثلاً: ۱۵۰,۰۰۰" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-2 text-sm">موجودی</label>
+                            <input type="number" id="productStock" value="1" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-stone-600 mb-2 text-sm">دسته‌بندی</label>
+                        <select id="productCategory" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none"></select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-stone-600 mb-2 text-sm">جنس (material)</label>
+                                <input type="text" id="productMaterial" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-stone-600 mb-2 text-sm">بج (badge)</label>
+                                <input type="text" id="productBadge" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                            </div>
+                        </div>
+                        <!-- <div>
+                            <label class="block text-stone-600 mb-2 text-sm">دوران تاریخی (era)</label>
+                            <input type="text" id="productEra" placeholder="مثلاً: دوران ویکتوریا" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                        </div> -->
+                    </div>
+                    <div>
+                        <label class="flex items-center gap-2 text-stone-600">
+                            <input type="checkbox" id="productFeatured" class="rounded bg-stone-100 border-stone-300">
+                            محصول ویژه
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-stone-600 mb-2 text-sm">تصاویر محصول</label>
+                        <div id="productImagesGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-3"></div>
+                        <input type="file" id="productImageInput" accept="image/*" multiple class="hidden" onchange="uploadProductImage(this)">
+                        <button type="button" onclick="document.getElementById('productImageInput').click()" class="bg-stone-100 hover:bg-stone-200 text-stone-600 px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition">
+                            <i data-lucide="image-plus" class="w-4 h-4"></i> افزودن تصویر
+                        </button>
+                    </div>
+                    <div class="flex gap-3 p-5 mt-2 bg-stone-50 border border-stone-200 rounded-2xl">
+                        
+                        <button type="submit" class="bg-red-800 hover:bg-red-900 text-white px-8 py-3 rounded-xl font-medium transition-all flex items-center gap-2">
+                            <i data-lucide="check" class="w-5 h-5"></i><span id="productSubmitText">ذخیره محصول</span>
+                        </button>
+                        <button type="button" onclick="hideModal('productModal')" class="bg-white hover:bg-stone-100 border border-stone-200 text-stone-600 px-8 py-3 rounded-xl font-medium transition-all">انصراف</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CATEGORY MODAL ========== -->
+    <div id="categoryModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-stone-200 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
+            <div class="p-6 border-b border-stone-200 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-stone-800" id="categoryModalTitle">افزودن دسته‌بندی</h3>
+                <button onclick="hideModal('categoryModal')" class="text-stone-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6">
+                <form id="categoryForm" class="space-y-5">
+                    <input type="hidden" id="categoryId" value="">
+                    <div>
+                        <label class="block text-stone-600 mb-2 text-sm">نام *</label>
+                        <input type="text" id="categoryName" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-stone-600 mb-2 text-sm">شناسه (slug)</label>
+                        <input type="text" id="categorySlug" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="bg-red-800 hover:bg-red-900 text-white px-8 py-3 rounded-xl font-medium transition-all flex items-center gap-2">
+                            <i data-lucide="check" class="w-5 h-5"></i><span id="categorySubmitText">ذخیره</span>
+                        </button>
+                        <button type="button" onclick="hideModal('categoryModal')" class="bg-stone-100 hover:bg-stone-200 text-stone-600 px-8 py-3 rounded-xl font-medium transition-all">انصراف</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== DISCOUNT MODAL ========== -->
+    <div id="discountModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-stone-200 rounded-2xl shadow-2xl w-full max-w-md animate-scaleIn">
+            <div class="p-6 border-b border-stone-200 flex items-center justify-between">
+                <h3 class="text-xl font-bold text-stone-800">کد تخفیف جدید</h3>
+                <button onclick="hideModal('discountModal')" class="text-stone-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-all"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-6">
+                <form id="discountForm" class="space-y-5">
+                    <div>
+                        <label class="block text-stone-600 mb-2 text-sm">کد *</label>
+                        <input type="text" id="discountCode" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-stone-600 mb-2 text-sm">نوع</label>
+                            <select id="discountType" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                                <option value="percent">درصدی</option>
+                                <option value="fixed">مبلغ ثابت</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-2 text-sm">مقدار *</label>
+                            <input type="number" id="discountValue" required class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-stone-600 mb-2 text-sm">تاریخ شروع</label>
+                            <input type="date" id="discountValidFrom" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-stone-600 mb-2 text-sm">تاریخ پایان</label>
+                            <input type="date" id="discountValidTo" class="w-full bg-stone-50 border border-stone-300 rounded-xl px-4 py-3 text-stone-800 focus:border-red-700 outline-none">
+                        </div>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button type="submit" class="bg-red-800 hover:bg-red-900 text-white px-8 py-3 rounded-xl font-medium transition-all flex items-center gap-2">
+                            <i data-lucide="check" class="w-5 h-5"></i><span>ایجاد کد تخفیف</span>
+                        </button>
+                        <button type="button" onclick="hideModal('discountModal')" class="bg-stone-100 hover:bg-stone-200 text-stone-600 px-8 py-3 rounded-xl font-medium transition-all">انصراف</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/libs/lucide.min.js"></script>
+    <script src="assets/js/admin.js"></script>
+</body>
+</html>

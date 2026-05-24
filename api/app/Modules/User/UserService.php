@@ -4,15 +4,16 @@ namespace App\Modules\User;
 
 class UserService
 {
-    public function __construct(
-        private UserModel        $userModel,
-        private UserAddressModel $addressModel,
-    ) {}
+    protected UserModel $userModel;
+    protected UserAddressModel $addressModel;
+    public function __construct() {
+        $this->userModel = new UserModel();
+        $this->addressModel = new UserAddressModel();
+    }
 
     // ─── Profile ────────────────────────────────────────────────
 
-    public function getProfile(int $userId): array
-    {
+    public function getProfile(int $userId): array{
         $user = $this->userModel->find($userId);
         if (!$user) {
             throw new \RuntimeException('کاربر یافت نشد.', 404);
@@ -24,8 +25,7 @@ class UserService
         return $user;
     }
 
-    public function updateProfile(int $userId, array $data): array
-    {
+    public function updateProfile(int $userId, array $data): array{
         $user = $this->userModel->find($userId);
         if (!$user) {
             throw new \RuntimeException('کاربر یافت نشد.', 404);
@@ -49,8 +49,7 @@ class UserService
         return $this->getProfile($userId);
     }
 
-    public function changePassword(int $userId, string $currentPassword, string $newPassword): void
-    {
+    public function changePassword(int $userId, string $currentPassword, string $newPassword): void{
         $user = $this->userModel->find($userId);
         if (!$user) {
             throw new \RuntimeException('کاربر یافت نشد.', 404);

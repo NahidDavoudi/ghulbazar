@@ -1,9 +1,9 @@
 <?php
+
 namespace App\Modules\Product;
 
 use App\Core\Controller;
 use App\Core\Http\Request;
-use App\Modules\Product\ProductService;
 
 class ProductController extends Controller
 {
@@ -11,79 +11,10 @@ class ProductController extends Controller
 
     public function __construct()
     {
-        $this->service = new ProductService();
-    }
-
-    // GET /products?page=1&limit=20&category=...&era=...&q=...
-    public function index(Request $request): void
-    {
-        $filters = [
-            'category' => $request->query('category'),
-            'era'      => $request->query('era'),
-            'featured' => $request->query('featured'),
-            'q'        => $request->query('q'),
-            'sort'     => $request->query('sort', 'id_desc'),
-            'page'     => (int)$request->query('page', 1),
-            'limit'    => (int)$request->query('limit', 20),
-        ];
-        $result = $this->service->getList($filters);
-        $this->success($result);
-    }
-
-    // GET /products/123
-    public function show(int $id): void
-    {
-        $product = $this->service->getById($id);
-        if (!$product) {
-            $this->notFound('محصول یافت نشد');
-        }
-        $this->success($product);
-    }
-
-    // POST /products
-    public function store(Request $request): void
-    {
-        $this->requireAdmin();
-        $data = $request->only(['name', 'description', 'price', 'category_id', 'era', 'material', 'badge', 'stock', 'featured']);
-        if (empty($data['name']) || empty($data['price'])) {
-            $this->error('نام و قیمت الزامی است');
-        }
-        $id = $this->service->create($data);
-        $this->created(['id' => $id]);
-    }
-
-    // PUT /products/123
-    public function update(Request $request, int $id): void
-    {
-        $this->requireAdmin();
-        $data = $request->only(['name', 'description', 'price', 'era', 'material', 'category_id', 'badge', 'stock', 'featured']);
-        if (empty($data)) {
-            $this->error('مقداری برای بروزرسانی ارسال نشده');
-        }
-        $this->service->update($id, $data);
-        $this->success(null, 'محصول بروزرسانی شد');
-    }
-
-    // DELETE /products/123
-    public function destroy(int $id): void
-    {
-        $this->requireAdmin();
-        $this->service->softDelete($id);
-        $this->noContent('محصول حذف شد');
-    }
-
-    // POST /products/123/image (آپلود تصویر برای محصول)
-    public function uploadImage(Request $request, int $id): void
-    {
-        $this->requireAdmin();
-        $file = $_FILES['image'] ?? null;
-        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
-            $this->error('تصویر ارسال نشده');
-        }
-        $isMain = (int)($request->input('is_main', 0));
-        $sortOrder = (int)($request->input('sort_order', 0));
-        $url = $this->service->addImage($id, $file, $isMain, $sortOrder);
-        $this->success(['url' => $url], 'تصویر آپلود شد', 201);
+        $this->service = new ProductService(
+            new ProductModel(),
+            new ProductImageModel(),
+        );
     }
 
     private function requireAdmin(): void
@@ -91,5 +22,202 @@ class ProductController extends Controller
         if (!$this->isAuthenticated() || $this->user()->role !== 'admin') {
             $this->forbidden();
         }
+    }
+
+    // GET /product/index?page=1&limit=12&category_id=2&era=...&q=...&sort=newest
+    public function index(Request $request): void
+    {
+        $filters = [
+            'category_id' => $request->query('category_id'),
+            'era'         => $request->query('era'),
+            'featured'    => $request->query('featured'),
+            'q'           => $request->query('q'),
+            'sort'        => $request->query('sort', 'newest'),
+            'page'        => (int) $request->query('page', 1),
+            'limit'       => (int) $request->query('limit', 12),
+        ];
+
+        $this->success($this->service->list($filters));
+    }
+
+    // GET /product/featured
+    public function featured(Request $request): void
+    {
+        $limit = (int) $request->query('limit', 8);
+        $this->success($this->service->getFeatured($limit));
+    }
+
+    // GET /product/show/123
+    public function show(int $id): void
+    {
+        try {
+            $this->success($this->service->getById($id));
+        } catch (\RuntimeException $e) {
+            $this->notFound($e->getMessage());
+        }
+    }
+
+    // GET /product/slug/product-name
+    public function slug(string $slug): void
+    {
+        try {
+            $this->success($this->service->getBySlug($slug));
+        } catch (\RuntimeException $e) {
+            $this->notFound($e->getMessage());
+        }
+    }
+
+    // POST /product/store  (ادمین)
+    public function store(Request $request): void
+    {
+        $this->requireAdmin();
+
+        $data = $request->only([
+            'name', 'slug', 'description', 'price',
+            'category_id', 'era', 'material', 'badge',
+            'stock', 'featured', 'is_active',
+        ]);
+
+        try {
+            $product = $this->service->create($data);
+            $this->created($product);
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // PUT /product/update/123  (ادمین)
+    public function update(Request $request, int $id): void
+    {
+        $this->requireAdmin();
+
+        $data = $request->only([
+            'name', 'slug', 'description', 'price',
+            'category_id', 'era', 'material', 'badge',
+            'stock', 'featured', 'is_active',
+        ]);
+
+        try {
+            $product = $this->service->update($id, $data);
+            $this->success($product, 'محصول بروزرسانی شد');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // DELETE /product/destroy/123  (ادمین — soft delete از طریق is_active)
+    public function destroy(int $id): void
+    {
+        $this->requireAdmin();
+
+        try {
+            $this->service->delete($id);
+            $this->noContent();
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // PUT /product/toggle/123  (ادمین — فعال/غیرفعال)
+    public function toggle(int $id): void
+    {
+        $this->requireAdmin();
+
+        try {
+            $product = $this->service->toggleActive($id);
+            $status  = $product['is_active'] ? 'فعال' : 'غیرفعال';
+            $this->success($product, "محصول {$status} شد");
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // POST /product/addImage/123  (ادمین)
+    public function addImage(Request $request, int $id): void
+    {
+        $this->requireAdmin();
+
+        $file = $_FILES['image'] ?? null;
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            $this->error('تصویر ارسال نشده', 422);
+        }
+
+        try {
+            $url   = $this->handleImageUpload($file, 'products');
+            $image = $this->service->addImage($id, [
+                'image_url'  => $url,
+                'alt_text'   => $request->input('alt_text', ''),
+                'is_main'    => (int) $request->input('is_main', 0),
+                'sort_order' => (int) $request->input('sort_order', 0),
+            ]);
+            $this->created($image, 'تصویر اضافه شد');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // PUT /product/setMainImage/123?image_id=456  (ادمین)
+    public function setMainImage(Request $request, int $productId): void
+    {
+        $this->requireAdmin();
+
+        $imageId = (int) $request->query('image_id');
+        if (!$imageId) {
+            $this->error('image_id الزامی است', 422);
+        }
+
+        try {
+            $this->service->setMainImage($productId, $imageId);
+            $this->success(null, 'تصویر اصلی تنظیم شد');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // DELETE /product/deleteImage/123?image_id=456  (ادمین)
+    public function deleteImage(Request $request, int $productId): void
+    {
+        $this->requireAdmin();
+
+        $imageId = (int) $request->query('image_id');
+        if (!$imageId) {
+            $this->error('image_id الزامی است', 422);
+        }
+
+        try {
+            $this->service->deleteImage($productId, $imageId);
+            $this->noContent();
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // ─── Upload Helper ────────────────────────────────────────────
+
+    private function handleImageUpload(array $file, string $folder): string
+    {
+        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        $maxSize = 3 * 1024 * 1024;
+
+        if (!in_array($file['type'], $allowed)) {
+            throw new \RuntimeException('فرمت فایل مجاز نیست. فقط JPG، PNG و WebP قابل قبول است.', 422);
+        }
+        if ($file['size'] > $maxSize) {
+            throw new \RuntimeException('حجم فایل بیشتر از ۳ مگابایت است.', 422);
+        }
+
+        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = uniqid('img_', true) . '.' . $ext;
+        $dir      = __DIR__ . "/../../../public/uploads/{$folder}/";
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
+            throw new \RuntimeException('خطا در آپلود فایل.', 500);
+        }
+
+        return "/uploads/{$folder}/{$filename}";
     }
 }
