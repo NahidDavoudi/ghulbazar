@@ -93,6 +93,11 @@ var API = (function () {
           err.payload = json;
           throw err;
         }
+        // normalize: بک‌اند همیشه { status, message, data } برمی‌گردونه
+        // فرانت فقط به data نیاز داره
+        if (json && typeof json === 'object' && 'status' in json && 'data' in json) {
+          return json.data;
+        }
         return json;
       });
     });
@@ -169,9 +174,10 @@ var API = (function () {
   var auth = {
     register: function (data) {
       return post('/auth/register', data).then(function (res) {
-        if (res.data && res.data.token) {
-          setToken(res.data.token);
-          setCurrentUser(res.data.user || null);
+        // بعد از normalize، res مستقیماً data بک‌اند هست
+        if (res && res.token) {
+          setToken(res.token);
+          setCurrentUser(res.user || null);
         }
         return res;
       });
@@ -179,9 +185,9 @@ var API = (function () {
 
     login: function (phone, password) {
       return post('/auth/login', { phone: phone, password: password }).then(function (res) {
-        if (res.data && res.data.token) {
-          setToken(res.data.token);
-          setCurrentUser(res.data.user || null);
+        if (res && res.token) {
+          setToken(res.token);
+          setCurrentUser(res.user || null);
         }
         return res;
       });
@@ -190,9 +196,9 @@ var API = (function () {
     /** ورود ادمین — endpoint: /auth/admin-login */
     adminLogin: function (phone, password) {
       return post('/auth/admin-login', { phone: phone, password: password }).then(function (res) {
-        if (res.data && res.data.token) {
-          setToken(res.data.token);
-          setCurrentUser(res.data.user || null);
+        if (res && res.token) {
+          setToken(res.token);
+          setCurrentUser(res.user || null);
         }
         return res;
       });
@@ -200,16 +206,16 @@ var API = (function () {
 
     me: function () {
       return get('/auth/me').then(function (res) {
-        // cache بروز کن
-        var user = res.data || res.user || null;
-        if (user) setCurrentUser(user);
+        // res = data بک‌اند (ممکنه مستقیماً user object باشه)
+        var u = res && (res.user || res);
+        if (u && u.id) setCurrentUser(u);
         return res;
       });
     },
 
     refresh: function () {
       return post('/auth/refresh').then(function (res) {
-        if (res.data && res.data.token) setToken(res.data.token);
+        if (res && res.token) setToken(res.token);
         return res;
       });
     },
@@ -622,8 +628,8 @@ var API = (function () {
   /** API.orders.* — با adminIndex به جای list ادمین */
   var orders = {
     create:       function (d)      { return order.create(d); },
-    list:         function (p)      { return order.adminList(p); },           // ادمین‌پنل از adminIndex استفاده میکنه
-    userList:     function ()       { return order.list(); },                  // لیست سفارشات خود کاربر
+    list:         function ()       { return order.list(); },           // سفارشات خود کاربر (صفحه orders)
+    userList:     function ()       { return order.list(); },
     getById:      function (id)     { return order.getById(id); },
     getByNumber:  function (n)      { return order.getByNumber(n); },
     cancel:       function (id)     { return order.cancel(id); },
