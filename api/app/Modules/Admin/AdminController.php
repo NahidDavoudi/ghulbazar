@@ -5,7 +5,7 @@ namespace App\Modules\Admin;
 use App\Core\Controller;
 use App\Core\Http\Request;
 
-class AdminDashboardController extends Controller
+class AdminController extends Controller
 {
     private AdminDashboardService $service;
 
