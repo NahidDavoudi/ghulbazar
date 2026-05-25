@@ -89,14 +89,39 @@
     }
 
     // Mobile filter toggle
+    function closeSidebar() {
+      const sidebar  = document.getElementById('shop-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      sidebar?.classList.remove('sidebar-open');
+      backdrop?.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
     const newToggle = reclone('filter-toggle');
     if (newToggle) {
       newToggle.addEventListener('click', () => {
-        const sidebar = document.getElementById('shop-sidebar');
-        sidebar?.classList.toggle('hidden');
-        sidebar?.classList.toggle('block');
+        const sidebar  = document.getElementById('shop-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        sidebar?.classList.add('sidebar-open');
+        backdrop?.classList.add('open');
+        document.body.style.overflow = 'hidden';
       });
     }
+
+    // بستن sidebar با backdrop یا دکمه X
+    document.getElementById('sidebar-backdrop')?.addEventListener('click', closeSidebar);
+    const closeBtn = document.getElementById('sidebar-close');
+    if (closeBtn) {
+      closeBtn.removeEventListener('click', closeSidebar);
+      closeBtn.addEventListener('click', closeSidebar);
+    }
+
+    // بستن sidebar بعد از انتخاب فیلتر در موبایل
+    document.getElementById('cat-filters')?.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        if (window.innerWidth < 768) closeSidebar();
+      });
+    });
 
     if (window.lucide) lucide.createIcons();
   });
