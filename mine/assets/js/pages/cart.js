@@ -128,7 +128,9 @@
         const msg  = document.getElementById('discount-msg');
         if (!code) return;
         try {
-          _cartDiscount = await API.discounts.validate(code);
+          const res = await API.discounts.validate(code, _cartData?.total || 0);
+          // بک‌اند { discount, discount_amount, final_total } برمیگردونه
+          _cartDiscount = res?.discount || res;
           if (msg) {
             msg.textContent = '✓ کد تخفیف اعمال شد';
             msg.className   = 'text-xs mt-2 text-right text-green-400';

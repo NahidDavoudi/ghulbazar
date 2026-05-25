@@ -30,14 +30,18 @@ class AdminDashboardService
     public function getStats(): array
     {
         return [
-            'total_users'       => $this->count('users', "is_active = 1"),
-            'total_products'    => $this->count('products', "is_active = 1"),
-            'total_orders'      => $this->count('orders'),
-            'pending_orders'    => $this->count('orders', "status = 'pending'"),
-            'total_revenue'     => $this->getTotalRevenue(),
-            'revenue_this_month'=> $this->getRevenueThisMonth(),
-            'new_users_today'   => $this->count('users', "DATE(created_at) = CURDATE()"),
-            'orders_today'      => $this->count('orders', "DATE(created_at) = CURDATE()"),
+            'total_users'        => $this->count('users', "is_active = 1"),
+            'total_products'     => $this->count('products', "is_active = 1"),
+            'total_orders'       => $this->count('orders'),
+            'pending_orders'     => $this->count('orders', "status = 'pending'"),
+            'total_revenue'      => $this->getTotalRevenue(),
+            'revenue_this_month' => $this->getRevenueThisMonth(),
+            'new_users_today'    => $this->count('users', "DATE(created_at) = CURDATE()"),
+            'orders_today'       => $this->count('orders', "DATE(created_at) = CURDATE()"),
+            // داده‌های مورد نیاز داشبورد فرانت
+            'low_stock_items'    => $this->count('products', "stock <= 5 AND is_active = 1"),
+            'weekly_revenue'     => $this->getRevenueByDay(7),
+            'order_status'       => $this->getOrderStatusMap(),
         ];
     }
 
@@ -148,6 +152,21 @@ class AdminDashboardService
     }
 
     // ─── Private Helpers ──────────────────────────────────────────
+
+    private function getOrderStatusMap(): array
+    {
+        $rows = $this->pdo->query("
+            SELECT status, COUNT(*) AS count
+            FROM orders
+            GROUP BY status
+        ")->fetchAll(\PDO::FETCH_ASSOC);
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[$row['status']] = (int) $row['count'];
+        }
+        return $map;
+    }
 
     private function count(string $table, string $where = ''): int
     {

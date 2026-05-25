@@ -16,14 +16,19 @@
       setLoading(false);
 
       setText('stat-products',      (s.total_products  ?? 0).toLocaleString('fa-IR'));
-      setText('stat-orders-today',  (s.today_orders    ?? 0).toLocaleString('fa-IR'));
+      setText('stat-orders-today',  (s.orders_today    ?? 0).toLocaleString('fa-IR'));
       setText('stat-low-stock',     (s.low_stock_items ?? 0).toLocaleString('fa-IR'));
       setText('stat-pending',       (s.pending_orders  ?? 0).toLocaleString('fa-IR'));
       setText('stat-total-orders',  (s.total_orders    ?? 0).toLocaleString('fa-IR'));
       setText('stat-total-revenue', API.utils.formatPrice(s.total_revenue ?? 0));
       setText('stat-total-users',   (s.total_users     ?? 0).toLocaleString('fa-IR'));
 
-      _renderWeeklyChart(s.weekly_revenue  || []);
+      // weekly_revenue از PHP فیلد revenue داره — اینجا map می‌کنیم به amount
+      const weeklyData = (s.weekly_revenue || []).map(d => ({
+        date:   d.date,
+        amount: d.revenue ?? 0,
+      }));
+      _renderWeeklyChart(weeklyData);
       _renderOrderStatusChart(s.order_status || {});
     } catch (e) {
       setLoading(false);

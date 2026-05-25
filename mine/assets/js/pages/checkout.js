@@ -85,10 +85,10 @@
       const items = _checkoutCart.items.map(i => ({ product_id: i.id, qty: i.qty }));
 
       const result = await API.orders.create({
-        customer_name: name,
-        customer_phone: phone,
+        customer_name:    name,
+        customer_phone:   phone,
         shipping_address: address,
-        payment_method: 'cash', // 👈 اینو اضافه کن
+        payment_method:   'cash',
         items,
         ...(discountCode ? { discount_code: discountCode } : {}),
       });
@@ -149,7 +149,8 @@
         const msg  = document.getElementById('checkout-discount-msg');
         if (!code) return;
         try {
-          _checkoutDiscount = await API.discounts.validate(code);
+          const res = await API.discounts.validate(code, _checkoutCart?.total || 0);
+          _checkoutDiscount = res?.discount || res;
           if (msg) {
             msg.textContent = '✓ کد تخفیف اعمال شد';
             msg.className   = 'text-xs mt-2 text-right text-green-400';
