@@ -39,8 +39,12 @@ class ProductModel extends Model
         $params = [];
 
         if (!empty($filters['category_id'])) {
-            $where[]               = 'p.category_id = ?';
-            $params[]              = $filters['category_id'];
+            $where[]  = 'p.category_id = ?';
+            $params[] = (int) $filters['category_id'];
+        } elseif (!empty($filters['category'])) {
+            // فرانت slug می‌فرسته — join به categories برای تطبیق
+            $where[]  = 'c.slug = ?';
+            $params[] = $filters['category'];
         }
         if (!empty($filters['era'])) {
             $where[]  = 'p.era LIKE ?';
@@ -87,7 +91,7 @@ class ProductModel extends Model
         $stmt->execute($params);
         $items = $stmt->fetchAll();
 
-        $countSql  = "SELECT COUNT(*) FROM {$this->table} p WHERE {$whereStr}";
+        $countSql  = "SELECT COUNT(*) FROM {$this->table} p LEFT JOIN categories c ON c.id = p.category_id WHERE {$whereStr}";
         $countStmt = $this->pdo->prepare($countSql);
         $countStmt->execute($params);
         $total = (int) $countStmt->fetchColumn();

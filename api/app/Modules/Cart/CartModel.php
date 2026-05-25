@@ -33,7 +33,7 @@ class CartModel extends Model
 
         $stmt = $this->pdo->prepare("
             SELECT ci.*,
-                   p.name, p.slug, p.price, p.stock, p.era, p.material,
+                   p.name, p.price, p.stock, p.era, p.material,
                    p.is_active,
                    (SELECT pi.image_url FROM product_images pi
                     WHERE pi.product_id = ci.product_id AND pi.is_main = 1

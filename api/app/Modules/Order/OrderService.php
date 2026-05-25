@@ -67,7 +67,7 @@ class OrderService
                 'shipping_address'=> trim($data['shipping_address']),
                 'total_amount'    => $total,
                 'discount_code_id'=> $discountCodeId,
-                'payment_method'  => $data['payment_method'],
+                'payment_method'  => $data['payment_method'] ?? 'cash',
                 'status'          => 'pending',
                 'notes'           => trim($data['notes'] ?? ''),
             ]);
@@ -108,7 +108,13 @@ class OrderService
 
     public function getUserOrders(int $userId): array
     {
-        return $this->orderModel->getByUser($userId);
+        $orders = $this->orderModel->getByUser($userId);
+
+        return array_map(function (array $order) {
+            $order['items']   = $this->orderModel->getItems($order['id']);
+            $order['receipt'] = $this->orderModel->getReceipt($order['id']);
+            return $order;
+        }, $orders);
     }
 
     public function getOrderForUser(int $orderId, int $userId): array

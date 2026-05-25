@@ -45,7 +45,7 @@ class OrderModel extends Model
     public function getItems(int $orderId): array
     {
         $stmt = $this->pdo->prepare("
-            SELECT oi.*, p.slug AS product_slug,
+            SELECT oi.*, 
                    (SELECT pi.image_url FROM product_images pi
                     WHERE pi.product_id = oi.product_id AND pi.is_main = 1
                     LIMIT 1) AS product_image

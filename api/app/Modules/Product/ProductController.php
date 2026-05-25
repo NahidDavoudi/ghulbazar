@@ -28,7 +28,8 @@ class ProductController extends Controller
     public function index(Request $request): void
     {
         $filters = [
-            'category_id' => $request->query('category_id'),
+            'category_id' => $request->query('category_id'),   // عدد مستقیم
+            'category'    => $request->query('category'),       // slug — فرانت این رو می‌فرسته
             'era'         => $request->query('era'),
             'featured'    => $request->query('featured'),
             'q'           => $request->query('q'),

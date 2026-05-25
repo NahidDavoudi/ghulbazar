@@ -85,9 +85,10 @@
       const items = _checkoutCart.items.map(i => ({ product_id: i.id, qty: i.qty }));
 
       const result = await API.orders.create({
-        customer_name:    name,
-        customer_phone:   phone,
+        customer_name: name,
+        customer_phone: phone,
         shipping_address: address,
+        payment_method: 'cash', // 👈 اینو اضافه کن
         items,
         ...(discountCode ? { discount_code: discountCode } : {}),
       });

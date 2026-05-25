@@ -35,7 +35,9 @@
   };
 
   window.submitReceipt = async function () {
-    const orderNumber = document.getElementById('payment-order-number')?.textContent.trim();
+    const stored = JSON.parse(sessionStorage.getItem('gb_checkout') || '{}');
+    // uploadReceipt endpoint نیاز به id داره نه order_number
+    const orderId = stored.id || stored.order_id;
     const errEl = document.getElementById('upload-error');
     const btn   = document.getElementById('submit-receipt-btn');
 
@@ -43,7 +45,7 @@
       if (errEl) { errEl.textContent = 'لطفاً تصویر رسید را انتخاب کنید'; errEl.classList.remove('hidden'); }
       return;
     }
-    if (!orderNumber || orderNumber === '-') {
+    if (!orderId) {
       if (errEl) { errEl.textContent = 'شماره سفارش نامعتبر است'; errEl.classList.remove('hidden'); }
       return;
     }
@@ -52,7 +54,7 @@
     if (errEl) errEl.classList.add('hidden');
 
     try {
-      await API.payment.uploadReceipt(orderNumber, _selectedReceiptFile);
+      await API.orders.uploadReceipt(orderId, _selectedReceiptFile);
       sessionStorage.removeItem('gb_checkout');
       API.utils.toast('رسید با موفقیت ثبت شد. سفارش شما در دست بررسی است.', 'success', 4000);
       setTimeout(() => Router.go('/'), 2500);

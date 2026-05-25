@@ -59,15 +59,7 @@
 
   Router.onEnter('categories', async function () {
     try {
-      const [eras, cats] = await Promise.all([API.eras.list(), API.categories.list()]);
-
-      const erasEl = document.getElementById('eras-grid');
-      if (erasEl) {
-        erasEl.innerHTML = eras.length
-          ? eras.map(_eraCard).join('')
-          : '<p class="col-span-full text-center text-[rgba(255,255,255,0.6)] py-8">دوره‌ای یافت نشد</p>';
-      }
-
+      const cats   = await API.categories.list();
       const catsEl = document.getElementById('cats-grid');
       if (catsEl) {
         catsEl.innerHTML = cats.length
@@ -75,8 +67,8 @@
           : '<p class="col-span-full text-center text-[rgba(255,255,255,0.6)] py-8">دسته‌بندی‌ای یافت نشد</p>';
       }
     } catch (e) {
-      const erasEl = document.getElementById('eras-grid');
-      if (erasEl) erasEl.innerHTML = `<p class="col-span-full text-[#cf1736] text-center py-8">${e.message}</p>`;
+      const catsEl = document.getElementById('cats-grid');
+      if (catsEl) catsEl.innerHTML = `<p class="col-span-full text-[#cf1736] text-center py-8">${e.message}</p>`;
     }
 
     if (window.lucide) lucide.createIcons();
