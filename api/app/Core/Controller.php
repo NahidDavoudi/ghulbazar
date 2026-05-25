@@ -68,7 +68,7 @@ abstract class Controller
         return Auth::check();
     }
 
-    protected function validate(array $data, array $rules): bool
+    protected function validateInput(array $data, array $rules): bool
     {
         $validator = new Validator($data, $rules);
 
