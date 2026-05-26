@@ -156,9 +156,20 @@
       const grid = $('productImagesGrid');
       if (grid) {
         grid.innerHTML = (p.images || []).map(img => `
-          <div class="relative aspect-square rounded-xl overflow-hidden bg-stone-100 group">
-            <img src="${img.url}" class="w-full h-full object-cover">
-            ${img.is_main ? '<span class="absolute top-1 right-1 bg-red-800 text-white text-[10px] px-1.5 py-0.5 rounded-full">اصلی</span>' : ''}
+          <div class="relative aspect-square rounded-xl overflow-hidden bg-stone-100 group" id="img-item-${img.id}">
+            <img src="${img.image_url}" class="w-full h-full object-cover"
+                 onerror="this.src='assets/images/placeholder.png'">
+            ${img.is_main
+              ? '<span class="absolute top-1 right-1 bg-red-800 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">اصلی</span>'
+              : `<button onclick="setMainProductImage(${id}, ${img.id})"
+                         title="تنظیم به عنوان اصلی"
+                         class="absolute top-1 right-1 hidden group-hover:flex items-center justify-center
+                                w-6 h-6 bg-amber-500 text-white rounded-full text-[10px] z-10 hover:bg-amber-600">★</button>`
+            }
+            <button onclick="deleteProductImage(${id}, ${img.id})"
+                    title="حذف تصویر"
+                    class="absolute top-1 left-1 hidden group-hover:flex items-center justify-center
+                           w-6 h-6 bg-red-600 text-white rounded-full text-xs z-10 hover:bg-red-700">×</button>
           </div>`).join('');
       }
 
@@ -225,6 +236,30 @@
       toast(e.message, 'error');
     }
   });
+
+  /* ── Delete single image ───────────────────────────────────── */
+  window.deleteProductImage = async function (productId, imageId) {
+    if (!confirm('این تصویر حذف شود؟')) return;
+    try {
+      await API.products.deleteImage(productId, imageId);
+      document.getElementById('img-item-' + imageId)?.remove();
+      toast('تصویر حذف شد');
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  };
+
+  /* ── Set main image ────────────────────────────────────────── */
+  window.setMainProductImage = async function (productId, imageId) {
+    try {
+      await API.products.setMainImage(productId, imageId);
+      // بازخوانی مودال برای بروزرسانی گرید
+      await window.editProduct(productId);
+      toast('تصویر اصلی تنظیم شد');
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  };
 
   /* ── Image preview (instant) ───────────────────────────────── */
   window.uploadProductImage = function (input) {

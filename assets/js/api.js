@@ -340,10 +340,11 @@ var API = (function () {
   };
 
   // ─── Category Images ───────────────────────────────────────────
+  // endpoint ها بعد از ادغام با CategoryController زیر /category هستن
 
   var categoryImage = {
     list: function (categoryId) {
-      return get('/category-image/index', { category_id: categoryId });
+      return get('/category/images', { category_id: categoryId });
     },
 
     add: function (categoryId, file, opts) {
@@ -354,15 +355,15 @@ var API = (function () {
       if (opts.is_main    != null) fd.append('is_main',    opts.is_main);
       if (opts.alt_text   != null) fd.append('alt_text',   opts.alt_text);
       if (opts.sort_order != null) fd.append('sort_order', opts.sort_order);
-      return upload('/category-image/store', fd);
+      return upload('/category/addImage', fd);
     },
 
     setMain: function (imageId, categoryId) {
-      return put(buildUrl('/category-image/setMain/' + imageId, { category_id: categoryId }));
+      return put(buildUrl('/category/setMainImage/' + imageId, { category_id: categoryId }));
     },
 
     delete: function (imageId, categoryId) {
-      return del(buildUrl('/category-image/destroy/' + imageId, { category_id: categoryId }));
+      return del(buildUrl('/category/destroyImage/' + imageId, { category_id: categoryId }));
     },
   };
 
