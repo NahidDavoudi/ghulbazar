@@ -220,7 +220,7 @@ class CategoryController extends Controller
 
         $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
         $filename = uniqid('img_', true) . '.' . $ext;
-        $dir      = __DIR__ . "/../../../public/uploads/{$folder}/";
+        $dir      = __DIR__ . "/../../../../uploads/{$folder}/";
 
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);

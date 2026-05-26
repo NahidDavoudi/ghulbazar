@@ -45,11 +45,17 @@
 
   function _catCard(c) {
     const slug = c.slug || c.name;
-    const img  = CAT_IMGS[slug] || './assets/products/img12.jpg';
+    const img  = c.poster_image
+      || c.images?.find(i => i.is_main)?.image_url
+      || c.images?.[0]?.image_url
+      || CAT_IMGS[slug]
+      || 'assets/images/placeholder.png';
     return `
       <a href="${hashHref('shop', { category: slug })}" data-link
          class="relative rounded-2xl overflow-hidden group block" style="height:180px">
-        <img src="${img}" alt="${c.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+        <img src="${img}" alt="${c.name}"
+             onerror="this.onerror=null;this.src='assets/images/placeholder.png'"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
         <div class="absolute inset-0 bg-gradient-to-t from-[#221114]/90 via-[#221114]/30 to-transparent"></div>
         <div class="absolute bottom-0 left-0 right-0 p-4">
           <h3 class="text-base font-bold text-right">${c.name}</h3>
