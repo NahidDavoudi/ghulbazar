@@ -7,7 +7,8 @@ use App\Core\Http\Request;
 
 class CategoryController extends Controller
 {
-    private CategoryService $service;
+    private CategoryService      $service;
+    private CategoryImageService $imageService;
 
     public function __construct()
     {
@@ -15,7 +16,14 @@ class CategoryController extends Controller
             new CategoryModel(),
             new CategoryImageModel(),
         );
+
+        $this->imageService = new CategoryImageService(
+            new CategoryImageModel(),
+            new CategoryModel(),
+        );
     }
+
+    // ─── Auth Guard ───────────────────────────────────────────────
 
     private function requireAdmin(): void
     {
@@ -23,6 +31,8 @@ class CategoryController extends Controller
             $this->forbidden();
         }
     }
+
+    // ─── Category CRUD ────────────────────────────────────────────
 
     // GET /category/index
     public function index(): void
@@ -58,8 +68,7 @@ class CategoryController extends Controller
         $data = $request->only(['name', 'slug', 'description', 'poster_image']);
 
         try {
-            $category = $this->service->create($data);
-            $this->created($category);
+            $this->created($this->service->create($data));
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
@@ -73,8 +82,7 @@ class CategoryController extends Controller
         $data = $request->only(['name', 'slug', 'description', 'poster_image']);
 
         try {
-            $category = $this->service->update($id, $data);
-            $this->success($category, 'دسته‌بندی بروزرسانی شد');
+            $this->success($this->service->update($id, $data), 'دسته‌بندی بروزرسانی شد');
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
@@ -104,9 +112,93 @@ class CategoryController extends Controller
         }
 
         try {
-            $url = $this->handleImageUpload($file, 'categories');
+            $url      = $this->handleImageUpload($file, 'categories');
             $category = $this->service->update($id, ['poster_image' => $url]);
             $this->success(['url' => $url, 'category' => $category], 'پوستر آپلود شد');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // ─── Category Images ──────────────────────────────────────────
+
+    // GET /category/images?category_id=123
+    public function images(Request $request): void
+    {
+        $this->requireAdmin();
+
+        $categoryId = (int) $request->query('category_id');
+        if (!$categoryId) {
+            $this->error('category_id الزامی است', 422);
+        }
+
+        try {
+            $this->success($this->imageService->getImages($categoryId));
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // POST /category/addImage
+    public function addImage(Request $request): void
+    {
+        $this->requireAdmin();
+
+        $categoryId = (int) $request->input('category_id');
+        if (!$categoryId) {
+            $this->error('category_id الزامی است', 422);
+        }
+
+        $file = $_FILES['image'] ?? null;
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            $this->error('فایل تصویر ارسال نشده', 422);
+        }
+
+        try {
+            $url   = $this->handleImageUpload($file, 'categories');
+            $image = $this->imageService->addImage($categoryId, [
+                'image_url'  => $url,
+                'alt_text'   => $request->input('alt_text', ''),
+                'is_main'    => (int) $request->input('is_main', 0),
+                'sort_order' => (int) $request->input('sort_order', 0),
+            ]);
+            $this->created($image, 'تصویر اضافه شد');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // PUT /category/setMainImage/456?category_id=123
+    public function setMainImage(Request $request, int $imageId): void
+    {
+        $this->requireAdmin();
+
+        $categoryId = (int) $request->query('category_id');
+        if (!$categoryId) {
+            $this->error('category_id الزامی است', 422);
+        }
+
+        try {
+            $this->imageService->setMain($categoryId, $imageId);
+            $this->success(null, 'تصویر اصلی تنظیم شد');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // DELETE /category/destroyImage/456?category_id=123
+    public function destroyImage(Request $request, int $imageId): void
+    {
+        $this->requireAdmin();
+
+        $categoryId = (int) $request->query('category_id');
+        if (!$categoryId) {
+            $this->error('category_id الزامی است', 422);
+        }
+
+        try {
+            $this->imageService->delete($categoryId, $imageId);
+            $this->noContent();
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
@@ -116,8 +208,8 @@ class CategoryController extends Controller
 
     private function handleImageUpload(array $file, string $folder): string
     {
-        $allowed    = ['image/jpeg', 'image/png', 'image/webp'];
-        $maxSize    = 3 * 1024 * 1024; // 3MB
+        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        $maxSize = 3 * 1024 * 1024; // 3MB
 
         if (!in_array($file['type'], $allowed)) {
             throw new \RuntimeException('فرمت فایل مجاز نیست. فقط JPG، PNG و WebP قابل قبول است.', 422);
