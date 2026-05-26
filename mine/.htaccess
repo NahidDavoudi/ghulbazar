@@ -1,9 +1,0 @@
-RewriteEngine On
-
-# ── پاس دادن Authorization header به PHP ──────────────────────
-# بدون این، Apache هدر رو drop می‌کنه و JWT کار نمی‌کنه
-RewriteCond %{HTTP:Authorization} .
-RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-# اگه CGI/FastCGI هستی، این رو هم اضافه کن:
-SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
