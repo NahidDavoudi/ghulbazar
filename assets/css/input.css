@@ -10,6 +10,7 @@
   --color-muted:       #c8939c;
   --color-text-dim:    rgba(255,255,255,0.6);
 
-  --font-family-vazir:   'Vazirmatn', sans-serif;
-  --font-family-display: 'Agbalumo', sans-serif;
+  --font-vazir:   'Vazirmatn', sans-serif;
+  --font-display: 'Agbalumo', sans-serif;
+  --font-felipa : 'Felipa' , sans-serif;
 }

@@ -22,7 +22,7 @@
       ]);
       setLoading(false);
       _products   = data.data?.data || data.data || [];
-      _categories = catsRes.data    || catsRes   || [];
+      _categories = Array.isArray(catsRes) ? catsRes : (catsRes.data || []);
       _renderProducts(_products);
       _fillCatFilter();
     } catch (e) {
