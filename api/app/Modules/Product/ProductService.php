@@ -22,22 +22,6 @@ class ProductService
         return $this->productModel->getFeatured($limit);
     }
 
-    public function getBySlug(string $slug): array
-    {
-        $product = $this->productModel->findBySlug($slug);
-        if (!$product || !$product['is_active']) {
-            throw new \RuntimeException('محصول یافت نشد.', 404);
-        }
-
-        $this->productModel->incrementViews($product['id']);
-
-        $product['images']   = $this->imageModel->getByProductId($product['id']);
-        $product['options']  = $this->productModel->getOptions($product['id']);
-        $product['related']  = $this->productModel->getRelated($product['id']);
-
-        return $product;
-    }
-
     public function getById(int $id): array
     {
         $product = $this->productModel->find($id);
@@ -57,11 +41,8 @@ class ProductService
     {
         $this->validateProductData($data);
 
-        $slug = $this->resolveSlug($data['slug'] ?? '', $data['name']);
-
         $id = $this->productModel->create([
             'name'        => trim($data['name']),
-            'slug'        => $slug,
             'description' => trim($data['description'] ?? ''),
             'price'       => (int) $data['price'],
             'category_id' => (int) ($data['category_id'] ?? 0) ?: null,
@@ -87,10 +68,6 @@ class ProductService
 
         if (isset($data['name'])) {
             $payload['name'] = trim($data['name']);
-        }
-        if (isset($data['slug'])) {
-            $slug = $this->resolveSlug($data['slug'], $data['name'] ?? $product['name'], $id);
-            $payload['slug'] = $slug;
         }
         if (isset($data['description'])) {
             $payload['description'] = trim($data['description']);
@@ -223,25 +200,6 @@ class ProductService
         if (!isset($data['price']) || (int) $data['price'] < 0) {
             throw new \RuntimeException('قیمت معتبر الزامی است.', 422);
         }
-    }
-
-    private function resolveSlug(string $rawSlug, string $fallbackName, ?int $excludeId = null): string
-    {
-        $slug = $rawSlug ?: $this->slugify($fallbackName);
-
-        if ($this->productModel->slugExists($slug, $excludeId)) {
-            $slug = $slug . '-' . time();
-        }
-
-        return $slug;
-    }
-
-    private function slugify(string $text): string
-    {
-        $text = mb_strtolower(trim($text));
-        $text = preg_replace('/\s+/', '-', $text);
-        $text = preg_replace('/[^\p{L}\p{N}\-]/u', '', $text);
-        return $text ?: 'product-' . time();
     }
 
     private function normalizeFilters(array $filters): array

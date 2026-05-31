@@ -58,23 +58,13 @@ class ProductController extends Controller
         }
     }
 
-    // GET /product/slug/product-name
-    public function slug(string $slug): void
-    {
-        try {
-            $this->success($this->service->getBySlug($slug));
-        } catch (\RuntimeException $e) {
-            $this->notFound($e->getMessage());
-        }
-    }
-
     // POST /product/store  (ادمین)
     public function store(Request $request): void
     {
         $this->requireAdmin();
 
         $data = $request->only([
-            'name', 'slug', 'description', 'price',
+            'name', 'description', 'price',
             'category_id', 'era', 'material', 'badge',
             'stock', 'featured', 'is_active',
         ]);
@@ -82,8 +72,15 @@ class ProductController extends Controller
         try {
             $product = $this->service->create($data);
             $this->created($product);
+        
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        
+            echo '<pre>';
+            var_dump([
+                'message' => $e->getMessage(),
+                'code' => $e->getCode(),
+            ]);
+            die();
         }
     }
 
@@ -93,7 +90,7 @@ class ProductController extends Controller
         $this->requireAdmin();
 
         $data = $request->only([
-            'name', 'slug', 'description', 'price',
+            'name', 'description', 'price',
             'category_id', 'era', 'material', 'badge',
             'stock', 'featured', 'is_active',
         ]);

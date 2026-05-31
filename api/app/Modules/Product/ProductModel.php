@@ -9,7 +9,6 @@ class ProductModel extends Model
     protected string $table = 'products';
     protected array $fillable = [
         'name',
-        'slug',
         'description',
         'price',
         'category_id',
@@ -22,16 +21,6 @@ class ProductModel extends Model
     ];
     protected bool $timestamps = true;
 
-    public function findBySlug(string $slug): ?array
-    {
-        return $this->findBy('slug', $slug);
-    }
-
-    public function slugExists(string $slug, ?int $excludeId = null): bool
-    {
-        return $this->exists('slug', $slug, $excludeId);
-    }
-
     // لیست محصولات با فیلتر، مرتب‌سازی و صفحه‌بندی
     public function paginateWithFilters(array $filters): array
     {
@@ -43,7 +32,7 @@ class ProductModel extends Model
             $params[] = (int) $filters['category_id'];
         } elseif (!empty($filters['category'])) {
             // فرانت slug می‌فرسته — join به categories برای تطبیق
-            $where[]  = 'c.slug = ?';
+            // $where[]  = 'c.slug = ?';
             $params[] = $filters['category'];
         }
         if (!empty($filters['era'])) {
