@@ -10,40 +10,66 @@
   <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
   <script src="assets/js/libs/lucide.min.js"></script>
   <style>
+    /* ========== متغیرهای تم از input.css ========== */
+    :root {
+      --color-dark:        #f8f9fb;
+      --color-dark-2:      #eef1f5;
+      --color-dark-3:      #e3e7ee;
+      --color-border:      #cfd6df;
+      --color-accent:      #4b6b8a;
+      --color-accent-hover:#5c7c9c;
+      --color-muted:       #6b7280;
+      --color-text-dim:    rgba(15, 23, 42, 0.6);
+      --font-vazir:        'Vazirmatn', sans-serif;
+      --font-display:      'Agbalumo', sans-serif;
+      --font-felipa:       'Felipa', sans-serif;
+    }
+
+    /* کلاس‌های کمکی برای استفاده از متغیرها */
+    .bg-body         { background-color: var(--color-dark); }
+    .bg-surface      { background-color: var(--color-dark-2); }
+    .bg-card         { background-color: var(--color-dark-3); }
+    .bg-accent       { background-color: var(--color-accent); }
+    .bg-accent-hover { background-color: var(--color-accent-hover); }
+    .text-body       { color: #1e293b; }        /* متن اصلی تیره */
+    .text-muted      { color: var(--color-muted); }
+    .text-dim        { color: var(--color-text-dim); }
+    .text-accent     { color: var(--color-accent); }
+    .border-muted    { border-color: var(--color-border); }
+    .hover\:bg-accent-hover:hover { background-color: var(--color-accent-hover); }
+    .hover\:text-accent:hover     { color: var(--color-accent); }
+
+    /* سایر المان‌های ثابت */
+    body {
+      font-family: var(--font-vazir);
+      background-color: var(--color-dark);
+      color: #1e293b;
+    }
     [data-page] { display: none; }
     [data-page].active { display: block; }
-    body { font-family: 'Vazirmatn', sans-serif; }
-    .tab-active   { border-bottom: 2px solid #cf1736; color: #fff; }
-    .tab-inactive { border-bottom: 2px solid transparent; color: rgba(255,255,255,0.45); }
+    .tab-active   { border-bottom: 2px solid var(--color-accent); color: #1e293b; }
+    .tab-inactive { border-bottom: 2px solid transparent; color: var(--color-muted); }
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #2d161a; }
-    ::-webkit-scrollbar-thumb { background: #47242a; border-radius: 4px; }
+    ::-webkit-scrollbar-track { background: #e2e8f0; }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
     .badge { font-size:.7rem; padding:.2rem .7rem; border-radius:9999px; font-weight:700; white-space:nowrap; }
-    /* ── Product Cards — Full-bleed با gradient overlay ── */
+
+    /* کارت‌های محصول با تم جدید */
     .clay-card {
       position: relative;
       display: block;
       aspect-ratio: 3 / 4;
-      background: #120508;
+      background: var(--color-dark-3);
       border-radius: 18px;
-      border: none;
       overflow: hidden;
-      box-shadow:
-        0 6px 18px rgba(0, 0, 0, 0.55),
-        0 14px 36px rgba(0, 0, 0, 0.38);
-      transition:
-        transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
-        box-shadow 0.32s ease;
-      will-change: transform;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08), 0 14px 36px rgba(0, 0, 0, 0.05);
+      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.32s ease;
       text-decoration: none;
       color: inherit;
     }
     .clay-card:hover {
       transform: translateY(-6px) scale(1.02);
-      box-shadow:
-        0 20px 48px rgba(0, 0, 0, 0.65),
-        0 0 0 1.5px rgba(207, 23, 54, 0.3),
-        0 0 28px rgba(207, 23, 54, 0.1);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12), 0 0 0 1.5px rgba(75, 107, 138, 0.3);
     }
     .clay-card .card-img {
       position: absolute;
@@ -53,21 +79,12 @@
       object-fit: cover;
       transition: transform 0.55s ease;
     }
-    .clay-card:hover .card-img {
-      transform: scale(1.06);
-    }
+    .clay-card:hover .card-img { transform: scale(1.06); }
     .clay-card .card-overlay {
       position: absolute;
       inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
       pointer-events: none;
-      background: linear-gradient(
-        to top,
-        rgba(10, 3, 6, 0.97)  0%,
-        rgba(18, 7, 11, 0.88) 28%,
-        rgba(30, 12, 17, 0.5) 52%,
-        rgba(30, 12, 17, 0.1) 72%,
-        transparent           100%
-      );
     }
     .clay-card .card-body {
       position: absolute;
@@ -77,17 +94,13 @@
     }
     .clay-card .card-era {
       font-size: 10px;
-      color: #b07880;
+      color: #94a3b8;
       margin-bottom: 3px;
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
     .clay-card .card-name {
       font-size: 13px;
       font-weight: 600;
-      color: #fff;
+      color: white;
       margin-bottom: 8px;
       line-height: 1.4;
       display: -webkit-box;
@@ -103,41 +116,31 @@
     .clay-card .card-price {
       font-size: 12px;
       font-weight: 700;
-      color: #fff;
+      color: white;
     }
-
-    /* دکمه pill شیشه‌ای افزودن به سبد */
+    /* دکمه شیشه‌ای افزودن به سبد */
     .cart-pill {
       display: inline-flex;
       align-items: center;
       gap: 4px;
       padding: 5px 10px 5px 8px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(0,0,0,0.05);
       backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(0,0,0,0.1);
       border-radius: 999px;
-      color: rgba(255, 255, 255, 0.75);
+      color: #1e293b;
       font-size: 11px;
       cursor: pointer;
-      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-      white-space: nowrap;
+      transition: background 0.2s, border-color 0.2s;
     }
     .cart-pill:hover {
-      background: #cf1736;
-      border-color: #cf1736;
-      color: #fff;
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+      color: white;
     }
-    .cart-pill:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
+    .cart-pill:disabled { opacity: 0.3; cursor: not-allowed; }
 
-    /* ── 3D Featured Carousel (layout only — transforms via Swiper coverflow JS) ── */
-    #featured-section {
-      overflow: hidden;
-    }
+    /* سوایپر ویژه */
     .featured-swiper {
       padding-top: 44px !important;
       padding-bottom: 54px !important;
@@ -146,19 +149,15 @@
       width: min(268px, 74vw) !important;
       height: auto;
     }
-    .featured-swiper .swiper-slide-active .clay-card,
-    .featured-swiper .swiper-slide-active > a {
-      box-shadow:
-        0 22px 55px rgba(0, 0, 0, 0.65),
-        0 0 35px rgba(207, 23, 54, 0.22),
-        inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    .featured-swiper .swiper-slide-active .clay-card {
+      box-shadow: 0 22px 55px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--color-accent);
     }
 
-    /* Page transition */
+    /* انیمیشن صفحات */
     @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
     [data-page].active { animation: fadeIn 0.2s ease; }
 
-    /* ── Shop sidebar mobile overlay ── */
+    /* سایدبار موبایل */
     #shop-sidebar.sidebar-open {
       display: block !important;
       position: fixed;
@@ -169,18 +168,19 @@
       border-radius: 0;
       overflow-y: auto;
       padding-top: 60px;
+      background-color: var(--color-dark-2);
     }
     #sidebar-backdrop {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.4);
       z-index: 49;
       backdrop-filter: blur(2px);
     }
     #sidebar-backdrop.open { display: block; }
 
-    /* ── Mobile Menu — Fixed Overlay ── */
+    /* منوی موبایل */
     #mobile-menu {
       position: fixed;
       top: 64px;
@@ -191,20 +191,20 @@
       transform: translateY(-6px) scale(0.99);
       pointer-events: none;
       transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      background-color: var(--color-dark-2);
+      border-bottom: 1px solid var(--color-border);
     }
     #mobile-menu.open {
       opacity: 1;
       transform: translateY(0) scale(1);
       pointer-events: auto;
     }
-    /* Backdrop */
     #mobile-menu-backdrop {
       position: fixed;
       inset: 0;
       top: 64px;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.4);
       backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
       z-index: 47;
       opacity: 0;
       pointer-events: none;
@@ -215,22 +215,20 @@
       pointer-events: auto;
     }
 
-    /* ── Hamburger → X animation ── */
+    /* آیکون همبرگر */
     .ham-bar {
       display: block;
       height: 1.5px;
       width: 100%;
-      background: rgba(255,255,255,0.7);
+      background: #1e293b;
       border-radius: 2px;
       transform-origin: center;
-      transition: transform 0.28s ease, opacity 0.2s ease, background 0.2s ease, width 0.2s ease;
+      transition: transform 0.28s ease, opacity 0.2s ease;
     }
-    #mobile-menu-btn.menu-open .ham-bar { background: rgba(255,255,255,0.95); }
     #mobile-menu-btn.menu-open .ham-bar-1 { transform: translateY(6.5px) rotate(45deg); }
     #mobile-menu-btn.menu-open .ham-bar-2 { opacity: 0; transform: scaleX(0); }
     #mobile-menu-btn.menu-open .ham-bar-3 { transform: translateY(-6.5px) rotate(-45deg); }
 
-    /* ── Mobile nav items ── */
     .mobile-nav-item {
       display: flex;
       align-items: center;
@@ -238,168 +236,144 @@
       padding: 10px 12px;
       border-radius: 12px;
       font-size: 14px;
-      color: rgba(255,255,255,0.65);
-      transition: background 0.15s ease, color 0.15s ease;
+      color: #1e293b;
+      transition: background 0.15s;
       text-decoration: none;
-      margin-bottom: 2px;
     }
-    .mobile-nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-    .mobile-nav-item:hover .nav-icon-box {
-      border-color: rgba(207,23,54,0.4);
-      background: rgba(207,23,54,0.1);
-    }
+    .mobile-nav-item:hover { background: rgba(0,0,0,0.04); color: var(--color-accent); }
     .nav-icon-box {
       width: 32px; height: 32px;
       border-radius: 8px;
-      background: rgba(45,22,26,0.9);
-      border: 1px solid #47242a;
+      background: var(--color-dark-3);
+      border: 1px solid var(--color-border);
       display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, border-color 0.15s;
-      flex-shrink: 0;
     }
     .mobile-auth-btn {
       display: flex; align-items: center; gap: 12px;
       padding: 10px 12px; border-radius: 12px;
-      font-size: 13px; color: rgba(255,255,255,0.45);
+      font-size: 13px; color: #475569;
       background: none; border: none; cursor: pointer;
-      text-decoration: none; width: 100%; text-align: right;
-      transition: color 0.15s, background 0.15s;
+      width: 100%; text-align: right;
     }
-    .mobile-auth-btn:hover { color: #cf1736; background: rgba(207,23,54,0.07); }
+    .mobile-auth-btn:hover { color: var(--color-accent); background: rgba(75,107,138,0.07); }
   </style>
 </head>
-<body class="bg-[#221114] text-white overflow-x-hidden" dir="rtl">
+<body class="bg-body text-body overflow-x-hidden" dir="rtl">
 
-<!-- ═══════════════════════════════════════════
-     SHARED HEADER (injected by router)
-═══════════════════════════════════════════ -->
+<!-- هدر و فوتر توسط js پر می‌شوند ولی کلاس‌های داینامیک آنها تغییر نمی‌کند -->
 <div id="app-header"></div>
 
-<!-- ═══════════════════════════════════════════
-     ROUTER OUTLET
-═══════════════════════════════════════════ -->
 <div id="router-outlet">
 
-  <!-- ─────────────────────────────────────────
-       PAGE: HOME  #/
-  ───────────────────────────────────────── -->
+  <!-- صفحه اصلی (HOME) -->
   <div data-page="home">
-    <!-- hero -->
     <section class="relative min-h-[500px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
       <div class="absolute inset-0">
         <img src="assets/images/hero.png?w=1600&h=900&fit=crop" alt="غول بازار" class="w-full h-full object-cover scale-105">
-        <div class="absolute inset-0 bg-gradient-to-t from-[#221114] via-[#221114]/60 to-transparent"></div>
-        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-dark)] via-[var(--color-dark)]/60 to-transparent"></div>
+        <div class="absolute inset-0 bg-black/20"></div>
       </div>
       <div class="relative z-10 text-center px-5 max-w-3xl mx-auto py-20">
-        <img src="assets/images/logo.png" alt="غول بازار" class="w-28 h-28 md:w-40 md:h-40 object-contain mx-auto mb-4 drop-shadow-[0_0_24px_rgba(207,23,54,0.6)]">
-        <h1 class="font-display text-5xl md:text-7xl text-white mb-3 leading-tight">Ghul Bazar</h1>
-        <p class="text-[#c8939c] text-base md:text-xl mb-8">مرجع اصلی خرید و فروش اکسسوری‌های سورئال و قدمت‌دار</p>
+        <img src="assets/images/logo.png" alt="غول بازار" class="w-28 h-28 md:w-40 md:h-40 object-contain mx-auto mb-4 drop-shadow-[0_0_24px_rgba(75,107,138,0.4)]">
+        <h1 class="font-display text-5xl md:text-7xl text-white mb-3 leading-tight drop-shadow-sm">Ghul Bazar</h1>
+        <p class="text-white/80 text-base md:text-xl mb-8">مرجع اصلی خرید و فروش اکسسوری‌های سورئال و قدمت‌دار</p>
         <div class="flex gap-3 justify-center flex-wrap">
-          <a href="#/shop" data-link class="px-6 py-3 md:px-8 md:py-4 rounded-lg bg-[#cf1736] text-white text-sm md:text-base font-bold shadow-[0_10px_15px_-3px_rgba(207,23,54,0.3)] hover:bg-[#e01d3f] transition-all">کاوش مجموعه</a>
-          <a href="#/categories" data-link class="px-6 py-3 md:px-8 md:py-4 rounded-lg backdrop-blur-sm bg-[#2d161a]/50 border border-white/20 text-white text-sm md:text-base font-medium hover:bg-[#3a1f24] transition-all">دسته‌بندی‌ها</a>
+          <a href="#/shop" data-link class="px-6 py-3 md:px-8 md:py-4 rounded-lg bg-accent text-white text-sm md:text-base font-bold shadow-[0_10px_15px_-3px_rgba(75,107,138,0.3)] hover:bg-accent-hover transition-all">کاوش مجموعه</a>
+          <a href="#/categories" data-link class="px-6 py-3 md:px-8 md:py-4 rounded-lg backdrop-blur-sm bg-white/30 border border-white/30 text-white text-sm md:text-base font-medium hover:bg-white/40 transition-all">دسته‌بندی‌ها</a>
         </div>
       </div>
     </section>
 
-    <!-- Featured Products -->
+    <!-- محصولات ویژه (اسلایدر کاورفلو) -->
     <section class="py-12 md:py-20" id="featured-section">
       <div class="max-w-[1280px] mx-auto">
-        <div class="flex flex-row-reverse items-center justify-between mb-6 px-4 md:px-6" dir="rtl">
-          <a href="#/shop?featured=1" data-link class="text-[rgba(255,255,255,0.6)] text-xs md:text-sm hover:text-white flex flex-row-reverse items-center gap-1">
-            <i data-lucide="chevron-left" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"></i>
-            <span>همه</span>
+        <div class="flex flex-row-reverse items-center justify-between mb-6 px-4 md:px-6">
+          <a href="#/shop?featured=1" data-link class="text-muted text-xs md:text-sm hover:text-accent flex flex-row-reverse items-center gap-1">
+            <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i><span>همه</span>
           </a>
           <h2 class="text-xl md:text-3xl font-bold flex flex-row-reverse items-center gap-2">
-            <i data-lucide="astroid" class="w-6 h-6 text-[#cf1736]"></i>
+            <i data-lucide="astroid" class="w-6 h-6 text-accent"></i>
             <span>محصولات ویژه</span>
           </h2>
         </div>
         <div class="swiper featured-swiper px-4 md:px-6">
           <div class="swiper-wrapper" id="featured-wrapper"></div>
-          <div class="swiper-button-prev-feat absolute top-[45%] -translate-y-1/2 right-0 z-10 w-9 h-9 bg-[#2d161a]/80 border border-[#47242a] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#cf1736] transition-all">
-            <i data-lucide="chevron-right" class="w-4 h-4 text-white"></i>
+          <div class="swiper-button-prev-feat absolute top-[45%] -translate-y-1/2 right-0 z-10 w-9 h-9 bg-surface border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
+            <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
           </div>
-          <div class="swiper-button-next-feat absolute top-[45%] -translate-y-1/2 left-0 z-10 w-9 h-9 bg-[#2d161a]/80 border border-[#47242a] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#cf1736] transition-all">
-            <i data-lucide="chevron-left" class="w-4 h-4 text-white"></i>
+          <div class="swiper-button-next-feat absolute top-[45%] -translate-y-1/2 left-0 z-10 w-9 h-9 bg-surface border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
           </div>
         </div>
       </div>
     </section>
 
-
-    <!-- Latest products -->
+    <!-- تازه‌ترین محصولات -->
     <section class="py-12 md:py-20">
       <div class="max-w-[1280px] mx-auto">
-        <div class="flex flex-row-reverse items-center justify-between mb-6 px-4 md:px-6" dir="rtl">
-          <a href="#/shop" data-link class="text-[rgba(255,255,255,0.6)] text-xs md:text-sm hover:text-white flex flex-row-reverse items-center gap-1 group">
-            <i data-lucide="chevron-left" class="w-3.5 h-3.5 transition-transform group-hover:translate-x-1"></i>
-            <span>همه</span>
+        <div class="flex flex-row-reverse items-center justify-between mb-6 px-4 md:px-6">
+          <a href="#/shop" data-link class="text-muted text-xs md:text-sm hover:text-accent flex flex-row-reverse items-center gap-1 group">
+            <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i><span>همه</span>
           </a>
           <h2 class="text-xl md:text-3xl font-bold flex flex-row-reverse items-center gap-2">
-            <i data-lucide="badge-plus" class="w-6 h-6 text-[#cf1736]"></i>
+            <i data-lucide="badge-plus" class="w-6 h-6 text-accent"></i>
             <span>تازه رسیده ها</span>
           </h2>
         </div>
         <div class="swiper products-swiper px-4 md:px-6">
           <div class="swiper-wrapper" id="products-wrapper"></div>
-          <div class="swiper-button-prev-prods absolute top-[45%] -translate-y-1/2 right-0 z-10 w-9 h-9 bg-[#2d161a]/80 border border-[#47242a] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#cf1736] transition-all group">
-            <i data-lucide="chevron-right" class="w-4 h-4 text-white transition-transform group-hover:translate-x-1"></i>
+          <div class="swiper-button-prev-prods absolute top-[45%] -translate-y-1/2 right-0 z-10 w-9 h-9 bg-surface border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
+            <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
           </div>
-          <div class="swiper-button-next-prods absolute top-[45%] -translate-y-1/2 left-0 z-10 w-9 h-9 bg-[#2d161a]/80 border border-[#47242a] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#cf1736] transition-all group">
-            <i data-lucide="chevron-left" class="w-4 h-4 text-white transition-transform group-hover:-translate-x-1"></i>
+          <div class="swiper-button-next-prods absolute top-[45%] -translate-y-1/2 left-0 z-10 w-9 h-9 bg-surface border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
+            <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Newsletter -->
-    <section class="py-16 md:py-24 border-t border-[#47242a] relative overflow-hidden">
+    <!-- خبرنامه -->
+    <section class="py-16 md:py-24 border-t border-border relative overflow-hidden">
       <div class="max-w-lg mx-auto px-5 text-center relative z-10">
-        <i data-lucide="users" class="w-8 h-8 text-[#cf1736] mx-auto mb-4"></i>
+        <i data-lucide="users" class="w-8 h-8 text-accent mx-auto mb-4"></i>
         <h2 class="text-2xl md:text-3xl font-bold mb-3">به حلقه یاران بپیوندید</h2>
-        <p class="text-[rgba(255,255,255,0.6)] mb-6 text-sm md:text-base">برای دریافت اخبار کالکشن‌های جدید عضو شوید.</p>
+        <p class="text-muted mb-6 text-sm md:text-base">برای دریافت اخبار کالکشن‌های جدید عضو شوید.</p>
         <div class="flex flex-col sm:flex-row gap-3" dir="ltr">
-          <button class="px-6 py-3 bg-[#cf1736] text-white font-bold rounded-lg hover:bg-[#e01d3f] transition-all shrink-0 order-2 sm:order-1">عضویت</button>
-          <input type="email" placeholder="ایمیل شما..." class="flex-1 bg-[#2d161a] border border-[#47242a] rounded-lg px-4 py-3 text-white text-right placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736] transition-colors order-1 sm:order-2" dir="rtl">
+          <button class="px-6 py-3 bg-accent text-white font-bold rounded-lg hover:bg-accent-hover transition-all shrink-0 order-2 sm:order-1">عضویت</button>
+          <input type="email" placeholder="ایمیل شما..." class="flex-1 bg-surface border border-border rounded-lg px-4 py-3 text-body placeholder:text-muted/60 focus:outline-none focus:border-accent transition-colors order-1 sm:order-2" dir="rtl">
         </div>
       </div>
     </section>
   </div>
 
-  <!-- ─────────────────────────────────────────
-       PAGE: SHOP  #/shop
-  ───────────────────────────────────────── -->
+  <!-- صفحه فروشگاه (SHOP) -->
   <div data-page="shop">
     <main class="max-w-[1280px] mx-auto px-4 md:px-10 py-8 md:py-12">
       <div class="flex items-center justify-between mb-5 md:hidden">
-        <h1 class="text-base font-bold" id="page-title">فروشگاه</h1>
-        <button id="filter-toggle" class="flex items-center gap-2 px-4 py-2 bg-[#2d161a] border border-[#47242a] rounded-lg text-sm text-white hover:border-[#cf1736] transition-all">
+        <h1 class="text-base font-bold">فروشگاه</h1>
+        <button id="filter-toggle" class="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg text-sm text-body hover:border-accent transition-all">
           <svg width="14" height="12" fill="none" viewBox="0 0 14 12"><path d="M1 1h12M3 6h8M5 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           فیلتر
         </button>
       </div>
-      <!-- Backdrop برای بستن sidebar در موبایل -->
       <div id="sidebar-backdrop"></div>
       <div class="flex items-start gap-6 md:gap-12 relative">
-        <aside id="shop-sidebar" class="bg-[#2d161a] rounded-2xl p-4 w-48 lg:w-64 shrink-0 sticky top-24 hidden md:block">
+        <aside id="shop-sidebar" class="bg-surface rounded-2xl p-4 w-48 lg:w-64 shrink-0 sticky top-24 hidden md:block border border-border">
           <div class="flex items-center justify-between mb-6 md:block">
             <h2 class="text-xl font-bold text-right">فیلترها</h2>
-            <button id="sidebar-close" class="md:hidden text-[rgba(255,255,255,0.6)] hover:text-white p-1">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
+            <button id="sidebar-close" class="md:hidden text-muted hover:text-body p-1">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
           <div class="mb-8">
-            <h3 class="font-medium mb-3 text-right text-[#c8939c] text-sm">دسته‌بندی</h3>
+            <h3 class="font-medium mb-3 text-right text-accent text-sm">دسته‌بندی</h3>
             <ul id="cat-filters" class="space-y-2"></ul>
           </div>
-          <a href="#/shop" data-link id="clear-filters" class="text-[#c8939c] text-sm hover:text-white transition-colors block text-right hidden">× پاک کردن فیلترها</a>
+          <a href="#/shop" data-link id="clear-filters" class="text-accent text-sm hover:text-accent-hover transition-colors block text-right hidden">× پاک کردن فیلترها</a>
         </aside>
-        <div class="bg-[#2d161a] rounded-2xl p-6 flex-1 min-w-0">
+        <div class="bg-card rounded-2xl p-6 flex-1 min-w-0">
           <div class="flex items-center justify-between mb-6 md:mb-8">
-            <select id="sort-select" class="bg-[#2d161a] border border-[#47242a] rounded-lg px-3 py-2 text-xs md:text-sm text-white focus:outline-none focus:border-[#cf1736]">
+            <select id="sort-select" class="bg-card border border-border rounded-lg px-3 py-2 text-xs md:text-sm text-body focus:outline-none focus:border-accent">
               <option value="">پیش‌فرض</option>
               <option value="newest">جدیدترین</option>
               <option value="price_asc">ارزان‌ترین</option>
@@ -407,487 +381,128 @@
             </select>
             <div class="text-right">
               <h1 class="text-lg md:text-2xl font-bold" id="desktop-title">همه محصولات</h1>
-              <p class="text-[rgba(255,255,255,0.6)] text-xs mt-0.5" id="product-count"></p>
+              <p class="text-muted text-xs mt-0.5" id="product-count"></p>
             </div>
           </div>
           <div id="products-grid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6"></div>
-          <div id="shop-loading" class="text-center py-24 text-[rgba(255,255,255,0.6)]">
-            <p class="text-4xl mb-4 animate-pulse">✦</p><p>در حال بارگذاری...</p>
-          </div>
-          <div id="shop-empty" class="hidden text-center py-24 text-[rgba(255,255,255,0.6)]">
-            <p class="text-4xl mb-4">✦</p>
-            <p>محصولی یافت نشد.</p>
-            <a href="#/shop" data-link class="text-[#cf1736] hover:underline mt-2 block">بازگشت</a>
-          </div>
+          <div id="shop-loading" class="text-center py-24 text-muted"><p class="text-4xl mb-4 animate-pulse">✦</p><p>در حال بارگذاری...</p></div>
+          <div id="shop-empty" class="hidden text-center py-24 text-muted"><p class="text-4xl mb-4">✦</p><p>محصولی یافت نشد.</p><a href="#/shop" data-link class="text-accent hover:underline mt-2 block">بازگشت</a></div>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- ─────────────────────────────────────────
-       PAGE: PRODUCT  #/product?id=...
-  ───────────────────────────────────────── -->
+  <!-- صفحه محصول (PRODUCT) -->
   <div data-page="product">
     <main class="max-w-[1280px] mx-auto px-4 md:px-10 py-8">
-      <div id="product-loading" class="text-center py-32 text-[rgba(255,255,255,0.6)]">
-        <p class="text-4xl animate-pulse mb-4">✦</p><p>در حال بارگذاری...</p>
-      </div>
+      <div id="product-loading" class="text-center py-32 text-muted"><p class="text-4xl animate-pulse mb-4">✦</p><p>در حال بارگذاری...</p></div>
       <div id="product-detail" class="hidden">
-        <nav class="flex items-center gap-2 text-sm text-[rgba(255,255,255,0.6)] mb-8 justify-end" id="breadcrumb"></nav>
-        <div id="added-toast" class="hidden bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6 text-center text-green-300">
-          ✓ محصول به سبد خرید اضافه شد. <a href="#/cart" data-link class="underline">مشاهده سبد خرید</a>
-        </div>
+        <nav class="flex items-center gap-2 text-sm text-muted mb-8 justify-end" id="breadcrumb"></nav>
+        <div id="added-toast" class="hidden bg-green-100 border border-green-300 rounded-lg p-4 mb-6 text-center text-green-800">✓ محصول به سبد خرید اضافه شد. <a href="#/cart" data-link class="underline">مشاهده سبد خرید</a></div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 mb-16">
           <div>
-            <div class="rounded-2xl overflow-hidden bg-[#2d161a] aspect-square mb-3 shadow-2xl max-w-sm mx-auto md:max-w-none">
-              <img id="main-image" src="" alt="" class="w-full h-full object-cover">
-            </div>
+            <div class="rounded-2xl overflow-hidden bg-card aspect-square mb-3 shadow-xl max-w-sm mx-auto md:max-w-none"><img id="main-image" src="" alt="" class="w-full h-full object-cover"></div>
             <div class="grid grid-cols-4 gap-2 max-w-sm mx-auto md:max-w-none" id="thumbnails"></div>
           </div>
           <div class="text-right">
             <div id="badges" class="flex gap-2 justify-end mb-4"></div>
             <h1 id="product-name" class="text-3xl md:text-4xl font-bold leading-tight mb-6"></h1>
-            <div id="rating" class="flex items-center gap-3 justify-end mb-6 border-b border-[#47242a] pb-6"></div>
-            <p id="product-description" class="text-[rgba(255,255,255,0.6)] leading-relaxed mb-8"></p>
-            <div id="chain-section" class="mb-6 hidden">
-              <div class="flex items-center justify-between mb-3">
-                <a href="#" class="text-[#c8939c] text-sm hover:text-white">راهنمای طول زنجیر</a>
-                <label class="font-medium text-sm">طول زنجیر</label>
-              </div>
-              <div class="flex gap-3 justify-end flex-wrap" id="chain-options"></div>
-            </div>
-            <div id="size-section" class="mb-6 hidden">
-              <div class="flex items-center justify-between mb-3">
-                <a href="#" class="text-[#c8939c] text-sm hover:text-white">راهنمای سایز</a>
-                <label class="font-medium text-sm">سایز</label>
-              </div>
-              <div class="flex gap-3 justify-end flex-wrap" id="size-options"></div>
-            </div>
-            <div class="flex items-center justify-between mb-4">
-              <p id="product-price" class="text-2xl font-bold"></p>
-              <p id="product-stock" class="text-[rgba(255,255,255,0.6)] text-sm"></p>
-            </div>
-            <button id="add-to-cart-btn" class="w-full py-4 bg-[#cf1736] rounded-xl text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-[#e01d3f] transition-all shadow-[0_10px_20px_-5px_rgba(207,23,54,0.4)] active:scale-[0.99]">
-              افزودن به مجموعه
-            </button>
-            <p class="text-[rgba(255,255,255,0.6)] text-xs text-center mt-3">ارسال رایگان برای سفارش‌های بالای ۱،۵۰۰،۰۰۰ تومان</p>
-            <div class="border-t border-[#47242a] mt-8">
-              <button onclick="toggleAcc('history')" class="w-full flex items-center justify-between py-4">
-                <svg id="history-icon" width="12" height="7" viewBox="0 0 12 7" fill="none" class="transition-transform"><path d="M1 1L6 6L11 1" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/></svg>
-                <span class="font-medium">تاریخچه و اصالت</span>
-              </button>
-              <div id="history-content" class="overflow-hidden max-h-0 transition-all duration-300">
-                <p class="pb-6 text-[rgba(255,255,255,0.6)] text-sm leading-relaxed" id="history-text"></p>
-              </div>
-            </div>
-            <div class="border-t border-[#47242a]">
-              <button onclick="toggleAcc('care')" class="w-full flex items-center justify-between py-4">
-                <svg id="care-icon" width="12" height="7" viewBox="0 0 12 7" fill="none" class="transition-transform"><path d="M1 1L6 6L11 1" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/></svg>
-                <span class="font-medium">مواد و نگهداری</span>
-              </button>
-              <div id="care-content" class="overflow-hidden max-h-0 transition-all duration-300">
-                <p class="pb-6 text-[rgba(255,255,255,0.6)] text-sm leading-relaxed">با پارچه نرم تمیز کنید. از تماس با مواد شیمیایی، عطر، و آب بپرهیزید.</p>
-              </div>
-            </div>
+            <div id="rating" class="flex items-center gap-3 justify-end mb-6 border-b border-border pb-6"></div>
+            <p id="product-description" class="text-muted leading-relaxed mb-8"></p>
+            <div id="chain-section" class="mb-6 hidden"><div class="flex items-center justify-between mb-3"><a href="#" class="text-accent text-sm hover:text-accent-hover">راهنمای طول زنجیر</a><label class="font-medium text-sm">طول زنجیر</label></div><div class="flex gap-3 justify-end flex-wrap" id="chain-options"></div></div>
+            <div id="size-section" class="mb-6 hidden"><div class="flex items-center justify-between mb-3"><a href="#" class="text-accent text-sm hover:text-accent-hover">راهنمای سایز</a><label class="font-medium text-sm">سایز</label></div><div class="flex gap-3 justify-end flex-wrap" id="size-options"></div></div>
+            <div class="flex items-center justify-between mb-4"><p id="product-price" class="text-2xl font-bold"></p><p id="product-stock" class="text-muted text-sm"></p></div>
+            <button id="add-to-cart-btn" class="w-full py-4 bg-accent rounded-xl text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-accent-hover transition-all shadow-[0_10px_20px_-5px_rgba(75,107,138,0.4)] active:scale-[0.99]">افزودن به مجموعه</button>
+            <p class="text-muted text-xs text-center mt-3">ارسال رایگان برای سفارش‌های بالای ۱،۵۰۰،۰۰۰ تومان</p>
+            <div class="border-t border-border mt-8"><button onclick="toggleAcc('history')" class="w-full flex items-center justify-between py-4"><svg id="history-icon" width="12" height="7" viewBox="0 0 12 7" fill="none" class="transition-transform"><path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="1.5"/></svg><span class="font-medium">تاریخچه و اصالت</span></button><div id="history-content" class="overflow-hidden max-h-0 transition-all duration-300"><p class="pb-6 text-muted text-sm leading-relaxed" id="history-text"></p></div></div>
+            <div class="border-t border-border"><button onclick="toggleAcc('care')" class="w-full flex items-center justify-between py-4"><svg id="care-icon" width="12" height="7" viewBox="0 0 12 7" fill="none" class="transition-transform"><path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="1.5"/></svg><span class="font-medium">مواد و نگهداری</span></button><div id="care-content" class="overflow-hidden max-h-0 transition-all duration-300"><p class="pb-6 text-muted text-sm leading-relaxed">با پارچه نرم تمیز کنید. از تماس با مواد شیمیایی، عطر، و آب بپرهیزید.</p></div></div>
           </div>
         </div>
-        <section id="related-section" class="hidden border-t border-[#47242a] pt-12">
-          <div class="flex items-center justify-between mb-6">
-            <a href="#/shop" data-link class="text-[#c8939c] text-sm hover:text-white">همه ←</a>
-            <h2 class="text-xl md:text-2xl font-bold">شاید بپسندید</h2>
-          </div>
-          <div class="swiper related-swiper">
-            <div class="swiper-wrapper" id="related-wrapper"></div>
-          </div>
-        </section>
+        <section id="related-section" class="hidden border-t border-border pt-12"><div class="flex items-center justify-between mb-6"><a href="#/shop" data-link class="text-accent text-sm hover:text-accent-hover">همه ←</a><h2 class="text-xl md:text-2xl font-bold">شاید بپسندید</h2></div><div class="swiper related-swiper"><div class="swiper-wrapper" id="related-wrapper"></div></div></section>
       </div>
     </main>
   </div>
 
-  <!-- ─────────────────────────────────────────
-       PAGE: CATEGORIES  #/categories
-  ───────────────────────────────────────── -->
+  <!-- صفحه دسته‌بندی‌ها (CATEGORIES) -->
   <div data-page="categories">
     <main class="max-w-[1280px] mx-auto px-4 md:px-10 py-12">
-      <div class="text-right mb-10">
-        <h1 class="text-3xl md:text-4xl font-bold mb-2">دسته‌بندی‌ها</h1>
-        <p class="text-[rgba(255,255,255,0.6)]">مجموعه‌های منتخب از دوران‌های تاریخی و نوع جواهر</p>
-      </div>
-      <section>
-        <div id="cats-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <div class="col-span-full text-center py-16 text-[rgba(255,255,255,0.6)] animate-pulse">✦ در حال بارگذاری...</div>
-        </div>
-      </section>
+      <div class="text-right mb-10"><h1 class="text-3xl md:text-4xl font-bold mb-2">دسته‌بندی‌ها</h1><p class="text-muted">مجموعه‌های منتخب از دوران‌های تاریخی و نوع جواهر</p></div>
+      <div id="cats-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"><div class="col-span-full text-center py-16 text-muted animate-pulse">✦ در حال بارگذاری...</div></div>
     </main>
   </div>
 
-  <!-- ─────────────────────────────────────────
-       PAGE: CART  #/cart
-  ───────────────────────────────────────── -->
+  <!-- صفحه سبد خرید (CART) -->
   <div data-page="cart">
-    <main class="bg-[#2d161a] max-w-[1200px] mx-auto px-4 md:px-10 py-12 rounded-2xl">
+    <main class="bg-card max-w-[1200px] mx-auto px-4 md:px-10 py-12 rounded-2xl">
       <h1 class="text-3xl font-bold text-right mb-10">سبد خرید</h1>
-      <div id="cart-loading" class="text-center py-32 text-[rgba(255,255,255,0.6)]">
-        <p class="text-4xl animate-pulse mb-4">✦</p><p>در حال بارگذاری...</p>
-      </div>
-      <div id="empty-cart" class="hidden text-center py-32 text-[rgba(255,255,255,0.6)]">
-        <i data-lucide="shopping-bag" class="w-16 h-16 mb-6 text-[#cf1736] mx-auto"></i>
-  
-        <p class="text-xl mb-4">سبد خرید شما خالی است</p>
-        <a href="#/shop" data-link class="inline-block px-8 py-3 bg-[#cf1736] text-white rounded-lg hover:bg-[#e01d3f] transition-all">ادامه خرید</a>
-      </div>
-      <div id="cart-content" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
-        <div class="md:col-span-2 space-y-4" id="cart-items"></div>
-        <div class="bg-[#2d161a] border border-[#47242a] rounded-xl p-6 h-fit sticky top-24">
-          <h2 class="text-xl font-bold text-right mb-6">خلاصه سفارش</h2>
-          <div class="space-y-3 mb-4 text-right" id="summary-lines"></div>
-          <div class="border-t border-[#47242a] pt-4 mb-4">
-            <p class="text-sm text-[#c8939c] mb-2 text-right">کد تخفیف</p>
-            <div class="flex gap-2" dir="ltr">
-              <button id="apply-discount" class="px-4 py-2 bg-[#3a1f24] border border-[#47242a] rounded-lg text-sm hover:border-[#cf1736] transition-colors">اعمال</button>
-              <input type="text" id="discount-input" placeholder="کد تخفیف..." dir="rtl" class="flex-1 bg-[#221114] border border-[#47242a] rounded-lg px-3 py-2 text-sm text-white placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736]">
-            </div>
-            <p id="discount-msg" class="text-xs mt-2 text-right hidden"></p>
-          </div>
-          <div class="border-t border-[#47242a] pt-4 mb-6">
-            <div class="flex justify-between font-bold text-lg">
-              <span id="final-total"></span><span>مجموع</span>
-            </div>
-          </div>
-          <a href="#/checkout" data-link class="block w-full py-4 bg-[#cf1736] text-black text-center rounded-xl font-bold hover:bg-[#e01d3f] transition-all shadow-[0_10px_20px_-5px_rgba(207,23,54,0.4)]">
-            ادامه به پرداخت
-          </a>
-          <a href="#/shop" data-link class="block text-center text-[rgba(255,255,255,0.6)] text-sm mt-4 hover:text-white">← ادامه خرید</a>
-        </div>
-      </div>
+      <div id="cart-loading" class="text-center py-32 text-muted"><p class="text-4xl animate-pulse mb-4">✦</p><p>در حال بارگذاری...</p></div>
+      <div id="empty-cart" class="hidden text-center py-32 text-muted"><i data-lucide="shopping-bag" class="w-16 h-16 mb-6 text-accent mx-auto"></i><p class="text-xl mb-4">سبد خرید شما خالی است</p><a href="#/shop" data-link class="inline-block px-8 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover">ادامه خرید</a></div>
+      <div id="cart-content" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12"><div class="md:col-span-2 space-y-4" id="cart-items"></div><div class="bg-card border border-border rounded-xl p-6 h-fit sticky top-24"><h2 class="text-xl font-bold text-right mb-6">خلاصه سفارش</h2><div class="space-y-3 mb-4 text-right" id="summary-lines"></div><div class="border-t border-border pt-4 mb-4"><p class="text-sm text-accent mb-2 text-right">کد تخفیف</p><div class="flex gap-2" dir="ltr"><button id="apply-discount" class="px-4 py-2 bg-surface border border-border rounded-lg text-sm hover:border-accent transition-colors">اعمال</button><input type="text" id="discount-input" placeholder="کد تخفیف..." dir="rtl" class="flex-1 bg-body border border-border rounded-lg px-3 py-2 text-sm text-body placeholder:text-muted/50 focus:outline-none focus:border-accent"></div><p id="discount-msg" class="text-xs mt-2 text-right hidden"></p></div><div class="border-t border-border pt-4 mb-6"><div class="flex justify-between font-bold text-lg"><span id="final-total"></span><span>مجموع</span></div></div><a href="#/checkout" data-link class="block w-full py-4 bg-accent text-white text-center rounded-xl font-bold hover:bg-accent-hover shadow">ادامه به پرداخت</a><a href="#/shop" data-link class="block text-center text-muted text-sm mt-4 hover:text-accent">← ادامه خرید</a></div></div>
     </main>
   </div>
 
-  <!-- ─────────────────────────────────────────
-       PAGE: CHECKOUT  #/checkout
-  ───────────────────────────────────────── -->
+  <!-- صفحه تسویه (CHECKOUT) -->
   <div data-page="checkout">
     <main class="max-w-[1100px] mx-auto px-4 md:px-10 py-12">
       <h1 class="text-3xl font-bold text-right mb-10">تکمیل سفارش</h1>
-      <div id="checkout-loading" class="text-center py-20 text-[rgba(255,255,255,0.6)]">
-        <p class="text-4xl animate-pulse mb-4">✦</p><p>در حال بارگذاری...</p>
-      </div>
-      <div id="checkout-empty-msg" class="hidden text-center py-20 text-[rgba(255,255,255,0.6)]">
-        <p class="text-xl mb-4">سبد خرید شما خالی است</p>
-        <a href="#/shop" data-link class="inline-block px-8 py-3 bg-[#cf1736] text-white rounded-lg hover:bg-[#e01d3f]">برو به فروشگاه</a>
-      </div>
-      <div id="checkout-success" class="hidden text-center py-20">
-        <div class="text-6xl mb-6">🎉</div>
-        <h2 class="text-3xl font-bold mb-4 text-green-400">سفارش شما ثبت شد!</h2>
-        <p class="text-[rgba(255,255,255,0.6)] mb-2">شماره سفارش: <span id="order-number" class="text-white font-bold"></span></p>
-        <p class="text-[rgba(255,255,255,0.6)] mb-8">به زودی با شما تماس می‌گیریم.</p>
-        <a href="#/" data-link class="inline-block px-8 py-3 bg-[#cf1736] text-white rounded-lg hover:bg-[#e01d3f]">بازگشت به خانه</a>
-      </div>
-      <div id="checkout-form" class="hidden grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12">
-        <div class="md:col-span-3 space-y-6">
-          <div class="bg-[#2d161a] border border-[#47242a] rounded-xl p-6">
-            <h2 class="text-lg font-bold text-right mb-6">اطلاعات تحویل</h2>
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm text-[#c8939c] text-right mb-1">نام و نام‌خانوادگی *</label>
-                <input type="text" id="customer-name" required class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-right placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736] transition-colors" placeholder="علی احمدی">
-              </div>
-              <div>
-                <label class="block text-sm text-[#c8939c] text-right mb-1">شماره موبایل *</label>
-                <input type="tel" id="customer-phone" required dir="ltr" class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-left placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736] transition-colors" placeholder="09123456789">
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-sm text-[#c8939c] text-right mb-1">استان *</label>
-                  <select id="province-select" required class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-right focus:outline-none focus:border-[#cf1736] transition-colors appearance-none cursor-pointer">
-                    <option value="">انتخاب استان...</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-sm text-[#c8939c] text-right mb-1">شهر *</label>
-                  <select id="city-select" required disabled class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-right focus:outline-none focus:border-[#cf1736] transition-colors appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
-                    <option value="">ابتدا استان انتخاب کنید</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label class="block text-sm text-[#c8939c] text-right mb-1">کد پستی *</label>
-                <input type="text" id="postal-code" required maxlength="10" dir="ltr" class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-left placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736] transition-colors" placeholder="1234567890">
-              </div>
-              <div>
-                <label class="block text-sm text-[#c8939c] text-right mb-1">آدرس دقیق *</label>
-                <textarea id="shipping-address" required rows="3" class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-right placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736] transition-colors resize-none" placeholder="خیابان، کوچه، پلاک، واحد"></textarea>
-              </div>
-            </div>
-          </div>
-          <div class="bg-[#2d161a] border border-[#47242a] rounded-xl p-6">
-            <h2 class="text-lg font-bold text-right mb-4">کد تخفیف</h2>
-            <div class="flex gap-2" dir="ltr">
-              <button id="checkout-apply-discount" class="px-4 py-2.5 bg-[#3a1f24] border border-[#47242a] rounded-lg text-sm hover:border-[#cf1736] transition-colors shrink-0">اعمال</button>
-              <input type="text" id="checkout-discount-input" placeholder="کد تخفیف..." dir="rtl" class="flex-1 bg-[#221114] border border-[#47242a] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736]">
-            </div>
-            <p id="checkout-discount-msg" class="text-xs mt-2 text-right hidden"></p>
-          </div>
-          <p id="form-error" class="hidden text-[#cf1736] text-sm text-right"></p>
-          <button id="submit-btn" class="w-full py-4 bg-[#cf1736] text-white font-bold text-lg rounded-xl hover:bg-[#e01d3f] transition-all shadow-[0_10px_20px_-5px_rgba(207,23,54,0.4)]">
-            ثبت سفارش
-          </button>
-        </div>
-        <div class="md:col-span-2">
-          <div class="bg-[#2d161a] border border-[#47242a] rounded-xl p-6 sticky top-24">
-            <h2 class="text-lg font-bold text-right mb-6">سفارش شما</h2>
-            <div id="order-items" class="space-y-3 mb-4 max-h-64 overflow-y-auto"></div>
-            <div class="border-t border-[#47242a] pt-4 space-y-2" id="price-breakdown"></div>
-            <div class="border-t border-[#47242a] mt-4 pt-4">
-              <div class="flex justify-between font-bold text-lg">
-                <span id="checkout-total"></span><span>مجموع</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div id="checkout-loading" class="text-center py-20 text-muted"><p class="text-4xl animate-pulse mb-4">✦</p><p>در حال بارگذاری...</p></div>
+      <div id="checkout-empty-msg" class="hidden text-center py-20 text-muted"><p class="text-xl mb-4">سبد خرید شما خالی است</p><a href="#/shop" data-link class="inline-block px-8 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover">برو به فروشگاه</a></div>
+      <div id="checkout-success" class="hidden text-center py-20"><div class="text-6xl mb-6">🎉</div><h2 class="text-3xl font-bold mb-4 text-green-600">سفارش شما ثبت شد!</h2><p class="text-muted mb-2">شماره سفارش: <span id="order-number" class="font-bold text-body"></span></p><p class="text-muted mb-8">به زودی با شما تماس می‌گیریم.</p><a href="#/" data-link class="inline-block px-8 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover">بازگشت به خانه</a></div>
+      <div id="checkout-form" class="hidden grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12"><div class="md:col-span-3 space-y-6"><div class="bg-card border border-border rounded-xl p-6"><h2 class="text-lg font-bold text-right mb-6">اطلاعات تحویل</h2><div class="space-y-4"><div><label class="block text-sm text-accent text-right mb-1">نام و نام‌خانوادگی *</label><input type="text" id="customer-name" required class="w-full bg-body border border-border rounded-lg px-4 py-3 text-body text-right placeholder:text-muted/50 focus:outline-none focus:border-accent" placeholder="علی احمدی"></div><div><label class="block text-sm text-accent text-right mb-1">شماره موبایل *</label><input type="tel" id="customer-phone" required dir="ltr" class="w-full bg-body border border-border rounded-lg px-4 py-3 text-body text-left placeholder:text-muted/50 focus:outline-none focus:border-accent" placeholder="09123456789"></div><div class="grid grid-cols-2 gap-3"><div><label class="block text-sm text-accent text-right mb-1">استان *</label><select id="province-select" required class="w-full bg-body border border-border rounded-lg px-4 py-3 text-body text-right focus:outline-none focus:border-accent"><option value="">انتخاب استان...</option></select></div><div><label class="block text-sm text-accent text-right mb-1">شهر *</label><select id="city-select" required disabled class="w-full bg-body border border-border rounded-lg px-4 py-3 text-body text-right focus:outline-none focus:border-accent disabled:opacity-50"><option value="">ابتدا استان انتخاب کنید</option></select></div></div><div><label class="block text-sm text-accent text-right mb-1">کد پستی *</label><input type="text" id="postal-code" required maxlength="10" dir="ltr" class="w-full bg-body border border-border rounded-lg px-4 py-3 text-body text-left placeholder:text-muted/50 focus:outline-none focus:border-accent" placeholder="1234567890"></div><div><label class="block text-sm text-accent text-right mb-1">آدرس دقیق *</label><textarea id="shipping-address" required rows="3" class="w-full bg-body border border-border rounded-lg px-4 py-3 text-body text-right placeholder:text-muted/50 focus:outline-none focus:border-accent resize-none" placeholder="خیابان، کوچه، پلاک، واحد"></textarea></div></div></div><div class="bg-card border border-border rounded-xl p-6"><h2 class="text-lg font-bold text-right mb-4">کد تخفیف</h2><div class="flex gap-2" dir="ltr"><button id="checkout-apply-discount" class="px-4 py-2.5 bg-surface border border-border rounded-lg text-sm hover:border-accent">اعمال</button><input type="text" id="checkout-discount-input" placeholder="کد تخفیف..." dir="rtl" class="flex-1 bg-body border border-border rounded-lg px-3 py-2.5 text-sm text-body placeholder:text-muted/50 focus:outline-none focus:border-accent"></div><p id="checkout-discount-msg" class="text-xs mt-2 text-right hidden"></p></div><p id="form-error" class="hidden text-accent text-sm text-right"></p><button id="submit-btn" class="w-full py-4 bg-accent text-white font-bold text-lg rounded-xl hover:bg-accent-hover shadow">ثبت سفارش</button></div><div class="md:col-span-2"><div class="bg-card border border-border rounded-xl p-6 sticky top-24"><h2 class="text-lg font-bold text-right mb-6">سفارش شما</h2><div id="order-items" class="space-y-3 mb-4 max-h-64 overflow-y-auto"></div><div class="border-t border-border pt-4 space-y-2" id="price-breakdown"></div><div class="border-t border-border mt-4 pt-4"><div class="flex justify-between font-bold text-lg"><span id="checkout-total"></span><span>مجموع</span></div></div></div></div></div>
     </main>
   </div>
 
-  <!-- ─────────────────────────────────────────
-       PAGE: PAYMENT  #/payment
-  ───────────────────────────────────────── -->
+  <!-- صفحه پرداخت (PAYMENT) -->
   <div data-page="payment">
-    <div class="border-b border-[#47242a] bg-[#2d161a]/60">
-      <div class="max-w-[1280px] mx-auto px-5 py-3 flex items-center gap-2 text-xs text-[rgba(255,255,255,0.6)] overflow-x-auto whitespace-nowrap">
-        <a href="#/cart" data-link class="hover:text-white transition-colors">سبد خرید</a>
-        <span class="text-[#47242a]">›</span>
-        <a href="#/checkout" data-link class="hover:text-white transition-colors">اطلاعات ارسال</a>
-        <span class="text-[#47242a]">›</span>
-        <span class="text-[#cf1736] font-bold">پرداخت</span>
-      </div>
-    </div>
-    <main class="max-w-4xl mx-auto px-5 py-10">
-      <div id="payment-summary" class="bg-[#2d161a] border border-[#47242a] rounded-2xl p-6 mb-8">
-        <h2 class="text-xl font-bold mb-6">جزئیات سفارش</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <p class="text-sm text-[rgba(255,255,255,0.6)]">شماره سفارش</p>
-            <p id="payment-order-number" class="text-2xl font-bold text-white">-</p>
-            <button onclick="copyText('payment-order-number')" class="mt-2 text-xs bg-[#3a1f24] px-3 py-1 rounded-lg hover:bg-[#cf1736]/20 transition">کپی</button>
-          </div>
-          <div>
-            <p class="text-sm text-[rgba(255,255,255,0.6)]">مبلغ قابل پرداخت</p>
-            <p id="payment-total-amount" class="text-2xl font-bold text-green-400 ltr">0</p>
-          </div>
-        </div>
-        <div class="mt-6 p-4 bg-[#3a1f24] border border-[#47242a] rounded-lg">
-          <p class="text-[rgba(255,255,255,0.6)] text-sm mb-2">لطفاً مبلغ فوق را به شماره کارت زیر واریز کرده و تصویر رسید را بارگذاری نمایید.</p>
-          <div class="bg-[#221114] border border-[#47242a] rounded-lg p-4 flex items-center justify-between gap-4">
-              
-              <!-- تصویر کارت -->
-              <img 
-                src="/assets/images/card-number.jpg" 
-                alt="شماره کارت" 
-                class="h-8 object-contain rounded-md"
-              />
-            
-              <!-- شماره واقعی برای کپی -->
-              <div class="flex items-center gap-2 ltr">
-                <span id="card-number" class="text-white font-mono text-sm">
-                  6219-1234-5678-9012
-                </span>
-            
-                <button 
-                  onclick="copyText('card-number')" 
-                  class="text-xs bg-[#3a1f24] px-3 py-1 rounded-lg hover:bg-[#cf1736]/20 transition"
-                >
-                  کپی
-                </button>
-              </div>
-            
-            </div>
-        
-      </div>
-      <div class="bg-[#2d161a] border border-[#47242a] rounded-2xl p-6">
-        <h3 class="text-lg font-bold mb-4">آپلود رسید پرداخت</h3>
-        <div class="space-y-4">
-          <label class="block w-full cursor-pointer bg-[#3a1f24] border border-[#47242a] rounded-xl p-6 text-center hover:border-[#cf1736] transition-colors">
-            <span id="upload-ph" class="text-[rgba(255,255,255,0.6)] block">برای انتخاب تصویر کلیک کنید (JPG, PNG, WebP)</span>
-            <span id="upload-preview" class="hidden text-green-400">فایل انتخاب شد: <strong id="file-name"></strong></span>
-            <input type="file" id="receipt-input" class="hidden" accept="image/*" onchange="handleFile(this)">
-          </label>
-          <button id="submit-receipt-btn" onclick="submitReceipt()" class="w-full py-3 bg-[#cf1736] text-white font-bold rounded-xl hover:bg-[#e01d3f] transition-all disabled:opacity-60">
-            ارسال رسید
-          </button>
-        </div>
-        <p id="upload-error" class="hidden text-[#cf1736] text-sm mt-3"></p>
-      </div>
-    </main>
-    <div id="copy-toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">کپی شد!</div>
+    <div class="border-b border-border bg-surface/60"><div class="max-w-[1280px] mx-auto px-5 py-3 flex items-center gap-2 text-xs text-muted overflow-x-auto whitespace-nowrap"><a href="#/cart" data-link class="hover:text-body">سبد خرید</a><span class="text-border">›</span><a href="#/checkout" data-link class="hover:text-body">اطلاعات ارسال</a><span class="text-border">›</span><span class="text-accent font-bold">پرداخت</span></div></div>
+    <main class="max-w-4xl mx-auto px-5 py-10"><div id="payment-summary" class="bg-card border border-border rounded-2xl p-6 mb-8"><h2 class="text-xl font-bold mb-6">جزئیات سفارش</h2><div class="grid grid-cols-1 sm:grid-cols-2 gap-6"><div><p class="text-sm text-muted">شماره سفارش</p><p id="payment-order-number" class="text-2xl font-bold text-body">-</p><button onclick="copyText('payment-order-number')" class="mt-2 text-xs bg-surface px-3 py-1 rounded-lg hover:bg-accent/20 transition">کپی</button></div><div><p class="text-sm text-muted">مبلغ قابل پرداخت</p><p id="payment-total-amount" class="text-2xl font-bold text-accent ltr">0</p></div></div><div class="mt-6 p-4 bg-surface border border-border rounded-lg"><p class="text-muted text-sm mb-2">لطفاً مبلغ فوق را به شماره کارت زیر واریز کرده و تصویر رسید را بارگذاری نمایید.</p><div class="bg-body border border-border rounded-lg p-4 flex items-center justify-between gap-4"><img src="/assets/images/card-number.jpg" alt="شماره کارت" class="h-8 object-contain rounded-md"/><div class="flex items-center gap-2 ltr"><span id="card-number" class="text-body font-mono text-sm">6219-1234-5678-9012</span><button onclick="copyText('card-number')" class="text-xs bg-surface px-3 py-1 rounded-lg hover:bg-accent/20 transition">کپی</button></div></div></div></div><div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-4">آپلود رسید پرداخت</h3><div class="space-y-4"><label class="block w-full cursor-pointer bg-surface border border-border rounded-xl p-6 text-center hover:border-accent transition-colors"><span id="upload-ph" class="text-muted block">برای انتخاب تصویر کلیک کنید (JPG, PNG, WebP)</span><span id="upload-preview" class="hidden text-green-600">فایل انتخاب شد: <strong id="file-name"></strong></span><input type="file" id="receipt-input" class="hidden" accept="image/*" onchange="handleFile(this)"></label><button id="submit-receipt-btn" onclick="submitReceipt()" class="w-full py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-all disabled:opacity-60">ارسال رسید</button></div><p id="upload-error" class="hidden text-accent text-sm mt-3"></p></div></main>
+    <div id="copy-toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">کپی شد!</div>
   </div>
 
-  <!-- ─────────────────────────────────────────
-       PAGE: ORDERS  #/orders
-  ───────────────────────────────────────── -->
+  <!-- صفحه سفارشات (ORDERS) -->
   <div data-page="orders">
-    <main class="max-w-[1280px] mx-auto w-full px-4 md:px-10 py-10 md:py-14">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4 border-b border-[#47242a] pb-8">
-        <div>
-          <h1 class="text-2xl md:text-3xl font-black text-white mb-1">سفارشات من</h1>
-          <p class="text-[rgba(255,255,255,0.6)] text-sm">سوابق خرید و پیگیری وضعیت ارسال</p>
-        </div>
-        <a href="#/shop" data-link class="flex items-center gap-2 px-4 py-2 bg-[#cf1736] hover:bg-[#e01d3f] text-white text-sm font-bold rounded-lg transition-colors">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-          خرید جدید
-        </a>
-      </div>
-      <div id="orders-loading" class="text-center py-20 text-[rgba(255,255,255,0.6)]">
-        <p class="text-4xl animate-pulse mb-3">✦</p><p>در حال بارگذاری...</p>
-      </div>
-      <div id="need-login" class="hidden text-center py-20">
-        <div class="w-16 h-16 rounded-full bg-[#2d161a] border border-[#47242a] flex items-center justify-center mx-auto mb-4">
-          <svg class="w-7 h-7 text-[#c8939c]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-        </div>
-        <p class="text-xl text-[rgba(255,255,255,0.6)] mb-6">برای مشاهده سفارشات وارد شوید</p>
-        <a href="login.html" class="inline-block px-8 py-3 bg-[#cf1736] text-white rounded-lg hover:bg-[#e01d3f] font-bold">ورود به حساب</a>
-      </div>
-      <div id="empty-orders" class="hidden text-center py-20">
-        <p class="text-xl text-[rgba(255,255,255,0.6)] mb-6">هنوز سفارشی ثبت نشده</p>
-        <a href="#/shop" data-link class="inline-block px-8 py-3 bg-[#cf1736] text-white rounded-lg hover:bg-[#e01d3f] font-bold">رفتن به فروشگاه</a>
-      </div>
-      <div id="orders-content" class="hidden">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          <div class="bg-[#2d161a] border border-[#47242a] rounded-2xl p-5 text-right">
-            <p class="text-xs text-[#c8939c] mb-1">سفارشات جاری</p>
-            <h3 class="text-3xl text-white font-black" id="stat-active">۰</h3>
-            <p class="text-xs text-[#cf1736] mt-1 font-medium">در حال پردازش</p>
-          </div>
-          <div class="bg-[#2d161a] border border-[#47242a] rounded-2xl p-5 text-right">
-            <p class="text-xs text-[#c8939c] mb-1">کل خریدها</p>
-            <h3 class="text-3xl text-white font-black" id="stat-total">۰</h3>
-            <p class="text-xs text-[rgba(255,255,255,0.6)] mt-1">سفارش ثبت‌شده</p>
-          </div>
-          <div class="bg-[#2d161a] border border-[#47242a] rounded-2xl p-5 text-right">
-            <p class="text-xs text-[#c8939c] mb-1">مجموع هزینه</p>
-            <h3 class="text-2xl text-white font-black" id="stat-amount">۰ تومان</h3>
-            <p class="text-xs text-[rgba(255,255,255,0.6)] mt-1">در کل دوره</p>
-          </div>
-        </div>
-        <div class="bg-[#2d161a] border border-[#47242a] rounded-2xl overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-right min-w-[600px]">
-              <thead>
-                <tr class="border-b border-[#47242a] bg-[#3a1f24]/60">
-                  <th class="py-3.5 px-5 text-xs font-bold text-[#c8939c]">شماره سفارش</th>
-                  <th class="py-3.5 px-5 text-xs font-bold text-[#c8939c]">تاریخ</th>
-                  <th class="py-3.5 px-5 text-xs font-bold text-[#c8939c] hidden sm:table-cell">اقلام</th>
-                  <th class="py-3.5 px-5 text-xs font-bold text-[#c8939c]">مبلغ</th>
-                  <th class="py-3.5 px-5 text-xs font-bold text-[#c8939c]">وضعیت</th>
-                  <th class="py-3.5 px-5 text-xs font-bold text-[#c8939c]">عملیات</th>
-                </tr>
-              </thead>
-              <tbody id="orders-table" class="divide-y divide-[#47242a]"></tbody>
-            </table>
-          </div>
-          <div class="flex items-center justify-between border-t border-[#47242a] bg-[#3a1f24]/40 px-5 py-3">
-            <p class="text-xs text-[rgba(255,255,255,0.6)]" id="pagination-info"></p>
-            <div class="flex gap-1" id="pagination-nav"></div>
-          </div>
-        </div>
-      </div>
-    </main>
+    <main class="max-w-[1280px] mx-auto w-full px-4 md:px-10 py-10 md:py-14"><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4 border-b border-border pb-8"><div><h1 class="text-2xl md:text-3xl font-black text-body mb-1">سفارشات من</h1><p class="text-muted text-sm">سوابق خرید و پیگیری وضعیت ارسال</p></div><a href="#/shop" data-link class="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white text-sm font-bold rounded-lg transition-colors"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>خرید جدید</a></div><div id="orders-loading" class="text-center py-20 text-muted"><p class="text-4xl animate-pulse mb-3">✦</p><p>در حال بارگذاری...</p></div><div id="need-login" class="hidden text-center py-20"><div class="w-16 h-16 rounded-full bg-surface border border-border flex items-center justify-center mx-auto mb-4"><svg class="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></div><p class="text-xl text-muted mb-6">برای مشاهده سفارشات وارد شوید</p><a href="login.html" class="inline-block px-8 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover font-bold">ورود به حساب</a></div><div id="empty-orders" class="hidden text-center py-20"><p class="text-xl text-muted mb-6">هنوز سفارشی ثبت نشده</p><a href="#/shop" data-link class="inline-block px-8 py-3 bg-accent text-white rounded-lg hover:bg-accent-hover font-bold">رفتن به فروشگاه</a></div><div id="orders-content" class="hidden"><div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10"><div class="bg-card border border-border rounded-2xl p-5 text-right"><p class="text-xs text-accent mb-1">سفارشات جاری</p><h3 class="text-3xl text-body font-black" id="stat-active">۰</h3><p class="text-xs text-accent mt-1 font-medium">در حال پردازش</p></div><div class="bg-card border border-border rounded-2xl p-5 text-right"><p class="text-xs text-accent mb-1">کل خریدها</p><h3 class="text-3xl text-body font-black" id="stat-total">۰</h3><p class="text-xs text-muted mt-1">سفارش ثبت‌شده</p></div><div class="bg-card border border-border rounded-2xl p-5 text-right"><p class="text-xs text-accent mb-1">مجموع هزینه</p><h3 class="text-2xl text-body font-black" id="stat-amount">۰ تومان</h3><p class="text-xs text-muted mt-1">در کل دوره</p></div></div><div class="bg-card border border-border rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="w-full text-right min-w-[600px]"><thead><tr class="border-b border-border bg-surface/60"><th class="py-3.5 px-5 text-xs font-bold text-accent">شماره سفارش</th><th class="py-3.5 px-5 text-xs font-bold text-accent">تاریخ</th><th class="py-3.5 px-5 text-xs font-bold text-accent hidden sm:table-cell">اقلام</th><th class="py-3.5 px-5 text-xs font-bold text-accent">مبلغ</th><th class="py-3.5 px-5 text-xs font-bold text-accent">وضعیت</th><th class="py-3.5 px-5 text-xs font-bold text-accent">عملیات</th></tr></thead><tbody id="orders-table" class="divide-y divide-border"></tbody></table></div><div class="flex items-center justify-between border-t border-border bg-surface/40 px-5 py-3"><p class="text-xs text-muted" id="pagination-info"></p><div class="flex gap-1" id="pagination-nav"></div></div></div></div></main>
   </div>
 
-</div><!-- /router-outlet -->
+</div>
 
-<!-- ═══════════════════════════════════════════
-     SHARED FOOTER
-═══════════════════════════════════════════ -->
 <div id="app-footer"></div>
 
-<!-- ═══════════════════════════════════════════
-     SCRIPTS
-═══════════════════════════════════════════ -->
-<!-- این‌ها رو پیدا کن و جایگزین کن -->
 <script src="assets/js/libs/lucide.min.js"></script>
 <script src="assets/js/libs/swiper-bundle.min.js"></script>
 <script>
-/* ─────────────────────────────────────────────────────────
-   Swiper Coverflow + Touch patch for .featured-swiper
-   این اسکریپت constructor سوایپر رو wrap می‌کنه تا بدون
-   تغییر home.js، کاروسل ویژه به 3D coverflow تبدیل بشه.
-   هر پارامتر دیگه‌ای که home.js میده حفظ می‌مونه.
-───────────────────────────────────────────────────────── */
+/* سوایپر کاورفلو بدون تغییر منطق اصلی */
 ;(function () {
   const _Orig = window.Swiper;
-
   function GhulSwiper(el, cfg) {
     const node = typeof el === 'string' ? document.querySelector(el) : el;
     if (node && node.classList && node.classList.contains('featured-swiper')) {
-
-      const origOn    = (cfg && cfg.on) || {};
-      const origClick = origOn.click;   /* handler احتمالی home.js حفظ می‌شه */
-
+      const origOn = (cfg && cfg.on) || {};
       cfg = Object.assign({}, cfg, {
-        effect                  : 'coverflow',
-        centeredSlides          : true,
-        grabCursor              : true,
-        simulateTouch           : true,
-        allowTouchMove          : true,
-        touchRatio              : 1,
-        touchAngle              : 45,
-        /* ── لایه ۱: اجازه می‌ده native click بعد از mousedown بپره ── */
-        touchStartPreventDefault: false,
-        coverflowEffect: {
-          rotate      : 28,
-          stretch     : 18,
-          depth       : 130,
-          modifier    : 1,
-          slideShadows: true,
-        },
+        effect: 'coverflow',
+        centeredSlides: true,
+        grabCursor: true,
+        simulateTouch: true,
+        coverflowEffect: { rotate: 28, stretch: 18, depth: 130, modifier: 1, slideShadows: true },
         on: Object.assign({}, origOn, {
-          /* ── لایه ۲: اگه native click block شد، اینجا جبران می‌کنیم ── */
           click: function (swiper, event) {
-            if (origClick) origClick.call(this, swiper, event);
-
-            /* جلوگیری از حلقه بی‌نهایت برای رویدادهای re-dispatch شده */
+            if (origOn.click) origOn.click.call(this, swiper, event);
             if (event._ghul) return;
-
-            const t = event.target;
-
-            /* دکمه سبد خرید — خارج از event loop سوایپر dispatch می‌کنیم */
-            const btn = t.closest('.add-to-cart-quick');
+            const btn = event.target.closest('.add-to-cart-quick');
             if (btn && !btn.disabled) {
-              setTimeout(function () {
-                var e2 = new MouseEvent('click', { bubbles: true, cancelable: true });
-                e2._ghul = true;
-                btn.dispatchEvent(e2);
-              }, 0);
+              setTimeout(() => { let e2 = new MouseEvent('click', { bubbles: true }); e2._ghul = true; btn.dispatchEvent(e2); }, 0);
               return;
             }
-
-            /* لینک محصول — hash رو مستقیم ست می‌کنیم */
-            var link = t.closest('a[data-link]') || t.closest('.clay-card[href]');
-            if (link) {
-              var href = link.getAttribute('href') || '';
-              var hash = href.startsWith('#') ? href.slice(1) : href;
-              if (hash && window.location.hash.slice(1) !== hash) {
-                window.location.hash = hash;
-              }
-            }
-          },
-        }),
+            let link = event.target.closest('a[data-link]') || event.target.closest('.clay-card[href]');
+            if (link) { let href = link.getAttribute('href') || '', hash = href.startsWith('#') ? href.slice(1) : href; if (hash && window.location.hash.slice(1) !== hash) window.location.hash = hash; }
+          }
+        })
       });
     }
     return new _Orig(el, cfg);
   }
-
   GhulSwiper.prototype = _Orig.prototype;
   Object.setPrototypeOf(GhulSwiper, _Orig);
-  try {
-    Object.getOwnPropertyNames(_Orig).forEach(function (k) {
-      if (k !== 'prototype' && k !== 'length' && k !== 'name') {
-        GhulSwiper[k] = _Orig[k];
-      }
-    });
-  } catch (e) {}
-
   window.Swiper = GhulSwiper;
 })();
 </script>
@@ -903,6 +518,5 @@
 <script src="assets/js/pages/checkout.js"></script>
 <script src="assets/js/pages/payment.js"></script>
 <script src="assets/js/pages/orders.js"></script>
-
 </body>
 </html>
