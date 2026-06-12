@@ -25,7 +25,7 @@ var API = (function () {
 
   // ─── Config ────────────────────────────────────────────────────
 
-  var BASE_URL = '/api';   // قبل از هر چیز ست کن: API.BASE_URL = 'https://...'
+  var BASE_URL = 'api';   // قبل از هر چیز ست کن: API.BASE_URL = 'https://...'
 
   // ─── Token & User Cache ────────────────────────────────────────
 

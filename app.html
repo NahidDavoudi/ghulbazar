@@ -19,6 +19,141 @@
     ::-webkit-scrollbar-track { background: #2d161a; }
     ::-webkit-scrollbar-thumb { background: #47242a; border-radius: 4px; }
     .badge { font-size:.7rem; padding:.2rem .7rem; border-radius:9999px; font-weight:700; white-space:nowrap; }
+    /* ── Product Cards — Full-bleed با gradient overlay ── */
+    .clay-card {
+      position: relative;
+      display: block;
+      aspect-ratio: 3 / 4;
+      background: #120508;
+      border-radius: 18px;
+      border: none;
+      overflow: hidden;
+      box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.55),
+        0 14px 36px rgba(0, 0, 0, 0.38);
+      transition:
+        transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.32s ease;
+      will-change: transform;
+      text-decoration: none;
+      color: inherit;
+    }
+    .clay-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow:
+        0 20px 48px rgba(0, 0, 0, 0.65),
+        0 0 0 1.5px rgba(207, 23, 54, 0.3),
+        0 0 28px rgba(207, 23, 54, 0.1);
+    }
+    .clay-card .card-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.55s ease;
+    }
+    .clay-card:hover .card-img {
+      transform: scale(1.06);
+    }
+    .clay-card .card-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(
+        to top,
+        rgba(10, 3, 6, 0.97)  0%,
+        rgba(18, 7, 11, 0.88) 28%,
+        rgba(30, 12, 17, 0.5) 52%,
+        rgba(30, 12, 17, 0.1) 72%,
+        transparent           100%
+      );
+    }
+    .clay-card .card-body {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 0 12px 12px;
+      text-align: right;
+    }
+    .clay-card .card-era {
+      font-size: 10px;
+      color: #b07880;
+      margin-bottom: 3px;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .clay-card .card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .clay-card .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .clay-card .card-price {
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* دکمه pill شیشه‌ای افزودن به سبد */
+    .cart-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px 5px 8px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      white-space: nowrap;
+    }
+    .cart-pill:hover {
+      background: #cf1736;
+      border-color: #cf1736;
+      color: #fff;
+    }
+    .cart-pill:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* ── 3D Featured Carousel (layout only — transforms via Swiper coverflow JS) ── */
+    #featured-section {
+      overflow: hidden;
+    }
+    .featured-swiper {
+      padding-top: 44px !important;
+      padding-bottom: 54px !important;
+    }
+    .featured-swiper .swiper-slide {
+      width: min(268px, 74vw) !important;
+      height: auto;
+    }
+    .featured-swiper .swiper-slide-active .clay-card,
+    .featured-swiper .swiper-slide-active > a {
+      box-shadow:
+        0 22px 55px rgba(0, 0, 0, 0.65),
+        0 0 35px rgba(207, 23, 54, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    }
+
     /* Page transition */
     @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
     [data-page].active { animation: fadeIn 0.2s ease; }
@@ -44,6 +179,93 @@
       backdrop-filter: blur(2px);
     }
     #sidebar-backdrop.open { display: block; }
+
+    /* ── Mobile Menu — Fixed Overlay ── */
+    #mobile-menu {
+      position: fixed;
+      top: 64px;
+      left: 0;
+      right: 0;
+      z-index: 48;
+      opacity: 0;
+      transform: translateY(-6px) scale(0.99);
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #mobile-menu.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    /* Backdrop */
+    #mobile-menu-backdrop {
+      position: fixed;
+      inset: 0;
+      top: 64px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 47;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    #mobile-menu-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ── Hamburger → X animation ── */
+    .ham-bar {
+      display: block;
+      height: 1.5px;
+      width: 100%;
+      background: rgba(255,255,255,0.7);
+      border-radius: 2px;
+      transform-origin: center;
+      transition: transform 0.28s ease, opacity 0.2s ease, background 0.2s ease, width 0.2s ease;
+    }
+    #mobile-menu-btn.menu-open .ham-bar { background: rgba(255,255,255,0.95); }
+    #mobile-menu-btn.menu-open .ham-bar-1 { transform: translateY(6.5px) rotate(45deg); }
+    #mobile-menu-btn.menu-open .ham-bar-2 { opacity: 0; transform: scaleX(0); }
+    #mobile-menu-btn.menu-open .ham-bar-3 { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* ── Mobile nav items ── */
+    .mobile-nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+      transition: background 0.15s ease, color 0.15s ease;
+      text-decoration: none;
+      margin-bottom: 2px;
+    }
+    .mobile-nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .mobile-nav-item:hover .nav-icon-box {
+      border-color: rgba(207,23,54,0.4);
+      background: rgba(207,23,54,0.1);
+    }
+    .nav-icon-box {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: rgba(45,22,26,0.9);
+      border: 1px solid #47242a;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .mobile-auth-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: 12px;
+      font-size: 13px; color: rgba(255,255,255,0.45);
+      background: none; border: none; cursor: pointer;
+      text-decoration: none; width: 100%; text-align: right;
+      transition: color 0.15s, background 0.15s;
+    }
+    .mobile-auth-btn:hover { color: #cf1736; background: rgba(207,23,54,0.07); }
   </style>
 </head>
 <body class="bg-[#221114] text-white overflow-x-hidden" dir="rtl">
@@ -71,7 +293,7 @@
       </div>
       <div class="relative z-10 text-center px-5 max-w-3xl mx-auto py-20">
         <img src="assets/images/logo.png" alt="غول بازار" class="w-28 h-28 md:w-40 md:h-40 object-contain mx-auto mb-4 drop-shadow-[0_0_24px_rgba(207,23,54,0.6)]">
-        <h1 class="font-felipa text-5xl md:text-7xl text-white mb-3 leading-tight">Ghul Bazar</h1>
+        <h1 class="font-display text-5xl md:text-7xl text-white mb-3 leading-tight">Ghul Bazar</h1>
         <p class="text-[#c8939c] text-base md:text-xl mb-8">مرجع اصلی خرید و فروش اکسسوری‌های سورئال و قدمت‌دار</p>
         <div class="flex gap-3 justify-center flex-wrap">
           <a href="#/shop" data-link class="px-6 py-3 md:px-8 md:py-4 rounded-lg bg-[#cf1736] text-white text-sm md:text-base font-bold shadow-[0_10px_15px_-3px_rgba(207,23,54,0.3)] hover:bg-[#e01d3f] transition-all">کاوش مجموعه</a>
@@ -105,103 +327,7 @@
       </div>
     </section>
 
-    <!-- Editorial Banner -->
-    <!-- <section class="py-12 md:py-20 bg-[#221114] overflow-hidden">
-      <div class="max-w-[1280px] mx-auto">
-        <div class="relative rounded-2xl md:rounded-3xl overflow-hidden bg-[#2d161a] border border-[#47242a] flex flex-col md:flex-row items-center min-h-[340px] md:min-h-[420px]">
-          <div class="absolute inset-0 pointer-events-none">
-            <div class="absolute top-0 right-0 w-[350px] h-[350px] bg-[#cf1736]/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3"></div>
-            <div class="absolute bottom-0 left-0 w-[250px] h-[250px] bg-[#4a0000]/30 rounded-full blur-[80px]"></div>
-            <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(#cf1736 1px, transparent 1px);background-size:28px 28px;"></div>
-          </div>
-          <div class="relative z-10 flex-1 text-right px-8 md:px-14 py-12 md:py-16">
-            <i data-lucide="flame" class="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1"></i>
-            <span class="inline-block text-[#cf1736] text-xs md:text-sm font-bold tracking-[0.2em] uppercase mb-4">انتخاب سردبیر</span>
 
-            <h2 class="text-3xl md:text-5xl font-black text-white leading-snug mb-5">استایل دارک آکادمیا<br><span class="text-[#c8939c]">ویرایش ویژه</span></h2>
-            <p class="text-[rgba(255,255,255,0.6)] text-sm md:text-base leading-relaxed mb-8 max-w-md mr-auto">قطعاتی را کشف کنید که زیبایی‌شناسی دانشوران را تجسم می‌بخشند. گارنت‌های عمیق، نقره سیاه‌قلم و طلایی که به چشم قرن‌ها دیده است.</p>
-            <div class="flex flex-wrap gap-3 justify-end">
-              <a href="#/shop?tag=dark-academia" data-link class="px-7 py-3 bg-[#cf1736] text-white text-sm font-bold rounded-lg hover:bg-[#e01d3f] transition-all">مشاهده ویرایش</a>
-            </div>
-          </div>
-          <div class="relative w-full md:w-[45%] h-[260px] md:h-full md:min-h-[420px] shrink-0 order-first md:order-last">
-            <div class="absolute inset-0 flex items-center justify-center p-6 md:p-0">
-              <div class="relative z-10 w-[200px] h-[200px] md:w-[260px] md:h-[260px] rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(207,23,54,0.2)]">
-                <img src="./assets/images/img10.jpg" alt="انتخاب سردبیر" class="w-full h-full object-cover">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section> -->
-
-    <!-- Editorial Banner -->
-    <section class="relative py-12 md:py-24 bg-[#1a0c0f] overflow-hidden">
-
-      <!-- Soft Background -->
-      <div class="absolute inset-0 pointer-events-none">
-        <div class="absolute top-[-120px] right-[-100px] w-[380px] h-[380px] bg-[#cf1736]/10 blur-[120px] rounded-full"></div>
-        <div class="absolute bottom-[-120px] left-[-120px] w-[320px] h-[320px] bg-[#3a0b12]/20 blur-[100px] rounded-full"></div>
-      </div>
-
-      <div class="relative max-w-[1320px] mx-auto px-4 md:px-6">
-
-        <div class="group relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-[#241014] to-[#12070a]">
-
-          <div class="relative flex flex-col-reverse lg:flex-row items-center min-h-[520px] lg:min-h-[520px]">
-
-            <!-- Content -->
-            <div class="flex-1 px-6 md:px-12 lg:px-16 py-12 text-right">
-
-              <!-- Badge -->
-              <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6">
-                <i data-lucide="sparkles" class="w-4 h-4 text-[#cf1736]"></i>
-                <span class="text-[11px] tracking-[0.2em] uppercase text-white/70">
-                  انتخاب سردبیر
-                </span>
-              </div>
-
-              <!-- Title -->
-              <h2 class="text-3xl md:text-5xl font-black leading-tight text-white mb-5">
-                استایل دارک آکادمیا<br>
-                <span class="text-[#c8939c]">ویرایش ویژه</span>
-              </h2>
-
-              <!-- Description -->
-              <p class="max-w-[520px] text-sm md:text-base leading-7 text-white/60 mb-8">
-                مجموعه‌ای منتخب از آیتم‌هایی با هویت تاریک، کلاسیک و مدرن.
-                طراحی شده برای یک استایل جدی و مینیمال.
-              </p>
-
-              <!-- CTA -->
-              <a
-                href="#/shop?tag=dark-academia"
-                data-link
-                class="inline-flex items-center gap-3 px-6 py-3 rounded-xl bg-[#cf1736] hover:bg-[#e11d48] text-white font-semibold text-sm transition-all duration-300 hover:translate-y-[-1px]"
-              >
-                مشاهده کالکشن
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-              </a>
-
-            </div>
-
-            <!-- Image -->
-            <div class="relative w-full lg:w-[45%] h-[320px] sm:h-[380px] lg:h-[520px]">
-
-              <div class="absolute inset-0 bg-gradient-to-t from-[#12070a] via-transparent to-transparent"></div>
-
-              <img
-                src="./assets/images/img10.jpg"
-                alt="Dark Academia Collection"
-                class="w-full h-full object-cover"
-              />
-
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </section>
     <!-- Latest products -->
     <section class="py-12 md:py-20">
       <div class="max-w-[1280px] mx-auto">
@@ -470,9 +596,27 @@
                 <label class="block text-sm text-[#c8939c] text-right mb-1">شماره موبایل *</label>
                 <input type="tel" id="customer-phone" required dir="ltr" class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-left placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736] transition-colors" placeholder="09123456789">
               </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm text-[#c8939c] text-right mb-1">استان *</label>
+                  <select id="province-select" required class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-right focus:outline-none focus:border-[#cf1736] transition-colors appearance-none cursor-pointer">
+                    <option value="">انتخاب استان...</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm text-[#c8939c] text-right mb-1">شهر *</label>
+                  <select id="city-select" required disabled class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-right focus:outline-none focus:border-[#cf1736] transition-colors appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    <option value="">ابتدا استان انتخاب کنید</option>
+                  </select>
+                </div>
+              </div>
               <div>
-                <label class="block text-sm text-[#c8939c] text-right mb-1">آدرس کامل *</label>
-                <textarea id="shipping-address" required rows="3" class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-right placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736] transition-colors resize-none" placeholder="استان، شهر، خیابان، کوچه، پلاک، واحد"></textarea>
+                <label class="block text-sm text-[#c8939c] text-right mb-1">کد پستی *</label>
+                <input type="text" id="postal-code" required maxlength="10" dir="ltr" class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-left placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736] transition-colors" placeholder="1234567890">
+              </div>
+              <div>
+                <label class="block text-sm text-[#c8939c] text-right mb-1">آدرس دقیق *</label>
+                <textarea id="shipping-address" required rows="3" class="w-full bg-[#221114] border border-[#47242a] rounded-lg px-4 py-3 text-white text-right placeholder:text-[#c8939c]/50 focus:outline-none focus:border-[#cf1736] transition-colors resize-none" placeholder="خیابان، کوچه، پلاک، واحد"></textarea>
               </div>
             </div>
           </div>
@@ -534,11 +678,31 @@
         </div>
         <div class="mt-6 p-4 bg-[#3a1f24] border border-[#47242a] rounded-lg">
           <p class="text-[rgba(255,255,255,0.6)] text-sm mb-2">لطفاً مبلغ فوق را به شماره کارت زیر واریز کرده و تصویر رسید را بارگذاری نمایید.</p>
-          <div class="bg-[#221114] border border-[#47242a] rounded-lg p-4 flex items-center justify-between">
-            <span id="card-number" class="font-bold text-white ltr text-lg">6037-9975-XXXX-XXXX</span>
-            <button onclick="copyText('card-number')" class="text-xs bg-[#cf1736] px-4 py-2 rounded-lg hover:bg-[#e01d3f] transition-colors">کپی شماره کارت</button>
-          </div>
-        </div>
+          <div class="bg-[#221114] border border-[#47242a] rounded-lg p-4 flex items-center justify-between gap-4">
+              
+              <!-- تصویر کارت -->
+              <img 
+                src="/assets/images/card-number.jpg" 
+                alt="شماره کارت" 
+                class="h-8 object-contain rounded-md"
+              />
+            
+              <!-- شماره واقعی برای کپی -->
+              <div class="flex items-center gap-2 ltr">
+                <span id="card-number" class="text-white font-mono text-sm">
+                  6219-1234-5678-9012
+                </span>
+            
+                <button 
+                  onclick="copyText('card-number')" 
+                  class="text-xs bg-[#3a1f24] px-3 py-1 rounded-lg hover:bg-[#cf1736]/20 transition"
+                >
+                  کپی
+                </button>
+              </div>
+            
+            </div>
+        
       </div>
       <div class="bg-[#2d161a] border border-[#47242a] rounded-2xl p-6">
         <h3 class="text-lg font-bold mb-4">آپلود رسید پرداخت</h3>
@@ -643,6 +807,90 @@
 <!-- این‌ها رو پیدا کن و جایگزین کن -->
 <script src="assets/js/libs/lucide.min.js"></script>
 <script src="assets/js/libs/swiper-bundle.min.js"></script>
+<script>
+/* ─────────────────────────────────────────────────────────
+   Swiper Coverflow + Touch patch for .featured-swiper
+   این اسکریپت constructor سوایپر رو wrap می‌کنه تا بدون
+   تغییر home.js، کاروسل ویژه به 3D coverflow تبدیل بشه.
+   هر پارامتر دیگه‌ای که home.js میده حفظ می‌مونه.
+───────────────────────────────────────────────────────── */
+;(function () {
+  const _Orig = window.Swiper;
+
+  function GhulSwiper(el, cfg) {
+    const node = typeof el === 'string' ? document.querySelector(el) : el;
+    if (node && node.classList && node.classList.contains('featured-swiper')) {
+
+      const origOn    = (cfg && cfg.on) || {};
+      const origClick = origOn.click;   /* handler احتمالی home.js حفظ می‌شه */
+
+      cfg = Object.assign({}, cfg, {
+        effect                  : 'coverflow',
+        centeredSlides          : true,
+        grabCursor              : true,
+        simulateTouch           : true,
+        allowTouchMove          : true,
+        touchRatio              : 1,
+        touchAngle              : 45,
+        /* ── لایه ۱: اجازه می‌ده native click بعد از mousedown بپره ── */
+        touchStartPreventDefault: false,
+        coverflowEffect: {
+          rotate      : 28,
+          stretch     : 18,
+          depth       : 130,
+          modifier    : 1,
+          slideShadows: true,
+        },
+        on: Object.assign({}, origOn, {
+          /* ── لایه ۲: اگه native click block شد، اینجا جبران می‌کنیم ── */
+          click: function (swiper, event) {
+            if (origClick) origClick.call(this, swiper, event);
+
+            /* جلوگیری از حلقه بی‌نهایت برای رویدادهای re-dispatch شده */
+            if (event._ghul) return;
+
+            const t = event.target;
+
+            /* دکمه سبد خرید — خارج از event loop سوایپر dispatch می‌کنیم */
+            const btn = t.closest('.add-to-cart-quick');
+            if (btn && !btn.disabled) {
+              setTimeout(function () {
+                var e2 = new MouseEvent('click', { bubbles: true, cancelable: true });
+                e2._ghul = true;
+                btn.dispatchEvent(e2);
+              }, 0);
+              return;
+            }
+
+            /* لینک محصول — hash رو مستقیم ست می‌کنیم */
+            var link = t.closest('a[data-link]') || t.closest('.clay-card[href]');
+            if (link) {
+              var href = link.getAttribute('href') || '';
+              var hash = href.startsWith('#') ? href.slice(1) : href;
+              if (hash && window.location.hash.slice(1) !== hash) {
+                window.location.hash = hash;
+              }
+            }
+          },
+        }),
+      });
+    }
+    return new _Orig(el, cfg);
+  }
+
+  GhulSwiper.prototype = _Orig.prototype;
+  Object.setPrototypeOf(GhulSwiper, _Orig);
+  try {
+    Object.getOwnPropertyNames(_Orig).forEach(function (k) {
+      if (k !== 'prototype' && k !== 'length' && k !== 'name') {
+        GhulSwiper[k] = _Orig[k];
+      }
+    });
+  } catch (e) {}
+
+  window.Swiper = GhulSwiper;
+})();
+</script>
 <script src="assets/js/api.js"></script>
 <script src="assets/js/router.js"></script>
 <script src="assets/js/utils/dom.js"></script>
