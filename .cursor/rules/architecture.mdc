@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+---
+
+# Architecture Rules
+
+## Component Pattern
+Every component must follow this exact pattern:
+const ComponentName = {
+  render(data) { return `HTML string` },
+  bind(element, callbacks) { /* only event listeners here */ }
+}
+export default ComponentName
+
+## Layer Rules
+- components/ → NO direct api.js calls, use callbacks only
+- pages/ → orchestrates components + api calls
+- core/ → NO UI logic, NO direct DOM manipulation
+- utils/ → pure functions only, NO dependencies on other layers
+
+## Config Rule
+All hardcoded values (colors, texts, prices, URLs) must go in config/store.config.js
+
+## Naming
+- Components: PascalCase (ProductCard.js)
+- Utils/pages: camelCase (priceFormatter.js)
+- CSS classes: Tailwind only, no custom CSS except in output.css
