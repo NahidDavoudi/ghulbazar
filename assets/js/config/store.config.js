@@ -11,21 +11,21 @@ export default {
   hero: {
     image: 'assets/images/hero.png',
     title: 'آیریس',
-    subtitle: 'لباس های Y2K و لانگ اسلیو های خاص',
+    subtitle: 'فروشگاه خرید و فروش لباس های Y2K و لانگ اسلیو های خاص است.',
     ctaPrimary: 'کاوش مجموعه',
     ctaSecondary: 'دسته‌بندی‌ها',
   },
 
   theme: {
-    primary: '#4b6b8a',
-    primaryHover: '#5c7c9c',
-    background: '#f8f9fb',
-    surface: '#eef1f5',
-    card: '#e3e7ee',
-    border: '#cfd6df',
-    muted: '#6b7280',
-    textDim: 'rgba(15, 23, 42, 0.6)',
-    bodyText: '#1e293b',
+    primary: '#000000',                // Black
+    primaryHover: '#5a5a5a',           // Aluminium (medium brightness for hover)
+    background: '#ffffff',             // White
+    surface: '#f1f3f4',                // Light Aluminium shade (almost white)
+    card: '#c0c0c0',                   // Aluminium (classic hex)
+    border: '#b8b8b8',                 // Aluminium (slightly darker for border)
+    muted: '#8c8c8c',                  // Muted Aluminium (mid gray)
+    textDim: 'rgba(0, 0, 0, 0.5)',     // Dimmed black text (for subtle text)
+    bodyText: '#000000',               // Full black body text
   },
 
   fonts: {
@@ -48,9 +48,9 @@ export default {
   ui: {
     cardRadius: 'rounded-xl',
     btnRadius: 'rounded-lg',
-    btnPrimary: 'bg-accent hover:bg-accent-hover text-white',
-    cardBase: 'bg-card border border-border',
-    cardHover: 'hover:border-accent/40 transition-all duration-300',
+    btnPrimary: 'bg-black hover:bg-[#5a5a5a] text-white',
+    cardBase: 'bg-[#c0c0c0] border border-[#b8b8b8]', // updated for aluminium palette
+    cardHover: 'hover:border-black transition-all duration-300', // hover to black border
   },
 
   texts: {
@@ -61,7 +61,7 @@ export default {
       { href: '#/orders', label: 'سفارشات' },
     ],
     footer: {
-      tagline: 'مرجع اصلی خرید و فروش اکسسوری‌های سورئال و قدمت‌دار. هر قطعه یک داستان.',
+      tagline: 'آیریس یک فروشگاه خرید و فروش لباس های Y2K و لانگ اسلیو های خاص است.',
       support: 'پشتیبانی ۷ روز هفته',
       social: '@iris',
       copyright: '© ۱۴۰۴ آیریس — تمام حقوق محفوظ است',

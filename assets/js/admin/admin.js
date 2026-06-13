@@ -67,7 +67,7 @@ window.switchPage = function (name, linkEl) {
 
 window.handleLogout = () => api.auth.logout();
 
-document.addEventListener('DOMContentLoaded', async () => {
+async function bootAdmin() {
   await loadStoreSettings(api);
   initTheme();
   if (window.lucide) lucide.createIcons();
@@ -75,4 +75,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const page = location.hash.replace('#', '') || 'dashboard';
   const navLink = document.querySelector(`.nav-link[onclick*="${page}"]`);
   window.switchPage(page, navLink);
-});
+}
+
+bootAdmin();

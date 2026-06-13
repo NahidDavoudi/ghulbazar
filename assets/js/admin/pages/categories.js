@@ -150,8 +150,7 @@
       toast(e.message, 'error');
     }
   });
-/* ── Image picker wiring ───────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', function () {
+  /* ── Image picker wiring ───────────────────────────────────── */
   const btn      = $('catImageBtn');
   const input    = $('catImageInput');
   const preview  = $('catImagePreview');
@@ -167,5 +166,4 @@ document.addEventListener('DOMContentLoaded', function () {
       preview.classList.remove('hidden');
     }
   });
-});
 })();

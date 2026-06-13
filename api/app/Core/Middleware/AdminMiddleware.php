@@ -8,14 +8,14 @@ use App\Core\Http\Response;
 
 class AdminMiddleware implements MiddlewareInterface
 {
-    public function handle(Request $request, callable $next): void
+    public function handle(Request $request, callable $next): Response
     {
         $user = $request->user();
 
         if (!$user || ($user->role ?? '') !== 'admin') {
-            Response::forbidden('دسترسی فقط برای ادمین مجاز است');
+            return Response::forbidden('دسترسی فقط برای ادمین مجاز است');
         }
 
-        $next($request);
+        return $next($request);
     }
 }
