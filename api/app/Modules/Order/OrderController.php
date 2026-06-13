@@ -4,6 +4,7 @@ namespace App\Modules\Order;
 
 use App\Core\Controller;
 use App\Core\Http\Request;
+use App\Core\UploadHelper;
 use App\Modules\Cart\CartModel;
 use App\Modules\Cart\CartService;
 use App\Modules\Cart\CartItemModel;
@@ -103,7 +104,7 @@ class OrderController extends Controller
         }
 
         try {
-            $fileData = $this->handleReceiptUpload($file);
+            $fileData = UploadHelper::storeReceipt($file);
             $receipt  = $this->service->uploadReceipt($id, $request->userId(), $fileData);
             $this->created($receipt, 'رسید پرداخت با موفقیت ثبت شد');
         } catch (\RuntimeException $e) {
@@ -139,38 +140,5 @@ class OrderController extends Controller
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
-    }
-
-    // ─── Upload Helper ────────────────────────────────────────────
-
-    private function handleReceiptUpload(array $file): array
-    {
-        $allowed = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-        $maxSize = 5 * 1024 * 1024;
-
-        if (!in_array($file['type'], $allowed)) {
-            throw new \RuntimeException('فرمت فایل مجاز نیست. فقط JPG، PNG، WebP و PDF قابل قبول است.', 422);
-        }
-
-        if ($file['size'] > $maxSize) {
-            throw new \RuntimeException('حجم فایل بیشتر از ۵ مگابایت است.', 422);
-        }
-
-        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('receipt_', true) . '.' . $ext;
-        $dir      = __DIR__ . '/../../../public/uploads/receipts/';
-
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
-            throw new \RuntimeException('خطا در آپلود فایل.', 500);
-        }
-
-        return [
-            'file_name' => $filename,
-            'file_path' => "/uploads/receipts/{$filename}",
-        ];
     }
 }

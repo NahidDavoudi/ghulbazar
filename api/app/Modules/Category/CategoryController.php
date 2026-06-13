@@ -4,6 +4,7 @@ namespace App\Modules\Category;
 
 use App\Core\Controller;
 use App\Core\Http\Request;
+use App\Core\UploadHelper;
 
 class CategoryController extends Controller
 {
@@ -96,7 +97,7 @@ class CategoryController extends Controller
         }
 
         try {
-            $url      = $this->handleImageUpload($file, 'categories');
+            $url      = UploadHelper::storeImage($file, 'categories');
             $category = $this->service->update($id, ['poster_image' => $url]);
             $this->success(['url' => $url, 'category' => $category], 'پوستر آپلود شد');
         } catch (\RuntimeException $e) {
@@ -126,7 +127,7 @@ class CategoryController extends Controller
         }
 
         try {
-            $url   = $this->handleImageUpload($file, 'categories');
+            $url   = UploadHelper::storeImage($file, 'categories');
             $image = $this->imageService->addImage($id, [
                 'image_url'  => $url,
                 'alt_text'   => $request->input('alt_text', ''),
@@ -159,35 +160,5 @@ class CategoryController extends Controller
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
-    }
-
-    // ─── Upload Helper ────────────────────────────────────────────
-
-    private function handleImageUpload(array $file, string $folder): string
-    {
-        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
-        $maxSize = 3 * 1024 * 1024;
-
-        if (!in_array($file['type'], $allowed)) {
-            throw new \RuntimeException('فرمت فایل مجاز نیست. فقط JPG، PNG و WebP قابل قبول است.', 422);
-        }
-
-        if ($file['size'] > $maxSize) {
-            throw new \RuntimeException('حجم فایل بیشتر از ۳ مگابایت است.', 422);
-        }
-
-        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('img_', true) . '.' . $ext;
-        $dir      = __DIR__ . "/../../../public/uploads/{$folder}/";
-
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
-            throw new \RuntimeException('خطا در آپلود فایل.', 500);
-        }
-
-        return "/uploads/{$folder}/{$filename}";
     }
 }

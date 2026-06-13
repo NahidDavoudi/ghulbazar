@@ -4,6 +4,7 @@ namespace App\Modules\Product;
 
 use App\Core\Controller;
 use App\Core\Http\Request;
+use App\Core\UploadHelper;
 
 class ProductController extends Controller
 {
@@ -118,7 +119,7 @@ class ProductController extends Controller
         }
 
         try {
-            $url   = $this->handleImageUpload($file, 'products');
+            $url   = UploadHelper::storeImage($file, 'products');
             $image = $this->service->addImage($id, [
                 'image_url'  => $url,
                 'alt_text'   => $request->input('alt_text', ''),
@@ -151,35 +152,5 @@ class ProductController extends Controller
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
-    }
-
-    // ─── Upload Helper ────────────────────────────────────────────
-
-    private function handleImageUpload(array $file, string $folder): string
-    {
-        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
-        $maxSize = 3 * 1024 * 1024;
-
-        if (!in_array($file['type'], $allowed)) {
-            throw new \RuntimeException('فرمت فایل مجاز نیست. فقط JPG، PNG و WebP قابل قبول است.', 422);
-        }
-
-        if ($file['size'] > $maxSize) {
-            throw new \RuntimeException('حجم فایل بیشتر از ۳ مگابایت است.', 422);
-        }
-
-        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = uniqid('img_', true) . '.' . $ext;
-        $dir      = __DIR__ . "/../../../public/uploads/{$folder}/";
-
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
-            throw new \RuntimeException('خطا در آپلود فایل.', 500);
-        }
-
-        return "/uploads/{$folder}/{$filename}";
     }
 }

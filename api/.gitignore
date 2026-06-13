@@ -2,4 +2,3 @@
 .htaccess
 .env
 database/schema.sql
-public/uploads/
