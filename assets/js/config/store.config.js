@@ -5,14 +5,14 @@
  * ui.* فقط از کلاس‌های Tailwind از پیش compile‌شده استفاده کند.
  */
 export default {
-  name: 'غول بازار',
+  name: 'آیریس ',
   logo: 'assets/images/logo.png',
   favicon: 'assets/images/logo.png',
   placeholder: 'assets/images/placeholder.png',
 
   hero: {
     image: 'assets/images/hero.png',
-    title: 'غول بازار',
+    title: 'آیریس',
     subtitle: 'مرجع اصلی خرید و فروش اکسسوری‌های سورئال و قدمت‌دار',
     ctaPrimary: 'کاوش مجموعه',
     ctaSecondary: 'دسته‌بندی‌ها',
@@ -43,7 +43,7 @@ export default {
 
   payment: {
     cardNumber: '6219-1234-5678-9012',
-    cardOwner: 'غول بازار',
+    cardOwner: 'آیریس',
   },
 
   ui: {
@@ -64,8 +64,8 @@ export default {
     footer: {
       tagline: 'مرجع اصلی خرید و فروش اکسسوری‌های سورئال و قدمت‌دار. هر قطعه یک داستان.',
       support: 'پشتیبانی ۷ روز هفته',
-      social: '@ghulbazar',
-      copyright: '© ۱۴۰۴ غول بازار — تمام حقوق محفوظ است',
+      social: '@iris',
+      copyright: '© ۱۴۰۴ آیریس — تمام حقوق محفوظ است',
     },
     newsletter: {
       title: 'به حلقه یاران بپیوندید',
@@ -76,6 +76,6 @@ export default {
   },
 
   api: {
-    baseUrl: '/api/v1',
+    baseUrl: 'api/v1',
   },
 };

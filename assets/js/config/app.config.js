@@ -3,12 +3,12 @@
  */
 export default {
   app: {
-    name: 'Ghulbazar',
+    name: 'IRIS',
     locale: 'fa-IR',
   },
 
   api: {
-    baseUrl: '/api/v1',
+    baseUrl: 'api/v1',
     timeout: 30000,
     retries: 1,
     retryDelay: 600,

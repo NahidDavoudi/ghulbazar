@@ -10,7 +10,7 @@ const API = () => CFG().api || {};
 const MSG = () => CFG().messages || {};
 const HOOKS = () => CFG().hooks || {};
 
-const BASE_URL = () => API().baseUrl || '/api/v1';
+const BASE_URL = () => API().baseUrl || 'api/v1';
 
 class ApiError extends Error {
   constructor(message, status = 0, options = {}) {
