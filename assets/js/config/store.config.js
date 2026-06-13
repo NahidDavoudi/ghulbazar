@@ -14,8 +14,6 @@ export default {
 
   favicon: 'assets/images/logo.png',
 
-  placeholder: 'assets/images/placeholder.png',
-
 
 
   hero: {

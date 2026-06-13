@@ -113,9 +113,7 @@ Router.onEnter('products', async function (params) {
     const bcEl = document.getElementById('product-breadcrumb');
     if (bcEl) bcEl.innerHTML = Breadcrumb.render(bcItems);
 
-    const images = p.images.length
-      ? p.images
-      : [{ url: storeConfig.placeholder, is_main: true }];
+    const images = p.images.length ? p.images : [];
 
     const galleryWrap = document.getElementById('product-gallery-wrap');
     if (galleryWrap) {

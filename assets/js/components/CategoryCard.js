@@ -1,4 +1,5 @@
 import { storeConfig } from '../config/bootstrap.js';
+import { renderImageWithFallback, renderImagePlaceholder } from '../utils/imagePlaceholder.js';
 import DOM from '../utils/dom.js';
 
 const CategoryCard = {
@@ -8,14 +9,19 @@ const CategoryCard = {
     const img = c.poster_image
       || c.images?.find((i) => i.is_main)?.image_url
       || c.images?.[0]?.image_url
-      || storeConfig.placeholder;
+      || '';
 
     return `
       <a href="${DOM.hashHref('shop', { category: slug })}" data-link
          class="relative ${ui.cardRadius} overflow-hidden group block" style="height:180px">
-        <img src="${img}" alt="${c.name}"
-             onerror="this.onerror=null;this.src='${storeConfig.placeholder}'"
-             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+        <div class="absolute inset-0 bg-[#f5f5f7] relative overflow-hidden">
+          ${renderImageWithFallback({
+            src: img,
+            alt: c.name,
+            imgClass: 'w-full h-full object-cover group-hover:scale-105 transition-transform duration-700',
+            iconSize: 'w-12 h-12',
+          })}
+        </div>
         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
         <div class="absolute bottom-0 left-0 right-0 p-4">
           <h3 class="text-base font-bold text-right text-white">${c.name}</h3>

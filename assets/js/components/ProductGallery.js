@@ -1,20 +1,26 @@
 import { storeConfig } from '../config/bootstrap.js';
+import { renderImageWithFallback, renderImagePlaceholder } from '../utils/imagePlaceholder.js';
 
 const ProductGallery = {
   render({ images = [], name = '', refCode = '' }) {
     const t = storeConfig.texts.product;
-    const placeholder = storeConfig.placeholder;
-    const mainSrc = images[0]?.url || placeholder;
+    const validImages = images.filter((img) => img?.url);
 
-    const thumbs = images.length
-      ? images.map((img, i) => `
+    const thumbs = validImages.length
+      ? validImages.map((img, i) => `
           <button type="button" data-thumb-index="${i}"
-                  class="product-thumb w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-colors
+                  class="product-thumb relative w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-colors bg-[#f2f2f2]
                          ${i === 0 ? 'border-body' : 'border-transparent hover:border-black/20'}">
-            <img src="${img.url}" alt="" class="w-full h-full object-cover"
-                 onerror="this.onerror=null;this.src='${placeholder}'">
+            ${renderImageWithFallback({
+              src: img.url,
+              alt: '',
+              imgClass: 'w-full h-full object-cover',
+              iconSize: 'w-5 h-5',
+            })}
           </button>`).join('')
-      : `<div class="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-[#f2f2f2]"></div>`;
+      : `<div class="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-[#f2f2f2] overflow-hidden">
+           ${renderImagePlaceholder('w-6 h-6')}
+         </div>`;
 
     return `
       <div class="product-gallery">
@@ -22,10 +28,15 @@ const ProductGallery = {
         <div class="flex gap-3 md:gap-4 items-start">
           <div class="flex flex-col gap-2 shrink-0">${thumbs}</div>
           <div class="flex-1 min-w-0">
-            <div class="relative aspect-square bg-[#f2f2f2] rounded-2xl overflow-hidden">
-              <img id="product-main-image" src="${mainSrc}" alt="${name}"
-                   class="w-full h-full object-cover"
-                   onerror="this.onerror=null;this.src='${placeholder}'">
+            <div id="product-main-image-wrap" class="relative aspect-square bg-[#f2f2f2] rounded-2xl overflow-hidden">
+              ${validImages.length
+                ? renderImageWithFallback({
+                    src: validImages[0].url,
+                    alt: name,
+                    imgClass: 'w-full h-full object-cover',
+                    iconSize: 'w-16 h-16',
+                  })
+                : renderImagePlaceholder('w-16 h-16')}
             </div>
           </div>
         </div>
@@ -33,8 +44,9 @@ const ProductGallery = {
   },
 
   bind(container, callbacks = {}) {
-    const mainImg = container.querySelector('#product-main-image');
-    const images = callbacks.images || [];
+    const mainWrap = container.querySelector('#product-main-image-wrap');
+    const mainImg = mainWrap?.querySelector('img');
+    const images = (callbacks.images || []).filter((img) => img?.url);
 
     container.querySelectorAll('.product-thumb').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -42,6 +54,8 @@ const ProductGallery = {
         const src = images[idx]?.url;
         if (!src || !mainImg) return;
         mainImg.src = src;
+        mainImg.classList.remove('hidden');
+        mainWrap.querySelector('.image-fallback')?.classList.add('hidden');
         container.querySelectorAll('.product-thumb').forEach((t) => {
           t.classList.toggle('border-body', t === btn);
           t.classList.toggle('border-transparent', t !== btn);

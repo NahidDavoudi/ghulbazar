@@ -1,5 +1,6 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { formatPrice } from '../utils/priceFormatter.js';
+import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
 import DOM from '../utils/dom.js';
 import Button from './Button.js';
 
@@ -9,7 +10,6 @@ const ProductCard = {
     const img = p.images?.find((i) => i.is_main)?.url || p.images?.[0]?.url || p.image || '';
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
-    const placeholder = storeConfig.placeholder;
 
     const badge = p.badge
       ? `<span class="absolute top-4 right-4 bg-black text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10">${p.badge}</span>`
@@ -35,9 +35,11 @@ const ProductCard = {
          class="group block iris-card ${ui.cardRadius} ${ui.cardHover}">
         <div class="relative aspect-square overflow-hidden bg-[#f5f5f7]">
           ${badge}${lowStock}${outOfStock}
-          <img src="${img}" alt="${p.name}"
-               class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-               onerror="this.src='${placeholder}'">
+          ${renderImageWithFallback({
+            src: img,
+            alt: p.name,
+            imgClass: 'w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out',
+          })}
         </div>
         <div class="p-4 md:p-5 text-right">
           <p class="text-[10px] text-muted mb-1.5 tracking-wide uppercase">${p.era || p.category_name || ''}</p>

@@ -4,6 +4,8 @@
  * وابستگی: helpers.js, priceFormatter.js, api.js
  */
 
+import { renderImageWithFallback } from '../../utils/imagePlaceholder.js';
+
 ;(function () {
   'use strict';
 
@@ -57,8 +59,9 @@
       const stockCls = p.stock === 0 ? 'text-red-600' : p.stock < 5 ? 'text-yellow-600' : 'text-green-600';
       return `<tr class="hover:bg-stone-50 transition-colors">
         <td class="px-4 py-3">
-          <img src="${img}" class="w-12 h-12 rounded-xl object-cover bg-stone-100"
-              onerror="this.src='assets/images/placeholder.png'">
+          <div class="w-12 h-12 rounded-xl overflow-hidden bg-stone-100 relative">
+            ${renderImageWithFallback({ src: img, alt: p.name, iconSize: 'w-5 h-5' })}
+          </div>
         </td>
         <td class="px-4 py-3">
           <p class="font-medium text-stone-800 text-sm">${p.name}</p>
@@ -157,8 +160,7 @@
       if (grid) {
         grid.innerHTML = (p.images || []).map(img => `
           <div class="relative aspect-square rounded-xl overflow-hidden bg-stone-100 group" id="img-item-${img.id}">
-            <img src="${img.image_url}" class="w-full h-full object-cover"
-                 onerror="this.src='assets/images/placeholder.png'">
+            ${renderImageWithFallback({ src: img.image_url, alt: '', iconSize: 'w-8 h-8' })}
             ${img.is_main
               ? '<span class="absolute top-1 right-1 bg-red-800 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">اصلی</span>'
               : `<button onclick="setMainProductImage(${id}, ${img.id})"

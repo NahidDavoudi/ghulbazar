@@ -4,6 +4,7 @@
 import api from '../core/api.js';
 import Router from '../core/router.js';
 import { storeConfig } from '../config/bootstrap.js';
+import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
 import DOM from '../utils/dom.js';
 
 const { show, hide, text, reclone } = DOM;
@@ -30,8 +31,9 @@ function _renderCheckoutSummary() {
   if (itemsEl) {
     itemsEl.innerHTML = _checkoutCart.items.map((item) => `
       <div class="flex items-center gap-3">
-        <img src="${item.image || ''}" class="w-14 h-14 rounded-lg object-cover shrink-0"
-             onerror="this.src='${storeConfig.placeholder}'">
+        <div class="w-14 h-14 rounded-lg shrink-0 overflow-hidden bg-[#f5f5f7] relative">
+          ${renderImageWithFallback({ src: item.image || '', alt: item.name, iconSize: 'w-6 h-6' })}
+        </div>
         <div class="flex-1 text-right min-w-0">
           <p class="text-sm font-medium truncate">${item.name}</p>
           <p class="text-xs text-muted">× ${item.qty}</p>

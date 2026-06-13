@@ -4,6 +4,7 @@
 import api from '../core/api.js';
 import Router from '../core/router.js';
 import { storeConfig } from '../config/bootstrap.js';
+import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
 import DOM from '../utils/dom.js';
 
 const { show, hide, text, hashHref, reclone } = DOM;
@@ -28,8 +29,9 @@ function _renderCart(data) {
   if (cartItemsEl) {
     cartItemsEl.innerHTML = data.items.map((item) => `
       <div class="bg-card border border-border rounded-xl p-4 flex gap-4 items-center" id="ci-${item.id}">
-        <img src="${item.image || ''}" alt="${item.name}" class="w-20 h-20 rounded-lg object-cover shrink-0"
-             onerror="this.src='${storeConfig.placeholder}'">
+        <div class="w-20 h-20 rounded-lg shrink-0 overflow-hidden bg-[#f5f5f7] relative">
+          ${renderImageWithFallback({ src: item.image || '', alt: item.name, iconSize: 'w-8 h-8' })}
+        </div>
         <div class="flex-1 text-right min-w-0">
           <h3 class="font-medium mb-1 truncate">
             <a href="${hashHref('product', { id: item.id })}" data-link class="hover:text-accent">${item.name}</a>
