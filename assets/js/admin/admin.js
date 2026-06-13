@@ -1,84 +1,74 @@
 /**
- * admin/admin.js — Bootstrap پنل ادمین
- *
- * وظیفه این فایل فقط:
- *   1. چک Auth
- *   2. Sidebar و page switching
- *   3. Boot (لود صفحه اول)
- *
- * وابستگی‌ها (ترتیب load در admin.html):
- *   1. api.js
- *   2. admin/utils/helpers.js
- *   3. admin/utils/priceFormatter.js
- *   4. admin/pages/dashboard.js
- *   5. admin/pages/products.js
- *   6. admin/pages/categories.js
- *   7. admin/pages/orders.js
- *   8. admin/pages/users.js
- *   9. admin/pages/discounts.js
- *  10. admin/admin.js           ← این فایل، آخر از همه
+ * admin/admin.js — Admin panel entry (ES module)
  */
+import { initConfig } from '../config/bootstrap.js';
+import { initTheme } from '../core/theme.js';
+import api from '../core/api.js';
+import { installAdminHelpers } from '../utils/helpers.js';
+import { attachPriceFormatter } from '../utils/priceFormatter.js';
 
-;(function () {
-  'use strict';
+initConfig();
+initTheme();
+installAdminHelpers();
 
-  /* ── 1. Auth guard ─────────────────────────────────────────── */
-  if (!API.auth.isLoggedIn() || !API.auth.isAdmin()) {
-    location.replace('login.html');
-    return;
-  }
+window.API = api;
+window.Api = api;
+window.attachPriceFormatter = attachPriceFormatter;
 
-  const _user = API.auth.currentUser();
-  const _el   = document.getElementById('sidebarUsername');
-  if (_el) _el.textContent = _user?.name || _user?.phone || 'ادمین';
+import './pages/dashboard.js';
+import './pages/products.js';
+import './pages/categories.js';
+import './pages/orders.js';
+import './pages/users.js';
+import './pages/discounts.js';
 
-  /* ── 2. Page switching ─────────────────────────────────────── */
-  const PAGE_LOADERS = {
-    dashboard:  window.loadDashboard,
-    products:   window.loadProducts,
-    categories: window.loadCategories,
-    orders:     window.loadOrders,
-    users:      window.loadUsers,
-    discounts:  window.loadDiscounts,
-    settings:   () => {},
-  };
+if (!api.auth.isLoggedIn() || !api.auth.isAdmin()) {
+  location.replace('login.html');
+}
 
-  window.switchPage = function (name, linkEl) {
-    document.querySelectorAll('.page-section').forEach(s => s.classList.add('hidden'));
-    document.getElementById(`page-${name}`)?.classList.remove('hidden');
-  
-    document.querySelectorAll('.nav-link').forEach(a =>
-      a.classList.remove('bg-red-50', 'text-red-800', 'font-semibold'));
-    if (linkEl) linkEl.classList.add('bg-red-50', 'text-red-800', 'font-semibold');
-  
-    window.closeSidebar();
-    PAGE_LOADERS[name]?.();
-    location.hash = name; // ← اضافه کن
-  };
-  /* ── 3. Sidebar (mobile) ───────────────────────────────────── */
-  window.toggleSidebar = () => {
-    document.getElementById('sidebar')?.classList.toggle('translate-x-full');
-    document.getElementById('mobileOverlay')?.classList.toggle('hidden');
-  };
+const _user = api.auth.currentUser();
+const _el = document.getElementById('sidebarUsername');
+if (_el) _el.textContent = _user?.name || _user?.phone || 'ادمین';
 
-  window.closeSidebar = () => {
-    document.getElementById('sidebar')?.classList.add('translate-x-full');
-    document.getElementById('mobileOverlay')?.classList.add('hidden');
-  };
+const PAGE_LOADERS = {
+  dashboard: window.loadDashboard,
+  products: window.loadProducts,
+  categories: window.loadCategories,
+  orders: window.loadOrders,
+  users: window.loadUsers,
+  discounts: window.loadDiscounts,
+  settings: () => {},
+};
 
-  /* ── 4. Logout ─────────────────────────────────────────────── */
-  window.handleLogout = () => API.auth.logout();
+window.switchPage = function (name, linkEl) {
+  document.querySelectorAll('.page-section').forEach((s) => s.classList.add('hidden'));
+  document.getElementById(`page-${name}`)?.classList.remove('hidden');
 
+  document.querySelectorAll('.nav-link').forEach((a) =>
+    a.classList.remove('bg-red-50', 'text-red-800', 'font-semibold'));
+  if (linkEl) linkEl.classList.add('bg-red-50', 'text-red-800', 'font-semibold');
 
-// ── 5. Boot
-document.addEventListener('DOMContentLoaded', function () {
+  window.closeSidebar();
+  PAGE_LOADERS[name]?.();
+  location.hash = name;
+};
+
+window.toggleSidebar = () => {
+  document.getElementById('sidebar')?.classList.toggle('translate-x-full');
+  document.getElementById('mobileOverlay')?.classList.toggle('hidden');
+};
+
+window.closeSidebar = () => {
+  document.getElementById('sidebar')?.classList.add('translate-x-full');
+  document.getElementById('mobileOverlay')?.classList.add('hidden');
+};
+
+window.handleLogout = () => api.auth.logout();
+
+document.addEventListener('DOMContentLoaded', () => {
   if (window.lucide) lucide.createIcons();
   attachPriceFormatter('productPrice');
-  
-  console.log('hash:', location.hash);
   const page = location.hash.replace('#', '') || 'dashboard';
-  console.log('page:', page);
-  window.switchPage(page);
+  const navLink = document.querySelector(`.nav-link[onclick*="${page}"]`);
+  window.switchPage(page, navLink);
 });
-
-})();

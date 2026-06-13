@@ -1,21 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  /* base neutrals (white / gray / aluminum system) */
-  --color-dark:        #f8f9fb; /* background main */
-  --color-dark-2:      #eef1f5; /* secondary surface */
-  --color-dark-3:      #e3e7ee; /* elevated cards */
-  --color-border:      #cfd6df; /* soft aluminum border */
-
-  /* accent -> shifted from aggressive red to controlled blue-gray */
-  --color-accent:      #4b6b8a; /* aluminum blue */
+  --color-dark:        #f8f9fb;
+  --color-dark-2:      #eef1f5;
+  --color-dark-3:      #e3e7ee;
+  --color-border:      #cfd6df;
+  --color-accent:      #4b6b8a;
   --color-accent-hover:#5c7c9c;
-  /* muted text */
   --color-muted:       #6b7280;
   --color-text-dim:    rgba(15, 23, 42, 0.6);
-
-  /* fonts unchanged */
   --font-vazir:   'Vazirmatn', sans-serif;
   --font-display: 'Agbalumo', sans-serif;
   --font-felipa:  'Felipa', sans-serif;
 }
+
+/* Semantic theme utilities (overridable via core/theme.js) */
+.bg-body         { background-color: var(--color-dark); }
+.bg-surface      { background-color: var(--color-dark-2); }
+.bg-card         { background-color: var(--color-dark-3); }
+.bg-accent       { background-color: var(--color-accent); }
+.text-body       { color: #1e293b; }
+.text-muted      { color: var(--color-muted); }
+.text-dim        { color: var(--color-text-dim); }
+.text-accent     { color: var(--color-accent); }
+.border-border   { border-color: var(--color-border); }
+.hover\:bg-accent-hover:hover { background-color: var(--color-accent-hover); }
+.hover\:text-accent:hover     { color: var(--color-accent); }
+
+[data-page] { display: none; }
+[data-page].active { display: block; }

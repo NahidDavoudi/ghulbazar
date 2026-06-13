@@ -37,10 +37,10 @@
 
       return `
         <div class="bg-[#2d161a] border border-[#47242a] rounded-2xl p-5 flex flex-col gap-4
-                    hover:border-[#cf1736]/40 transition-colors relative overflow-hidden">
+                    hover:border-accent/40 transition-colors relative overflow-hidden">
 
           <!-- گلو اثر پس‌زمینه -->
-          <div class="absolute top-0 left-0 w-32 h-32 bg-[#cf1736]/5 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="absolute top-0 left-0 w-32 h-32 bg-accent/5 rounded-full blur-2xl pointer-events-none"></div>
 
           <!-- ردیف اول: کد + وضعیت -->
           <div class="flex items-center justify-between gap-3">
@@ -55,7 +55,7 @@
 
           <!-- ردیف دوم: مقدار تخفیف -->
           <div class="flex items-center gap-2">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#cf1736" stroke-width="2">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--color-accent)" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M7 7h.01M17 17h.01M7 17h.01M17 7h.01
                    M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/>
@@ -79,8 +79,8 @@
                 غیرفعال کردن
               </button>` : ''}
             <button onclick="deleteDiscount(${d.id})"
-              class="flex-1 py-2 text-xs font-bold bg-[#cf1736]/10 hover:bg-[#cf1736]/20
-                     text-[#cf1736] border border-[#cf1736]/30 hover:border-[#cf1736]/60
+              class="flex-1 py-2 text-xs font-bold bg-accent/10 hover:bg-accent/20
+                     text-accent border border-accent/30 hover:border-accent/60
                      rounded-lg transition-all">
               حذف
             </button>

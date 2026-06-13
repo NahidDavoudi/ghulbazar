@@ -318,4 +318,38 @@ utils  →  به هیچ لایه‌ای وابسته نیست
 
 ---
 
+## راه‌اندازی فروشگاه جدید (Template Workflow)
+
+برای راه‌اندازی یک فروشگاه جدید از این تمپلیت:
+
+```
+1. کل پوشه پروژه را کپی کن
+2. assets/js/config/store.config.js را ویرایش کن (نام، رنگ، متن، UI، API)
+3. assets/images/ را جایگزین کن (logo, hero, placeholder)
+4. (اختیاری) assets/css/fonts.css — فونت سفارشی
+5. npm run build:css  — یا: npx @tailwindcss/cli -i assets/css/input.css -o assets/css/output.css
+6. api.baseUrl در store.config.js را برای deployment تنظیم کن
+```
+
+### فقط این فایل‌ها باید عوض شوند
+
+| فایل/پوشه | محتوا |
+|---|---|
+| `assets/js/config/store.config.js` | برند، تم، متن‌ها، shipping، payment، UI classes |
+| `assets/images/*` | logo، hero، placeholder |
+
+### این لایه‌ها دست نمی‌خورند
+
+`core/` · `components/` · `pages/` · `utils/` · `config/app.config.js`
+
+### Entry points
+
+| صفحه | فایل |
+|---|---|
+| فروشگاه SPA | `app.html` → `assets/js/app.js` |
+| ورود | `login.html` → `assets/js/login.js` |
+| ادمین | `admin.html` → `assets/js/admin/admin.js` |
+
+---
+
 *این سند reference معماری پروژه‌ست — هر بار که فروشگاه جدید می‌گیری اینجا نگاه کن.*

@@ -10,43 +10,7 @@
   <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
   <script src="assets/js/libs/lucide.min.js"></script>
   <style>
-    /* ========== متغیرهای تم از input.css ========== */
-    :root {
-      --color-dark:        #f8f9fb;
-      --color-dark-2:      #eef1f5;
-      --color-dark-3:      #e3e7ee;
-      --color-border:      #cfd6df;
-      --color-accent:      #4b6b8a;
-      --color-accent-hover:#5c7c9c;
-      --color-muted:       #6b7280;
-      --color-text-dim:    rgba(15, 23, 42, 0.6);
-      --font-vazir:        'Vazirmatn', sans-serif;
-      --font-display:      'Agbalumo', sans-serif;
-      --font-felipa:       'Felipa', sans-serif;
-    }
-
-    /* کلاس‌های کمکی برای استفاده از متغیرها */
-    .bg-body         { background-color: var(--color-dark); }
-    .bg-surface      { background-color: var(--color-dark-2); }
-    .bg-card         { background-color: var(--color-dark-3); }
-    .bg-accent       { background-color: var(--color-accent); }
-    .bg-accent-hover { background-color: var(--color-accent-hover); }
-    .text-body       { color: #1e293b; }        /* متن اصلی تیره */
-    .text-muted      { color: var(--color-muted); }
-    .text-dim        { color: var(--color-text-dim); }
-    .text-accent     { color: var(--color-accent); }
-    .border-muted    { border-color: var(--color-border); }
-    .hover\:bg-accent-hover:hover { background-color: var(--color-accent-hover); }
-    .hover\:text-accent:hover     { color: var(--color-accent); }
-
-    /* سایر المان‌های ثابت */
-    body {
-      font-family: var(--font-vazir);
-      background-color: var(--color-dark);
-      color: #1e293b;
-    }
-    [data-page] { display: none; }
-    [data-page].active { display: block; }
+    body { font-family: var(--font-vazir); background-color: var(--color-dark); color: #1e293b; }
     .tab-active   { border-bottom: 2px solid var(--color-accent); color: #1e293b; }
     .tab-inactive { border-bottom: 2px solid transparent; color: var(--color-muted); }
     ::-webkit-scrollbar { width: 6px; }
@@ -267,21 +231,7 @@
 
   <!-- صفحه اصلی (HOME) -->
   <div data-page="home">
-    <section class="relative min-h-[500px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
-      <div class="absolute inset-0">
-        <img src="assets/images/hero.png?w=1600&h=900&fit=crop" alt="غول بازار" class="w-full h-full object-cover scale-105">
-        <div class="absolute inset-0 bg-gradient-to-t from-[var(--color-dark)] via-[var(--color-dark)]/60 to-transparent"></div>
-        <div class="absolute inset-0 bg-black/20"></div>
-      </div>
-      <div class="relative z-10 text-center px-5 max-w-3xl mx-auto py-20">
-        <img src="assets/images/logo.png" alt="غول بازار" class="w-28 h-28 md:w-40 md:h-40 object-contain mx-auto mb-4 drop-shadow-[0_0_24px_rgba(75,107,138,0.4)]">
-        <h1 class="font-display text-5xl md:text-7xl text-white mb-3 leading-tight drop-shadow-sm"></h1>
-        <div class="flex gap-3 justify-center flex-wrap">
-          <a href="#/shop" data-link class="px-6 py-3 md:px-8 md:py-4 rounded-lg bg-accent text-white text-sm md:text-base font-bold shadow-[0_10px_15px_-3px_rgba(75,107,138,0.3)] hover:bg-accent-hover transition-all">کاوش مجموعه</a>
-          <a href="#/categories" data-link class="px-6 py-3 md:px-8 md:py-4 rounded-lg backdrop-blur-sm bg-white/30 border border-white/30 text-white text-sm md:text-base font-medium hover:bg-white/40 transition-all">دسته‌بندی‌ها</a>
-        </div>
-      </div>
-    </section>
+    <div id="hero-section"></div>
 
     <!-- محصولات ویژه (اسلایدر کاورفلو) -->
     <section class="py-12 md:py-20" id="featured-section">
@@ -335,8 +285,8 @@
     <section class="py-16 md:py-24 border-t border-border relative overflow-hidden">
       <div class="max-w-lg mx-auto px-5 text-center relative z-10">
         <i data-lucide="users" class="w-8 h-8 text-accent mx-auto mb-4"></i>
-        <h2 class="text-2xl md:text-3xl font-bold mb-3">به حلقه یاران بپیوندید</h2>
-        <p class="text-muted mb-6 text-sm md:text-base">برای دریافت اخبار کالکشن‌های جدید عضو شوید.</p>
+        <h2 id="newsletter-title" class="text-2xl md:text-3xl font-bold mb-3">به حلقه یاران بپیوندید</h2>
+        <p id="newsletter-subtitle" class="text-muted mb-6 text-sm md:text-base">برای دریافت اخبار کالکشن‌های جدید عضو شوید.</p>
         <div class="flex flex-col sm:flex-row gap-3" dir="ltr">
           <button class="px-6 py-3 bg-accent text-white font-bold rounded-lg hover:bg-accent-hover transition-all shrink-0 order-2 sm:order-1">عضویت</button>
           <input type="email" placeholder="ایمیل شما..." class="flex-1 bg-surface border border-border rounded-lg px-4 py-3 text-body placeholder:text-muted/60 focus:outline-none focus:border-accent transition-colors order-1 sm:order-2" dir="rtl">
@@ -454,7 +404,7 @@
   <!-- صفحه پرداخت (PAYMENT) -->
   <div data-page="payment">
     <div class="border-b border-border bg-surface/60"><div class="max-w-[1280px] mx-auto px-5 py-3 flex items-center gap-2 text-xs text-muted overflow-x-auto whitespace-nowrap"><a href="#/cart" data-link class="hover:text-body">سبد خرید</a><span class="text-border">›</span><a href="#/checkout" data-link class="hover:text-body">اطلاعات ارسال</a><span class="text-border">›</span><span class="text-accent font-bold">پرداخت</span></div></div>
-    <main class="max-w-4xl mx-auto px-5 py-10"><div id="payment-summary" class="bg-card border border-border rounded-2xl p-6 mb-8"><h2 class="text-xl font-bold mb-6">جزئیات سفارش</h2><div class="grid grid-cols-1 sm:grid-cols-2 gap-6"><div><p class="text-sm text-muted">شماره سفارش</p><p id="payment-order-number" class="text-2xl font-bold text-body">-</p><button onclick="copyText('payment-order-number')" class="mt-2 text-xs bg-surface px-3 py-1 rounded-lg hover:bg-accent/20 transition">کپی</button></div><div><p class="text-sm text-muted">مبلغ قابل پرداخت</p><p id="payment-total-amount" class="text-2xl font-bold text-accent ltr">0</p></div></div><div class="mt-6 p-4 bg-surface border border-border rounded-lg"><p class="text-muted text-sm mb-2">لطفاً مبلغ فوق را به شماره کارت زیر واریز کرده و تصویر رسید را بارگذاری نمایید.</p><div class="bg-body border border-border rounded-lg p-4 flex items-center justify-between gap-4"><img src="/assets/images/card-number.jpg" alt="شماره کارت" class="h-8 object-contain rounded-md"/><div class="flex items-center gap-2 ltr"><span id="card-number" class="text-body font-mono text-sm">6219-1234-5678-9012</span><button onclick="copyText('card-number')" class="text-xs bg-surface px-3 py-1 rounded-lg hover:bg-accent/20 transition">کپی</button></div></div></div></div><div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-4">آپلود رسید پرداخت</h3><div class="space-y-4"><label class="block w-full cursor-pointer bg-surface border border-border rounded-xl p-6 text-center hover:border-accent transition-colors"><span id="upload-ph" class="text-muted block">برای انتخاب تصویر کلیک کنید (JPG, PNG, WebP)</span><span id="upload-preview" class="hidden text-green-600">فایل انتخاب شد: <strong id="file-name"></strong></span><input type="file" id="receipt-input" class="hidden" accept="image/*" onchange="handleFile(this)"></label><button id="submit-receipt-btn" onclick="submitReceipt()" class="w-full py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-all disabled:opacity-60">ارسال رسید</button></div><p id="upload-error" class="hidden text-accent text-sm mt-3"></p></div></main>
+    <main class="max-w-4xl mx-auto px-5 py-10"><div id="payment-summary" class="bg-card border border-border rounded-2xl p-6 mb-8"><h2 class="text-xl font-bold mb-6">جزئیات سفارش</h2><div class="grid grid-cols-1 sm:grid-cols-2 gap-6"><div><p class="text-sm text-muted">شماره سفارش</p><p id="payment-order-number" class="text-2xl font-bold text-body">-</p><button onclick="copyText('payment-order-number')" class="mt-2 text-xs bg-surface px-3 py-1 rounded-lg hover:bg-accent/20 transition">کپی</button></div><div><p class="text-sm text-muted">مبلغ قابل پرداخت</p><p id="payment-total-amount" class="text-2xl font-bold text-accent ltr">0</p></div></div><div class="mt-6 p-4 bg-surface border border-border rounded-lg"><p class="text-muted text-sm mb-2">لطفاً مبلغ فوق را به شماره کارت زیر واریز کرده و تصویر رسید را بارگذاری نمایید.</p><div class="bg-body border border-border rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"><div><p class="text-xs text-muted mb-1">شماره کارت</p><span id="payment-card-number" class="text-body font-mono text-sm ltr">—</span></div><div><p class="text-xs text-muted mb-1">به نام</p><span id="payment-card-owner" class="text-body text-sm">—</span></div><button onclick="copyText('payment-card-number')" class="text-xs bg-surface px-3 py-1 rounded-lg hover:bg-accent/20 transition shrink-0">کپی شماره کارت</button></div></div></div><div class="bg-card border border-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-4">آپلود رسید پرداخت</h3><div class="space-y-4"><label class="block w-full cursor-pointer bg-surface border border-border rounded-xl p-6 text-center hover:border-accent transition-colors"><span id="upload-ph" class="text-muted block">برای انتخاب تصویر کلیک کنید (JPG, PNG, WebP)</span><span id="upload-preview" class="hidden text-green-600">فایل انتخاب شد: <strong id="file-name"></strong></span><input type="file" id="receipt-input" class="hidden" accept="image/*" onchange="handleFile(this)"></label><button id="submit-receipt-btn" onclick="submitReceipt()" class="w-full py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent-hover transition-all disabled:opacity-60">ارسال رسید</button></div><p id="upload-error" class="hidden text-accent text-sm mt-3"></p></div></main>
     <div id="copy-toast" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50">کپی شد!</div>
   </div>
 
@@ -467,10 +417,10 @@
 
 <div id="app-footer"></div>
 
+<script src="assets/js/libs/navigo.min.js"></script>
 <script src="assets/js/libs/lucide.min.js"></script>
 <script src="assets/js/libs/swiper-bundle.min.js"></script>
 <script>
-/* سوایپر کاورفلو بدون تغییر منطق اصلی */
 ;(function () {
   const _Orig = window.Swiper;
   function GhulSwiper(el, cfg) {
@@ -489,11 +439,15 @@
             if (event._ghul) return;
             const btn = event.target.closest('.add-to-cart-quick');
             if (btn && !btn.disabled) {
-              setTimeout(() => { let e2 = new MouseEvent('click', { bubbles: true }); e2._ghul = true; btn.dispatchEvent(e2); }, 0);
+              setTimeout(() => { const e2 = new MouseEvent('click', { bubbles: true }); e2._ghul = true; btn.dispatchEvent(e2); }, 0);
               return;
             }
-            let link = event.target.closest('a[data-link]') || event.target.closest('.clay-card[href]');
-            if (link) { let href = link.getAttribute('href') || '', hash = href.startsWith('#') ? href.slice(1) : href; if (hash && window.location.hash.slice(1) !== hash) window.location.hash = hash; }
+            const link = event.target.closest('a[data-link]') || event.target.closest('.clay-card[href]');
+            if (link) {
+              const href = link.getAttribute('href') || '';
+              const hash = href.startsWith('#') ? href.slice(1) : href;
+              if (hash && window.location.hash.slice(1) !== hash) window.location.hash = hash;
+            }
           }
         })
       });
@@ -505,17 +459,6 @@
   window.Swiper = GhulSwiper;
 })();
 </script>
-<script src="assets/js/api.js"></script>
-<script src="assets/js/router.js"></script>
-<script src="assets/js/utils/dom.js"></script>
-<script src="assets/js/app.js"></script>
-<script src="assets/js/pages/home.js"></script>
-<script src="assets/js/pages/shop.js"></script>
-<script src="assets/js/pages/product.js"></script>
-<script src="assets/js/pages/categories.js"></script>
-<script src="assets/js/pages/cart.js"></script>
-<script src="assets/js/pages/checkout.js"></script>
-<script src="assets/js/pages/payment.js"></script>
-<script src="assets/js/pages/orders.js"></script>
+<script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

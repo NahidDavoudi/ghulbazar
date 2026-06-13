@@ -11,7 +11,7 @@
   window.loadDashboard = async function () {
     try {
       setLoading(true);
-      const _res = await API.admin.stats();
+      const _res = await API.dashboard.stats();
       const s    = _res.data || _res;
       setLoading(false);
 

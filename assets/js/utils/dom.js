@@ -1,41 +1,28 @@
 /**
- * utils/dom.js
- * ابزارهای مشترک DOM — وابستگی به هیچ ماژول دیگه‌ای نداره
+ * utils/dom.js — DOM helpers (pure, no layer dependencies)
  */
 
-;(function () {
-  'use strict';
+export const DOM = {
+  show(id) { document.getElementById(id)?.classList.remove('hidden'); },
+  hide(id) { document.getElementById(id)?.classList.add('hidden'); },
 
-  window.DOM = {
-    /** نمایش المان با id */
-    show(id) { document.getElementById(id)?.classList.remove('hidden'); },
+  text(id, t) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t;
+  },
 
-    /** مخفی‌کردن المان با id */
-    hide(id) { document.getElementById(id)?.classList.add('hidden'); },
+  hashHref(page, params = {}) {
+    const qs = new URLSearchParams(params).toString();
+    return qs ? `#/${page}?${qs}` : `#/${page}`;
+  },
 
-    /** تنظیم textContent المان با id */
-    text(id, t) {
-      const el = document.getElementById(id);
-      if (el) el.textContent = t;
-    },
+  reclone(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const fresh = el.cloneNode(true);
+    el.parentNode.replaceChild(fresh, el);
+    return fresh;
+  },
+};
 
-    /** ساخت href هش‌بیس برای لینک‌های داخلی */
-    hashHref(page, params = {}) {
-      const qs = new URLSearchParams(params).toString();
-      return qs ? `#/${page}?${qs}` : `#/${page}`;
-    },
-
-    /**
-     * کلون‌کردن المان برای حذف همه event listenerها
-     * @returns {HTMLElement} المان جدید جایگزین‌شده
-     */
-    reclone(id) {
-      const el = document.getElementById(id);
-      if (!el) return null;
-      const fresh = el.cloneNode(true);
-      el.parentNode.replaceChild(fresh, el);
-      return fresh;
-    },
-  };
-
-})();
+export default DOM;

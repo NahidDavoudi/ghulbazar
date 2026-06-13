@@ -1,0 +1,30 @@
+import { storeConfig } from '../config/bootstrap.js';
+import DOM from '../utils/dom.js';
+
+const CategoryCard = {
+  render(c) {
+    const ui = storeConfig.ui;
+    const slug = c.slug || c.name;
+    const img = c.poster_image
+      || c.images?.find((i) => i.is_main)?.image_url
+      || c.images?.[0]?.image_url
+      || storeConfig.placeholder;
+
+    return `
+      <a href="${DOM.hashHref('shop', { category: slug })}" data-link
+         class="relative ${ui.cardRadius} overflow-hidden group block" style="height:180px">
+        <img src="${img}" alt="${c.name}"
+             onerror="this.onerror=null;this.src='${storeConfig.placeholder}'"
+             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 p-4">
+          <h3 class="text-base font-bold text-right text-white">${c.name}</h3>
+          ${c.product_count ? `<p class="text-accent/80 text-xs text-right mt-0.5">${c.product_count} محصول</p>` : ''}
+        </div>
+      </a>`;
+  },
+
+  bind() { /* links handled by router */ },
+};
+
+export default CategoryCard;
