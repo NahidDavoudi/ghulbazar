@@ -69,7 +69,7 @@
         <td class="px-4 py-3 text-sm text-stone-500">${p.category_name || '—'}</td>
         <td class="px-4 py-3">
           <span class="px-2 py-1 rounded-full text-xs font-medium ${(p.featured || p.is_featured) ? 'bg-amber-100 text-amber-800' : 'bg-stone-100 text-stone-500'}">
-            ${(p.featured || p.is_featured) ? 'ویژه' : 'عادی'}
+            ${(p.featured || p.featured) ? 'ویژه' : 'عادی'}
           </span>
         </td>
         <td class="px-4 py-3">
@@ -147,7 +147,7 @@
       });
 
       const featEl = $('productFeatured');
-      if (featEl) featEl.checked = !!(p.featured || p.is_featured);
+      if (featEl) featEl.checked = !!(p.featured || p.featured);
 
       _fillCatFilter();
       const catEl = $('productCategory');
