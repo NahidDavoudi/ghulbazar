@@ -103,7 +103,9 @@ function emitUnauthorized() {
 function buildUrl(path, queryParams = {}) {
   const base = BASE_URL().replace(/\/$/, '');
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  const url = new URL(base + cleanPath, window.location.origin);
+  const pageBase = window.location.href.replace(/[#?].*$/, '').replace(/[^/]+$/, '');
+  const relative = base.startsWith('/') ? `${base.slice(1)}${cleanPath}` : `${base}${cleanPath}`;
+  const url = new URL(relative, pageBase);
   Object.entries(queryParams).forEach(([k, v]) => {
     if (v !== null && v !== undefined && v !== '') url.searchParams.set(k, v);
   });

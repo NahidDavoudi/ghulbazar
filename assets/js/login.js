@@ -12,13 +12,19 @@ window.API = api;
 window.Api = api;
 
 function applyLoginBranding() {
-  const logoEl = document.querySelector('header img[alt]');
-  const nameEl = document.querySelector('header .font-display');
-  if (logoEl && storeConfig.logo) {
-    logoEl.src = storeConfig.logo;
-    logoEl.alt = storeConfig.name;
+  document.querySelectorAll('[data-store-logo]').forEach((el) => {
+    if (storeConfig.logo) {
+      el.src = storeConfig.logo;
+      el.alt = storeConfig.name;
+    }
+  });
+  document.querySelectorAll('[data-store-name]').forEach((el) => {
+    el.textContent = storeConfig.name;
+  });
+  const copyrightEl = document.getElementById('login-copyright');
+  if (copyrightEl) {
+    copyrightEl.textContent = storeConfig.texts?.footer?.copyright || `© ${storeConfig.name}`;
   }
-  if (nameEl) nameEl.textContent = storeConfig.name;
 }
 
 async function boot() {
