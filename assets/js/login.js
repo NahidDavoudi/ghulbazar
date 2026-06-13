@@ -1,20 +1,39 @@
 /**
  * login.js — صفحه ورود (ES module entry)
  */
-import { initConfig } from './config/bootstrap.js';
-import { pageTitle } from './core/theme.js';
+import { initConfig, storeConfig } from './config/bootstrap.js';
+import { initTheme, pageTitle } from './core/theme.js';
+import loadStoreSettings from './core/storeSettings.js';
 import api from './core/api.js';
 
 initConfig();
-initTheme();
-pageTitle('ورود و ثبت‌نام');
 
 window.API = api;
 window.Api = api;
 
-if (api.auth.isLoggedIn()) {
-  const redirect = new URLSearchParams(location.search).get('redirect') || 'app.html#/';
-  location.replace(redirect);
+function applyLoginBranding() {
+  const logoEl = document.querySelector('header img[alt]');
+  const nameEl = document.querySelector('header .font-display');
+  if (logoEl && storeConfig.logo) {
+    logoEl.src = storeConfig.logo;
+    logoEl.alt = storeConfig.name;
+  }
+  if (nameEl) nameEl.textContent = storeConfig.name;
+}
+
+async function boot() {
+  await loadStoreSettings(api);
+  initTheme();
+  pageTitle('ورود و ثبت‌نام');
+  applyLoginBranding();
+
+  if (api.auth.isLoggedIn()) {
+    const redirect = new URLSearchParams(location.search).get('redirect') || 'app.html#/';
+    location.replace(redirect);
+    return;
+  }
+
+  bindEvents();
 }
 
 function switchTab(tab) {
@@ -97,7 +116,7 @@ async function doRegister() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function bindEvents() {
   document.getElementById('tab-login')?.addEventListener('click', () => switchTab('login'));
   document.getElementById('tab-register')?.addEventListener('click', () => switchTab('register'));
   document.getElementById('goto-register')?.addEventListener('click', () => switchTab('register'));
@@ -113,4 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
   ['reg-fname', 'reg-lname', 'reg-phone', 'reg-password', 'reg-confirm'].forEach((id) => {
     document.getElementById(id)?.addEventListener('keydown', (e) => { if (e.key === 'Enter') doRegister(); });
   });
-});
+}
+
+document.addEventListener('DOMContentLoaded', boot);

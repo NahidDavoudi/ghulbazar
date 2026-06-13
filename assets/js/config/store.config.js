@@ -1,8 +1,6 @@
 /**
- * store.config.js — تنظیمات اختصاصی هر فروشگاه
- * برای فروشگاه جدید فقط این فایل و assets/images/ را عوض کنید.
- *
- * ui.* فقط از کلاس‌های Tailwind از پیش compile‌شده استفاده کند.
+ * store.config.js — fallback تنظیمات فروشگاه (وقتی API در دسترس نیست)
+ * منبع اصلی: GET /settings — core/storeSettings.js
  */
 export default {
   name: 'آیریس ',
@@ -44,6 +42,7 @@ export default {
   payment: {
     cardNumber: '6219-1234-5678-9012',
     cardOwner: 'آیریس',
+    method: 'card_to_card',
   },
 
   ui: {
@@ -76,6 +75,6 @@ export default {
   },
 
   api: {
-    baseUrl: 'api/v1',
+    baseUrl: '/api/v1',
   },
 };

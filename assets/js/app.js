@@ -3,6 +3,7 @@
  */
 import { initConfig } from './config/bootstrap.js';
 import { initTheme } from './core/theme.js';
+import loadStoreSettings from './core/storeSettings.js';
 import api from './core/api.js';
 import Router from './core/router.js';
 import state from './core/state.js';
@@ -22,7 +23,6 @@ import './pages/payment.js';
 import './pages/orders.js';
 
 initConfig();
-initTheme();
 
 window.Api = api;
 window.API = api;
@@ -106,7 +106,9 @@ document.addEventListener('click', async (e) => {
   }, 1800);
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadStoreSettings(api);
+  initTheme();
   mountShell();
   loadCartCount();
   Router.init();

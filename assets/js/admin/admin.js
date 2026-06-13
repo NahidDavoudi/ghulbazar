@@ -3,12 +3,12 @@
  */
 import { initConfig } from '../config/bootstrap.js';
 import { initTheme } from '../core/theme.js';
+import loadStoreSettings from '../core/storeSettings.js';
 import api from '../core/api.js';
 import { installAdminHelpers } from '../utils/helpers.js';
 import { attachPriceFormatter } from '../utils/priceFormatter.js';
 
 initConfig();
-initTheme();
 installAdminHelpers();
 
 window.API = api;
@@ -65,7 +65,9 @@ window.closeSidebar = () => {
 
 window.handleLogout = () => api.auth.logout();
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadStoreSettings(api);
+  initTheme();
   if (window.lucide) lucide.createIcons();
   attachPriceFormatter('productPrice');
   const page = location.hash.replace('#', '') || 'dashboard';
