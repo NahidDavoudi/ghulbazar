@@ -65,15 +65,15 @@ const FeaturedCarousel = {
             <div class="stacking-slider__viewport">
               <div class="stacking-slider__track">${cards}</div>
             </div>
-            <div class="stacking-slider__nav flex items-center gap-5 mt-5 ${navAlign}">
-              <button type="button" class="stacking-slider__btn stacking-slider__btn--prev ${navClass}"
+            <div class="carousel-nav-row stacking-slider__nav flex items-center gap-3 mt-6 ${navAlign}">
+              <button type="button" class="stacking-slider__btn swiper-nav-btn ${navClass}"
                       data-action="prev" aria-label="قبلی" disabled
-                      style="width:${cfg.arrowSize}px;height:${cfg.arrowSize}px;opacity:${cfg.disabledArrowOpacity};">
+                      style="--nav-size:${cfg.arrowSize}px;opacity:${cfg.disabledArrowOpacity};">
                 <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
               </button>
-              <button type="button" class="stacking-slider__btn stacking-slider__btn--next ${navClass}"
+              <button type="button" class="stacking-slider__btn swiper-nav-btn ${navClass}"
                       data-action="next" aria-label="بعدی"
-                      style="width:${cfg.arrowSize}px;height:${cfg.arrowSize}px;">
+                      style="--nav-size:${cfg.arrowSize}px;">
                 <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
               </button>
             </div>

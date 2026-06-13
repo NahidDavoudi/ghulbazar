@@ -168,14 +168,16 @@
             <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i><span>همه</span>
           </a>
         </div>
-        <div class="swiper products-swiper px-4 md:px-6 relative">
+        <div class="swiper products-swiper px-4 md:px-6 overflow-hidden">
           <div class="swiper-wrapper" id="products-wrapper"></div>
-          <div class="swiper-button-prev-prods swiper-nav-btn btn-glass absolute top-[42%] -translate-y-1/2 right-4 md:right-6 z-10">
+        </div>
+        <div class="carousel-nav-row flex items-center gap-3 mt-6 px-4 md:px-6 justify-start">
+          <button type="button" class="carousel-nav-prev-prods swiper-nav-btn btn-glass" aria-label="قبلی">
             <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
-          </div>
-          <div class="swiper-button-next-prods swiper-nav-btn btn-glass absolute top-[42%] -translate-y-1/2 left-4 md:left-6 z-10">
+          </button>
+          <button type="button" class="carousel-nav-next-prods swiper-nav-btn btn-glass" aria-label="بعدی">
             <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
-          </div>
+          </button>
         </div>
       </div>
     </section>

@@ -90,7 +90,7 @@ Router.onEnter('home', async function () {
       bindProductCards(wrap.closest('.products-swiper') || wrap);
       new Swiper('.products-swiper', {
         ...SWIPER_DEFAULTS,
-        navigation: { prevEl: '.swiper-button-prev-prods', nextEl: '.swiper-button-next-prods' },
+        navigation: { prevEl: '.carousel-nav-prev-prods', nextEl: '.carousel-nav-next-prods' },
       });
     }
   } catch (e) {
