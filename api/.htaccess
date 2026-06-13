@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /restApi/
+    RewriteBase /universal/api/
 
     # فایل‌ها و دایرکتوری‌های واقعی رو دست نزن
     RewriteCond %{REQUEST_FILENAME} !-f
