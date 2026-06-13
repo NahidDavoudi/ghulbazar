@@ -57,12 +57,30 @@ class CartController extends Controller
         }
     }
 
+    // POST /cart/merge
+    public function merge(Request $request): void
+    {
+        $this->requireAuth();
+
+        $items = $request->input('items', []);
+        if (!is_array($items)) {
+            $this->error('فرمت آیتم‌های سبد نامعتبر است', 422);
+        }
+
+        try {
+            $cart = $this->service->mergeGuestItems($this->userId(), $items);
+            $this->success($cart, 'سبد خرید ادغام شد');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
     // PUT /cart/update
     public function update(Request $request): void
     {
         $this->requireAuth();
 
-        $productId = (int) $request->input('product_id');
+        $productId = (int) ($request->param('productId') ?: $request->input('product_id'));
         $qty       = (int) $request->input('qty', 0);
 
         if (!$productId) {
@@ -77,21 +95,33 @@ class CartController extends Controller
         }
     }
 
-    // DELETE /cart/remove?product_id=123
+    // DELETE /cart
+    public function clear(): void
+    {
+        $this->requireAuth();
+
+        try {
+            $this->service->clearCart($this->userId());
+            $this->success(null, 'سبد خرید خالی شد');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // DELETE /cart/items/{productId}
     public function remove(Request $request): void
     {
         $this->requireAuth();
 
-        $productId = (int) $request->query('product_id');
+        $productId = (int) ($request->param('productId') ?: $request->query('product_id'));
+
+        if (!$productId) {
+            $this->error('product_id الزامی است', 422);
+        }
 
         try {
-            if ($productId) {
-                $cart = $this->service->removeItem($this->userId(), $productId);
-                $this->success($cart, 'محصول از سبد خرید حذف شد');
-            } else {
-                $this->service->clearCart($this->userId());
-                $this->success(null, 'سبد خرید خالی شد');
-            }
+            $cart = $this->service->removeItem($this->userId(), $productId);
+            $this->success($cart, 'محصول از سبد خرید حذف شد');
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }

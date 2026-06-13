@@ -15,16 +15,28 @@ window.API = api;
 window.Api = api;
 window.attachPriceFormatter = attachPriceFormatter;
 
-import './pages/dashboard.js';
-import './pages/products.js';
-import './pages/categories.js';
-import './pages/orders.js';
-import './pages/users.js';
-import './pages/discounts.js';
+window.toggleSidebar = () => {
+  document.getElementById('sidebar')?.classList.toggle('translate-x-full');
+  document.getElementById('mobileOverlay')?.classList.toggle('hidden');
+};
+
+window.closeSidebar = () => {
+  document.getElementById('sidebar')?.classList.add('translate-x-full');
+  document.getElementById('mobileOverlay')?.classList.add('hidden');
+};
 
 if (!api.auth.isLoggedIn() || !api.auth.isAdmin()) {
   location.replace('login.html');
 }
+
+await Promise.all([
+  import('./pages/dashboard.js'),
+  import('./pages/products.js'),
+  import('./pages/categories.js'),
+  import('./pages/orders.js'),
+  import('./pages/users.js'),
+  import('./pages/discounts.js'),
+]);
 
 const _user = api.auth.currentUser();
 const _el = document.getElementById('sidebarUsername');
@@ -51,16 +63,6 @@ window.switchPage = function (name, linkEl) {
   window.closeSidebar();
   PAGE_LOADERS[name]?.();
   location.hash = name;
-};
-
-window.toggleSidebar = () => {
-  document.getElementById('sidebar')?.classList.toggle('translate-x-full');
-  document.getElementById('mobileOverlay')?.classList.toggle('hidden');
-};
-
-window.closeSidebar = () => {
-  document.getElementById('sidebar')?.classList.add('translate-x-full');
-  document.getElementById('mobileOverlay')?.classList.add('hidden');
 };
 
 window.handleLogout = () => api.auth.logout();

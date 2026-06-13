@@ -11,7 +11,7 @@ export default {
   hero: {
     image: 'assets/images/hero.png',
     title: 'آیریس',
-    subtitle: 'مرجع اصلی خرید و فروش اکسسوری‌های سورئال و قدمت‌دار',
+    subtitle: 'لباس های Y2K و لانگ اسلیو های خاص',
     ctaPrimary: 'کاوش مجموعه',
     ctaSecondary: 'دسته‌بندی‌ها',
   },

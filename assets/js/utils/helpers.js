@@ -66,3 +66,7 @@ export function installAdminHelpers() {
     return `<span class="px-2.5 py-1 rounded-full text-xs font-medium ${m.cls}">${m.label}</span>`;
   };
 }
+
+if (typeof window !== 'undefined') {
+  installAdminHelpers();
+}

@@ -105,6 +105,31 @@ class CartService
         }
     }
 
+    /**
+     * ادغام سبد مهمان (localStorage) با سبد کاربر بعد از ورود
+     *
+     * @param array<int, array{product_id?: int, qty?: int, quantity?: int}> $items
+     */
+    public function mergeGuestItems(int $userId, array $items): array
+    {
+        foreach ($items as $item) {
+            $productId = (int) ($item['product_id'] ?? 0);
+            $qty       = max(1, (int) ($item['qty'] ?? $item['quantity'] ?? 1));
+
+            if (!$productId) {
+                continue;
+            }
+
+            try {
+                $this->addItem($userId, $productId, $qty);
+            } catch (\RuntimeException) {
+                continue;
+            }
+        }
+
+        return $this->getCart($userId);
+    }
+
     // ─── Discount ────────────────────────────────────────────────
 
     public function applyDiscount(int $userId, string $code): array

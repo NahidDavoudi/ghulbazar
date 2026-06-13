@@ -80,6 +80,7 @@ $router->group([
         // Cart
         $router->get('/cart',                      [CartController::class, 'index']);
         $router->delete('/cart',                   [CartController::class, 'clear']);
+        $router->post('/cart/merge',               [CartController::class, 'merge']);
         $router->post('/cart/items',               [CartController::class, 'add']);
         $router->patch('/cart/items/{productId}',  [CartController::class, 'update']);
         $router->delete('/cart/items/{productId}', [CartController::class, 'remove']);

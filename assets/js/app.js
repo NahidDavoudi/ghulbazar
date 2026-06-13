@@ -110,6 +110,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadStoreSettings(api);
   initTheme();
   mountShell();
+  if (api.auth.isLoggedIn()) {
+    try {
+      await api.cart.mergeGuestIfNeeded();
+    } catch (_) { /* noop */ }
+  }
   loadCartCount();
   Router.init();
 });

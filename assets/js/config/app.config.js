@@ -20,6 +20,7 @@ export default {
     refreshToken: 'gb_refresh',
     role: 'gb_role',
     user: 'gb_user',
+    guestCart: 'gb_guest_cart',
   },
 
   messages: {

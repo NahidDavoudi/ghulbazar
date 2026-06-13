@@ -2,6 +2,7 @@
  * core/api.js — HTTP layer (no UI logic)
  */
 import * as auth from './auth.js';
+import { createCartStore } from './cartStore.js';
 import { formatPrice, attachPriceFormatter } from '../utils/priceFormatter.js';
 import { toast } from '../utils/helpers.js';
 
@@ -246,9 +247,33 @@ const patch = (path, body, opts) => request('PATCH', path, body, {}, opts);
 const del = (path, opts) => request('DELETE', path, null, {}, opts);
 const upload = (path, form, opts) => request('POST', path, form, {}, opts);
 
+let cartStore = null;
+
+function getCartStore() {
+  if (!cartStore) {
+    cartStore = createCartStore({
+      get,
+      post,
+      patch,
+      del,
+      withFallback,
+      fetchProduct: (id) => get(`/products/${id}`),
+    });
+  }
+  return cartStore;
+}
+
+async function afterAuthSession(data) {
+  auth.persistSession(data);
+  try {
+    await getCartStore().mergeGuestIfNeeded();
+  } catch (_) { /* merge failure should not block login */ }
+  return data;
+}
+
 const authApi = {
-  register: (data) => post('/auth/register', data),
-  login: async (phone, password) => auth.persistSession(await post('/auth/login', { phone, password })),
+  register: async (data) => afterAuthSession(await post('/auth/register', data)),
+  login: async (phone, password) => afterAuthSession(await post('/auth/login', { phone, password })),
   adminLogin: async (phone, password) => {
     const data = await post('/auth/admin-login', { phone, password });
     auth.persistSession(data);
@@ -259,7 +284,7 @@ const authApi = {
   otpVerify: async (phone, code, purpose = 'login', name = null) => {
     const body = { phone, code, purpose };
     if (name) body.name = name;
-    return auth.persistSession(await post('/auth/otp/verify', body));
+    return afterAuthSession(await post('/auth/otp/verify', body));
   },
   me: () => get('/auth/me'),
   refresh: async () => auth.persistSession(await post('/auth/refresh')),
@@ -349,12 +374,13 @@ const categories = {
 };
 
 const cart = {
-  get: () => withFallback(get('/cart'), CFG().fallback?.cart ?? { items: [], total: 0 }),
-  add: (productId, qty = 1, options = {}) => post('/cart/items', { product_id: productId, qty, ...options }),
-  update: (productId, qty) => patch(`/cart/items/${productId}`, { qty }),
-  remove: (productId) => del(`/cart/items/${productId}`),
-  clear: () => del('/cart'),
-  applyDiscount: (code) => post('/cart/discount', { code }),
+  get: () => getCartStore().get(),
+  add: (productId, qty = 1) => getCartStore().add(productId, qty),
+  update: (productId, qty) => getCartStore().update(productId, qty),
+  remove: (productId) => getCartStore().remove(productId),
+  clear: () => getCartStore().clear(),
+  applyDiscount: (code) => getCartStore().applyDiscount(code),
+  mergeGuestIfNeeded: () => getCartStore().mergeGuestIfNeeded(),
 };
 
 const orders = {
