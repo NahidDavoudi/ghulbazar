@@ -230,31 +230,22 @@
 
   <!-- صفحه محصول (PRODUCT) -->
   <div data-page="product">
-    <main class="max-w-[1280px] mx-auto px-4 md:px-10 py-8">
-      <div id="product-loading" class="text-center py-32 text-muted"><p class="text-4xl animate-pulse mb-4">✦</p><p>در حال بارگذاری...</p></div>
+    <main class="max-w-[1280px] mx-auto px-4 md:px-6 py-8 md:py-12">
+      <div id="product-loading" class="text-center py-32 text-muted">
+        <p class="text-4xl animate-pulse mb-4">✦</p>
+        <p id="product-loading-text">در حال بارگذاری...</p>
+      </div>
       <div id="product-detail" class="hidden">
-        <nav class="flex items-center gap-2 text-sm text-muted mb-8 justify-end" id="breadcrumb"></nav>
-        <div id="added-toast" class="hidden bg-green-100 border border-green-300 rounded-lg p-4 mb-6 text-center text-green-800">✓ محصول به سبد خرید اضافه شد. <a href="#/cart" data-link class="underline">مشاهده سبد خرید</a></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 mb-16">
-          <div>
-            <div class="rounded-2xl overflow-hidden bg-card aspect-square mb-3 shadow-xl max-w-sm mx-auto md:max-w-none"><img id="main-image" src="" alt="" class="w-full h-full object-cover"></div>
-            <div class="grid grid-cols-4 gap-2 max-w-sm mx-auto md:max-w-none" id="thumbnails"></div>
-          </div>
-          <div class="text-right">
-            <div id="badges" class="flex gap-2 justify-end mb-4"></div>
-            <h1 id="product-name" class="text-3xl md:text-4xl font-bold leading-tight mb-6"></h1>
-            <div id="rating" class="flex items-center gap-3 justify-end mb-6 border-b border-border pb-6"></div>
-            <p id="product-description" class="text-muted leading-relaxed mb-8"></p>
-            <div id="chain-section" class="mb-6 hidden"><div class="flex items-center justify-between mb-3"><a href="#" class="text-accent text-sm hover:text-accent-hover">راهنمای طول زنجیر</a><label class="font-medium text-sm">طول زنجیر</label></div><div class="flex gap-3 justify-end flex-wrap" id="chain-options"></div></div>
-            <div id="size-section" class="mb-6 hidden"><div class="flex items-center justify-between mb-3"><a href="#" class="text-accent text-sm hover:text-accent-hover">راهنمای سایز</a><label class="font-medium text-sm">سایز</label></div><div class="flex gap-3 justify-end flex-wrap" id="size-options"></div></div>
-            <div class="flex items-center justify-between mb-4"><p id="product-price" class="text-2xl font-bold"></p><p id="product-stock" class="text-muted text-sm"></p></div>
-            <button id="add-to-cart-btn" class="w-full py-4 bg-accent rounded-xl text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-accent-hover transition-all shadow-[0_10px_20px_-5px_rgba(75,107,138,0.4)] active:scale-[0.99]">افزودن به مجموعه</button>
-            <p class="text-muted text-xs text-center mt-3">ارسال رایگان برای سفارش‌های بالای ۱،۵۰۰،۰۰۰ تومان</p>
-            <div class="border-t border-border mt-8"><button onclick="toggleAcc('history')" class="w-full flex items-center justify-between py-4"><svg id="history-icon" width="12" height="7" viewBox="0 0 12 7" fill="none" class="transition-transform"><path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="1.5"/></svg><span class="font-medium">تاریخچه و اصالت</span></button><div id="history-content" class="overflow-hidden max-h-0 transition-all duration-300"><p class="pb-6 text-muted text-sm leading-relaxed" id="history-text"></p></div></div>
-            <div class="border-t border-border"><button onclick="toggleAcc('care')" class="w-full flex items-center justify-between py-4"><svg id="care-icon" width="12" height="7" viewBox="0 0 12 7" fill="none" class="transition-transform"><path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="1.5"/></svg><span class="font-medium">مواد و نگهداری</span></button><div id="care-content" class="overflow-hidden max-h-0 transition-all duration-300"><p class="pb-6 text-muted text-sm leading-relaxed">با پارچه نرم تمیز کنید. از تماس با مواد شیمیایی، عطر، و آب بپرهیزید.</p></div></div>
-          </div>
+        <nav id="product-breadcrumb" class="flex items-center gap-2 text-sm text-muted mb-8 justify-end flex-wrap"></nav>
+        <div id="added-toast" class="hidden bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-center text-green-800 text-sm">
+          ✓ <span id="added-toast-text">محصول به سبد خرید اضافه شد.</span>
+          <a href="#/cart" data-link id="added-toast-link" class="underline mr-1">مشاهده سبد خرید</a>
         </div>
-        <section id="related-section" class="hidden border-t border-border pt-12"><div class="flex items-center justify-between mb-6"><a href="#/shop" data-link class="text-accent text-sm hover:text-accent-hover">همه ←</a><h2 class="text-xl md:text-2xl font-bold">شاید بپسندید</h2></div><div class="swiper related-swiper"><div class="swiper-wrapper" id="related-wrapper"></div></div></section>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 mb-4">
+          <div id="product-gallery-wrap"></div>
+          <div id="product-info-wrap"></div>
+        </div>
+        <div id="complete-style-wrap"></div>
       </div>
     </main>
   </div>

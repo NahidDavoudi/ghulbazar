@@ -182,3 +182,21 @@ div[data-page].active { display: block; }
 .hero-fullbleed img {
   object-position: center top;
 }
+
+/* ── Product Detail ── */
+.product-size-unavailable::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: linear-gradient(
+    to top left,
+    transparent calc(50% - 0.5px),
+    rgba(0, 0, 0, 0.25) calc(50% - 0.5px),
+    rgba(0, 0, 0, 0.25) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+  pointer-events: none;
+}
+.product-acc-panel {
+  transition: max-height 0.3s ease;
+}
