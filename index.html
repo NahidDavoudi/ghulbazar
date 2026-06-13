@@ -22,18 +22,36 @@
     @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
     [data-page].active { animation: fadeIn 0.2s ease; }
 
-    /* سایدبار موبایل */
-    #shop-sidebar.sidebar-open {
+    /* سایدبار موبایل فروشگاه */
+    #shop-sidebar-wrap .shop-sidebar {
+      display: none;
+    }
+    #shop-sidebar-wrap.sidebar-open .shop-sidebar {
       display: block !important;
       position: fixed;
       inset: 0;
       z-index: 50;
       width: 100%;
+      max-width: 100%;
       height: 100%;
-      border-radius: 0;
       overflow-y: auto;
-      padding-top: 60px;
-      background-color: var(--color-dark-2);
+      padding: 60px 24px 24px;
+      background-color: #ffffff;
+    }
+    @media (min-width: 768px) {
+      #shop-sidebar-wrap .shop-sidebar {
+        display: block;
+        position: sticky;
+        top: 6rem;
+      }
+      #shop-sidebar-wrap.sidebar-open .shop-sidebar {
+        position: sticky;
+        inset: auto;
+        width: auto;
+        height: auto;
+        padding: 0;
+        overflow: visible;
+      }
     }
     #sidebar-backdrop {
       display: none;
@@ -178,45 +196,33 @@
 
   <!-- صفحه فروشگاه (SHOP) -->
   <div data-page="shop">
-    <main class="max-w-[1280px] mx-auto px-4 md:px-10 py-8 md:py-12">
+    <div id="shop-hero"></div>
+    <main class="max-w-[1280px] mx-auto px-4 md:px-6 py-8 md:py-12">
+      <div class="flex items-center justify-between mb-6 md:mb-8">
+        <p class="text-sm text-muted" id="product-count"></p>
+        <nav id="shop-breadcrumb" class="flex items-center gap-2 text-sm text-muted"></nav>
+      </div>
       <div class="flex items-center justify-between mb-5 md:hidden">
-        <h1 class="text-base font-bold">فروشگاه</h1>
-        <button id="filter-toggle" class="flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg text-sm text-body hover:border-accent transition-all">
-          <svg width="14" height="12" fill="none" viewBox="0 0 14 12"><path d="M1 1h12M3 6h8M5 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          فیلتر
+        <button id="filter-toggle" type="button" class="flex items-center gap-2 px-4 py-2 bg-[#f2f2f2] border border-black/10 rounded-lg text-sm text-body hover:border-black/20 transition-all">
+          <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+          <span id="filter-toggle-label">فیلتر</span>
         </button>
       </div>
       <div id="sidebar-backdrop"></div>
-      <div class="flex items-start gap-6 md:gap-12 relative">
-        <aside id="shop-sidebar" class="bg-surface rounded-2xl p-4 w-48 lg:w-64 shrink-0 sticky top-24 hidden md:block border border-border">
-          <div class="flex items-center justify-between mb-6 md:block">
-            <h2 class="text-xl font-bold text-right">فیلترها</h2>
-            <button id="sidebar-close" class="md:hidden text-muted hover:text-body p-1">
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+      <div class="flex items-start gap-8 lg:gap-14 relative">
+        <div id="shop-sidebar-wrap" class="shrink-0"></div>
+        <div class="flex-1 min-w-0">
+          <div id="products-grid" class="grid grid-cols-2 lg:grid-cols-2 gap-x-6 gap-y-10 md:gap-x-10 md:gap-y-12"></div>
+          <div id="shop-load-more" class="hidden text-center mt-12 md:mt-16"></div>
+          <div id="shop-loading" class="text-center py-24 text-muted">
+            <p class="text-4xl mb-4 animate-pulse">✦</p>
+            <p id="shop-loading-text">در حال بارگذاری...</p>
           </div>
-          <div class="mb-8">
-            <h3 class="font-medium mb-3 text-right text-accent text-sm">دسته‌بندی</h3>
-            <ul id="cat-filters" class="space-y-2"></ul>
+          <div id="shop-empty" class="hidden text-center py-24 text-muted">
+            <p class="text-4xl mb-4">✦</p>
+            <p id="shop-empty-text">محصولی یافت نشد.</p>
+            <a href="#/shop" data-link id="shop-empty-link" class="text-body hover:underline mt-3 inline-block text-sm">بازگشت</a>
           </div>
-          <a href="#/shop" data-link id="clear-filters" class="text-accent text-sm hover:text-accent-hover transition-colors block text-right hidden">× پاک کردن فیلترها</a>
-        </aside>
-        <div class="bg-card rounded-2xl p-6 flex-1 min-w-0">
-          <div class="flex items-center justify-between mb-6 md:mb-8">
-            <select id="sort-select" class="bg-card border border-border rounded-lg px-3 py-2 text-xs md:text-sm text-body focus:outline-none focus:border-accent">
-              <option value="">پیش‌فرض</option>
-              <option value="newest">جدیدترین</option>
-              <option value="price_asc">ارزان‌ترین</option>
-              <option value="price_desc">گران‌ترین</option>
-            </select>
-            <div class="text-right">
-              <h1 class="text-lg md:text-2xl font-bold" id="desktop-title">همه محصولات</h1>
-              <p class="text-muted text-xs mt-0.5" id="product-count"></p>
-            </div>
-          </div>
-          <div id="products-grid" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6"></div>
-          <div id="shop-loading" class="text-center py-24 text-muted"><p class="text-4xl mb-4 animate-pulse">✦</p><p>در حال بارگذاری...</p></div>
-          <div id="shop-empty" class="hidden text-center py-24 text-muted"><p class="text-4xl mb-4">✦</p><p>محصولی یافت نشد.</p><a href="#/shop" data-link class="text-accent hover:underline mt-2 block">بازگشت</a></div>
         </div>
       </div>
     </main>

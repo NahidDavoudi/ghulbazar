@@ -220,6 +220,56 @@ export default {
 
     },
 
+    shop: {
+
+      allProducts: 'همه محصولات',
+
+      filtersTitle: 'فیلترها',
+
+      sizeLabel: 'سایز',
+
+      colorLabel: 'رنگ',
+
+      priceLabel: 'محدوده قیمت (تومان)',
+
+      applyFilters: 'اعمال فیلترها',
+
+      clearFilters: 'پاک کردن فیلترها',
+
+      showMore: 'نمایش بیشتر',
+
+      productsFound: 'محصول یافت شد',
+
+      loading: 'در حال بارگذاری...',
+
+      empty: 'محصولی یافت نشد.',
+
+      emptyAction: 'بازگشت',
+
+      filterToggle: 'فیلتر',
+
+      breadcrumbHome: 'خانه',
+
+      breadcrumbShop: 'فروشگاه',
+
+      sizes: ['S', 'M', 'L', 'XL'],
+
+      colors: [
+
+        { id: 'black', label: 'مشکی زغالی' },
+
+        { id: 'white', label: 'سفید یخی' },
+
+        { id: 'grey', label: 'خاکستری تیره' },
+
+      ],
+
+      priceRange: { min: 0, max: 5000000, step: 50000 },
+
+      pageSize: 8,
+
+    },
+
     footer: {
 
       tagline: 'آیریس — فروشگاه لباس‌های Y2K و لانگ‌اسلیوهای خاص.',
