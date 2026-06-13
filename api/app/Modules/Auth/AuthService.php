@@ -3,15 +3,42 @@
 namespace App\Modules\Auth;
 
 use App\Core\Auth\Auth as JwtAuth;
-use App\Modules\User\UserModel;
+use App\Modules\Users\UsersModel;
 
 class AuthService
 {
-    private UserModel $userModel;
+    private UsersModel $userModel;
 
     public function __construct()
     {
-        $this->userModel = new UserModel();
+        $this->userModel = new UsersModel();
+    }
+
+    // ─── Token Pair (OTP / Login) ─────────────────────────────────
+
+    public function issueTokenPair(array $user): array
+    {
+        $role = $user['role'] ?? 'user';
+        $payload = ['user_id' => (int) $user['id'], 'role' => $role];
+
+        $accessTtl = $role === 'admin' ? 3600 : 900;
+
+        return [
+            'token'         => JwtAuth::generateToken($payload, $accessTtl),
+            'refresh_token' => JwtAuth::generateRefreshToken((int) $user['id'], $payload),
+            'token_type'    => 'Bearer',
+            'expires_in'    => $accessTtl,
+            'user'          => $user,
+        ];
+    }
+
+    public function logout(string $refreshToken): void
+    {
+        if (empty(trim($refreshToken))) {
+            throw new \Exception('توکن رفرش الزامی است.', 422);
+        }
+
+        JwtAuth::revokeRefreshToken($refreshToken);
     }
 
     // ─── Register ────────────────────────────────────────────────

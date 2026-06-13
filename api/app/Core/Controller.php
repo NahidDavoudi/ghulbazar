@@ -48,6 +48,11 @@ abstract class Controller
         Response::forbidden($message);
     }
 
+    protected function tooManyRequests(string $message = 'تعداد درخواست‌ها بیش از حد مجاز است'): void
+    {
+        Response::tooManyRequests($message);
+    }
+
     protected function noContent(string $message = 'با موفقیت حذف شد'): void
     {
         Response::noContent($message);
@@ -68,9 +73,9 @@ abstract class Controller
         return Auth::check();
     }
 
-    protected function validateInput(array $data, array $rules): bool
+    protected function validate(array $data, array $rules): bool
     {
-        $validator = new Validator($data, $rules);
+        $validator = new \App\Core\Validation\Validator($data, $rules);
 
         if (!$validator->validate()) {
             $this->validationError($validator->errors());

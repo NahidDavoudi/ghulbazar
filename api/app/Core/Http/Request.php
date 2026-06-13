@@ -124,7 +124,33 @@ class Request {
     }
 
     public function uri(): string {
-        return parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $base = rtrim($_ENV['APP_BASE_PATH'] ?? '', '/');
+        if ($base && str_starts_with($uri, $base)) {
+            $uri = substr($uri, strlen($base));
+        }
+        return $uri ?: '/';
+    }
+
+    public function path(): string {
+        return $this->uri();
+    }
+
+    public function setParam(string $key, mixed $value): void {
+        $this->params[$key] = $value;
+    }
+
+    public function setUser(mixed $user): void {
+        $this->params['__user'] = $user;
+    }
+
+    public function user(): mixed {
+        return $this->params['__user'] ?? null;
+    }
+
+    public function userId(): int|null {
+        $user = $this->params['__user'] ?? null;
+        return $user ? (int) $user->user_id : null;
     }
 
     public function query(string $key, mixed $default = null): mixed {

@@ -4,17 +4,68 @@ namespace App\Modules\Auth;
 
 use App\Core\Controller;
 use App\Core\Http\Request;
+use App\Core\Sms\SmsService;
+use App\Modules\Users\UsersModel;
 
 class AuthController extends Controller
 {
-    private AuthService $service;
-
     public function __construct()
     {
         $this->service = new AuthService();
+        $this->otpService = new OtpService(
+            new OtpModel(),
+            $this->service,
+            new SmsService(),
+            new UsersModel(),
+        );
     }
 
-    // POST /auth/register
+    private AuthService $service;
+    private OtpService $otpService;
+
+    // POST /api/v1/auth/otp/request
+    public function otpRequest(Request $request): void
+    {
+        $phone   = $request->input('phone');
+        $purpose = $request->input('purpose', 'login');
+
+        if (!$phone) {
+            $this->error('شماره موبایل الزامی است', 422);
+        }
+
+        try {
+            $result = $this->otpService->request($phone, $purpose);
+            $this->success($result, 'کد تایید ارسال شد');
+        } catch (\RuntimeException $e) {
+            $code = $e->getCode() ?: 400;
+            if ($code === 429) {
+                $this->tooManyRequests($e->getMessage());
+            }
+            $this->error($e->getMessage(), $code);
+        }
+    }
+
+    // POST /api/v1/auth/otp/verify
+    public function otpVerify(Request $request): void
+    {
+        $phone   = $request->input('phone');
+        $code    = $request->input('code');
+        $purpose = $request->input('purpose', 'login');
+        $name    = $request->input('name');
+
+        if (!$phone || !$code) {
+            $this->error('شماره موبایل و کد تایید الزامی است', 422);
+        }
+
+        try {
+            $result = $this->otpService->verify($phone, $code, $purpose, $name);
+            $this->success($result, 'ورود موفق');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 422);
+        }
+    }
+
+    // POST /api/v1/auth/register
     public function register(Request $request): void
     {
         $data = $request->only(['name', 'phone', 'password']);
@@ -27,7 +78,7 @@ class AuthController extends Controller
         }
     }
 
-    // POST /auth/login
+    // POST /api/v1/auth/login
     public function login(Request $request): void
     {
         $phone    = $request->input('phone');
@@ -45,7 +96,7 @@ class AuthController extends Controller
         }
     }
 
-    // POST /auth/admin-login
+    // POST /api/v1/auth/admin-login
     public function adminLogin(Request $request): void
     {
         $phone    = $request->input('phone');
@@ -63,32 +114,37 @@ class AuthController extends Controller
         }
     }
 
-    // GET /auth/me
-    public function me(): void
+    // POST /api/v1/auth/logout
+    public function logout(Request $request): void
     {
-        if (!$this->isAuthenticated()) {
-            $this->unauthorized();
-        }
+        $refreshToken = $request->input('refresh_token');
 
         try {
-            $user = $this->service->me($this->userId());
+            $this->service->logout($refreshToken ?? '');
+            $this->success(null, 'خروج موفق');
+        } catch (\Exception $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
+
+    // GET /api/v1/auth/me
+    public function me(Request $request): void
+    {
+        try {
+            $user = $this->service->me($request->userId());
             $this->success($user);
         } catch (\Exception $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
 
-    // POST /auth/refresh
-    public function refresh(): void
+    // POST /api/v1/auth/refresh
+    public function refresh(Request $request): void
     {
-        if (!$this->isAuthenticated()) {
-            $this->unauthorized();
-        }
-
         try {
             $result = $this->service->refreshToken(
-                $this->userId(),
-                $this->user()->role ?? 'user'
+                $request->userId(),
+                $request->user()->role ?? 'user'
             );
             $this->success($result, 'توکن تمدید شد');
         } catch (\Exception $e) {

@@ -17,19 +17,12 @@ class ProductController extends Controller
         );
     }
 
-    private function requireAdmin(): void
-    {
-        if (!$this->isAuthenticated() || $this->user()->role !== 'admin') {
-            $this->forbidden();
-        }
-    }
-
-    // GET /product/index?page=1&limit=12&category_id=2&era=...&q=...&sort=newest
+    // GET /api/v1/products?page=1&limit=12&category_id=2&era=...&q=...&sort=newest
     public function index(Request $request): void
     {
         $filters = [
-            'category_id' => $request->query('category_id'),   // عدد مستقیم
-            'category'    => $request->query('category'),       // slug — فرانت این رو می‌فرسته
+            'category_id' => $request->query('category_id'),
+            'category'    => $request->query('category'),
             'era'         => $request->query('era'),
             'featured'    => $request->query('featured'),
             'q'           => $request->query('q'),
@@ -41,28 +34,26 @@ class ProductController extends Controller
         $this->success($this->service->list($filters));
     }
 
-    // GET /product/featured
+    // GET /api/v1/products/featured
     public function featured(Request $request): void
     {
         $limit = (int) $request->query('limit', 8);
         $this->success($this->service->getFeatured($limit));
     }
 
-    // GET /product/show/123
-    public function show(int $id): void
+    // GET /api/v1/products/{id}
+    public function show(Request $request, int $id): void
     {
         try {
             $this->success($this->service->getById($id));
         } catch (\RuntimeException $e) {
-            $this->notFound($e->getMessage());
+            $this->error($e->getMessage(), $e->getCode() ?: 404);
         }
     }
 
-    // POST /product/store  (ادمین)
+    // POST /api/v1/admin/products
     public function store(Request $request): void
     {
-        $this->requireAdmin();
-
         $data = $request->only([
             'name', 'description', 'price',
             'category_id', 'era', 'material', 'badge',
@@ -72,23 +63,14 @@ class ProductController extends Controller
         try {
             $product = $this->service->create($data);
             $this->created($product);
-        
         } catch (\RuntimeException $e) {
-        
-            echo '<pre>';
-            var_dump([
-                'message' => $e->getMessage(),
-                'code' => $e->getCode(),
-            ]);
-            die();
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
 
-    // PUT /product/update/123  (ادمین)
+    // PUT /api/v1/admin/products/{id}
     public function update(Request $request, int $id): void
     {
-        $this->requireAdmin();
-
         $data = $request->only([
             'name', 'description', 'price',
             'category_id', 'era', 'material', 'badge',
@@ -103,11 +85,9 @@ class ProductController extends Controller
         }
     }
 
-    // DELETE /product/destroy/123  (ادمین — soft delete از طریق is_active)
-    public function destroy(int $id): void
+    // DELETE /api/v1/admin/products/{id}
+    public function destroy(Request $request, int $id): void
     {
-        $this->requireAdmin();
-
         try {
             $this->service->delete($id);
             $this->noContent();
@@ -116,11 +96,9 @@ class ProductController extends Controller
         }
     }
 
-    // PUT /product/toggle/123  (ادمین — فعال/غیرفعال)
-    public function toggle(int $id): void
+    // PATCH /api/v1/admin/products/{id}/toggle
+    public function toggle(Request $request, int $id): void
     {
-        $this->requireAdmin();
-
         try {
             $product = $this->service->toggleActive($id);
             $status  = $product['is_active'] ? 'فعال' : 'غیرفعال';
@@ -130,12 +108,11 @@ class ProductController extends Controller
         }
     }
 
-    // POST /product/addImage/123  (ادمین)
+    // POST /api/v1/admin/products/{id}/images
     public function addImage(Request $request, int $id): void
     {
-        $this->requireAdmin();
-
         $file = $_FILES['image'] ?? null;
+
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
             $this->error('تصویر ارسال نشده', 422);
         }
@@ -154,36 +131,22 @@ class ProductController extends Controller
         }
     }
 
-    // PUT /product/setMainImage/123?image_id=456  (ادمین)
-    public function setMainImage(Request $request, int $productId): void
+    // PATCH /api/v1/admin/products/{id}/images/{imageId}
+    public function setMainImage(Request $request, int $id, int $imageId): void
     {
-        $this->requireAdmin();
-
-        $imageId = (int) $request->query('image_id');
-        if (!$imageId) {
-            $this->error('image_id الزامی است', 422);
-        }
-
         try {
-            $this->service->setMainImage($productId, $imageId);
+            $this->service->setMainImage($id, $imageId);
             $this->success(null, 'تصویر اصلی تنظیم شد');
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
 
-    // DELETE /product/deleteImage/123?image_id=456  (ادمین)
-    public function deleteImage(Request $request, int $productId): void
+    // DELETE /api/v1/admin/products/{id}/images/{imageId}
+    public function deleteImage(Request $request, int $id, int $imageId): void
     {
-        $this->requireAdmin();
-
-        $imageId = (int) $request->query('image_id');
-        if (!$imageId) {
-            $this->error('image_id الزامی است', 422);
-        }
-
         try {
-            $this->service->deleteImage($productId, $imageId);
+            $this->service->deleteImage($id, $imageId);
             $this->noContent();
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
@@ -200,6 +163,7 @@ class ProductController extends Controller
         if (!in_array($file['type'], $allowed)) {
             throw new \RuntimeException('فرمت فایل مجاز نیست. فقط JPG، PNG و WebP قابل قبول است.', 422);
         }
+
         if ($file['size'] > $maxSize) {
             throw new \RuntimeException('حجم فایل بیشتر از ۳ مگابایت است.', 422);
         }

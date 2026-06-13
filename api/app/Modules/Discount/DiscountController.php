@@ -14,14 +14,7 @@ class DiscountController extends Controller
         $this->service = new DiscountService(new DiscountModel());
     }
 
-    private function requireAdmin(): void
-    {
-        if (!$this->isAuthenticated() || $this->user()->role !== 'admin') {
-            $this->forbidden();
-        }
-    }
-
-    // GET /discount/validate?code=X&total=500000
+    // GET /api/v1/discounts/validate?code=X&total=500000
     public function validate(Request $request): void
     {
         $code  = trim($request->query('code', ''));
@@ -39,25 +32,21 @@ class DiscountController extends Controller
         }
     }
 
-    // GET /discount/index  (ادمین — همه کدها)
+    // GET /api/v1/admin/discounts
     public function index(): void
     {
-        $this->requireAdmin();
         $this->success($this->service->getAll());
     }
 
-    // GET /discount/active  (ادمین — فقط فعال‌ها)
+    // GET /api/v1/admin/discounts/active
     public function active(): void
     {
-        $this->requireAdmin();
         $this->success($this->service->getActive());
     }
 
-    // POST /discount/store  (ادمین)
+    // POST /api/v1/admin/discounts
     public function store(Request $request): void
     {
-        $this->requireAdmin();
-
         $data = $request->only(['code', 'type', 'value', 'valid_from', 'valid_to', 'is_active']);
 
         try {
@@ -68,11 +57,9 @@ class DiscountController extends Controller
         }
     }
 
-    // PUT /discount/update/123  (ادمین)
+    // PUT /api/v1/admin/discounts/{id}
     public function update(Request $request, int $id): void
     {
-        $this->requireAdmin();
-
         $data = $request->only(['code', 'type', 'value', 'valid_from', 'valid_to', 'is_active']);
 
         try {
@@ -83,11 +70,9 @@ class DiscountController extends Controller
         }
     }
 
-    // PUT /discount/deactivate/123  (ادمین)
-    public function deactivate(int $id): void
+    // PATCH /api/v1/admin/discounts/{id}/deactivate
+    public function deactivate(Request $request, int $id): void
     {
-        $this->requireAdmin();
-
         try {
             $this->service->deactivate($id);
             $this->success(null, 'کد تخفیف غیرفعال شد');
@@ -96,11 +81,9 @@ class DiscountController extends Controller
         }
     }
 
-    // DELETE /discount/destroy/123  (ادمین)
-    public function destroy(int $id): void
+    // DELETE /api/v1/admin/discounts/{id}
+    public function destroy(Request $request, int $id): void
     {
-        $this->requireAdmin();
-
         try {
             $this->service->delete($id);
             $this->noContent();

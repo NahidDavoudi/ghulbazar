@@ -6,12 +6,19 @@ use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\SignatureInvalidException;
 use UnexpectedValueException;
-use App\Core\Http\Request;
 use App\Core\Env;
 
 class Auth {
     private static string $algorithm = 'HS256';
 
+    // ─── Runtime State ────────────────────────────────────────────────────────
+    private static ?object $currentUser = null;
+
+    public static function setCurrentUser(object $user): void {
+        self::$currentUser = $user;
+    }
+
+    // کلید جداگانه برای رفرش توکن (از .env بخوان)
     private static function getRefreshSecretKey(): string {
         return Env::get('REFRESH_SECRET');
     }
@@ -105,39 +112,34 @@ class Auth {
         ];
     }
 
-    // متدهای helper قبلی بدون تغییر
+    // ─── Runtime Helpers ─────────────────────────────────────────────────────
+    // این متدها از user ای که middleware set کرده می‌خونن
+    // نه اینکه دوباره token رو verify کنن
+
     public static function user(): ?object {
-        $request = new Request();
-        $token = $request->bearerToken();
-        $decoded = self::verifyToken($token);
-        return $decoded?->data ?? null;
+        return self::$currentUser;
     }
 
     public static function id(): ?int {
-        $user = self::user();
-        return $user->user_id ?? null;
+        return self::$currentUser->user_id ?? null;
     }
 
     public static function role(): ?string {
-        $user = self::user();
-        return $user->role ?? null;
+        return self::$currentUser->role ?? null;
     }
 
     public static function check(): bool {
-        return self::user() !== null;
+        return self::$currentUser !== null;
     }
 
     public static function hasRole(string|array $roles): bool {
-        $user = self::user();
-        if (!$user || !isset($user->role)) {
+        if (!self::$currentUser || !isset(self::$currentUser->role)) {
             return false;
         }
-
         if (is_string($roles)) {
-            return $user->role === $roles;
+            return self::$currentUser->role === $roles;
         }
-
-        return in_array($user->role, $roles);
+        return in_array(self::$currentUser->role, $roles);
     }
     // خروج از دستگاه فعلی (با دادن refresh token)
     public static function revokeRefreshToken(string $refreshToken): void {

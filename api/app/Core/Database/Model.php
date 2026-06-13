@@ -52,7 +52,7 @@ abstract class Model
                 $direction = strtoupper($direction) === 'DESC' ? 'DESC' : 'ASC';
                 $orderClauses[] = "{$column} {$direction}";
             }
-            $sql .= " ORDER BY " . implode(', ', $orderClauses);
+            // $sql .= " ORDER BY " . implode(', ', $orderClauses);
         }
 
         $stmt = $this->pdo->query($sql);

@@ -5,6 +5,9 @@
         }
     },
     "require": {
+        "guzzlehttp/guzzle": "^7.7",
+        "monolog/monolog": "^2.9",
+        "respect/validation": "^2.2",
         "vlucas/phpdotenv": "^5.5",
         "firebase/php-jwt": "^6.0"
     },

@@ -12,7 +12,7 @@ class Response {
 
     public static function success(mixed $data = null, string $message = 'عملیات با موفقیت انجام شد', int $code = 200): void {
         self::json([
-            'status' => true,
+            'success' => true,
             'message' => $message,
             'data' => $data
         ], $code);
@@ -24,7 +24,7 @@ class Response {
 
     public static function error(string $message, int $code = 400, mixed $errors = null): void {
         $response = [
-            'status' => false,
+            'success' => false,
             'message' => $message
         ];
 
@@ -45,6 +45,10 @@ class Response {
 
     public static function forbidden(string $message = 'شما اجازه دسترسی ندارید'): void {
         self::error($message, 403);
+    }
+
+    public static function tooManyRequests(string $message = 'تعداد درخواست‌ها بیش از حد مجاز است'): void {
+        self::error($message, 429);
     }
 
     public static function validation(array $errors, string $message = 'خطای اعتبارسنجی'): void {
