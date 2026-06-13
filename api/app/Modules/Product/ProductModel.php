@@ -32,7 +32,7 @@ class ProductModel extends Model
             $params[] = (int) $filters['category_id'];
         } elseif (!empty($filters['category'])) {
             // فرانت slug می‌فرسته — join به categories برای تطبیق
-            // $where[]  = 'c.slug = ?';
+            $where[]  = 'c.slug = ?';
             $params[] = $filters['category'];
         }
         if (!empty($filters['era'])) {
