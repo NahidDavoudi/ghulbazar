@@ -10,7 +10,6 @@
     --color-red-50: oklch(97.1% 0.013 17.38);
     --color-red-100: oklch(93.6% 0.032 17.717);
     --color-red-200: oklch(88.5% 0.062 18.334);
-    --color-red-300: oklch(80.8% 0.114 19.571);
     --color-red-400: oklch(70.4% 0.191 22.216);
     --color-red-500: oklch(63.7% 0.237 25.331);
     --color-red-600: oklch(57.7% 0.245 27.325);
@@ -52,14 +51,12 @@
     --color-stone-600: oklch(44.4% 0.011 73.639);
     --color-stone-700: oklch(37.4% 0.01 67.558);
     --color-stone-800: oklch(26.8% 0.007 34.298);
-    --color-mauve-950: oklch(14.5% 0.008 326);
     --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
     --container-sm: 24rem;
     --container-md: 28rem;
     --container-lg: 32rem;
-    --container-3xl: 48rem;
     --container-4xl: 56rem;
     --container-7xl: 80rem;
     --text-xs: 0.75rem;
@@ -82,8 +79,6 @@
     --text-5xl--line-height: 1;
     --text-6xl: 3.75rem;
     --text-6xl--line-height: 1;
-    --text-7xl: 4.5rem;
-    --text-7xl--line-height: 1;
     --font-weight-light: 300;
     --font-weight-medium: 500;
     --font-weight-semibold: 600;
@@ -100,7 +95,6 @@
     --radius-lg: 0.5rem;
     --radius-xl: 0.75rem;
     --radius-2xl: 1rem;
-    --drop-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.15);
     --drop-shadow-lg: 0 4px 4px rgb(0 0 0 / 0.15);
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --animate-spin: spin 1s linear infinite;
@@ -2551,10 +2545,10 @@
 .hover\:text-accent:hover {
   color: var(--color-accent);
 }
-[data-page] {
+div[data-page] {
   display: none;
 }
-[data-page].active {
+div[data-page].active {
   display: block;
 }
 .btn-aluminum {
@@ -2669,6 +2663,21 @@
 }
 .swiper-nav-btn:hover {
   transform: scale(1.05);
+}
+.featured-carousel {
+  padding-top: 20px !important;
+  padding-bottom: 40px !important;
+}
+.featured-carousel .swiper-slide {
+  width: min(240px, 70vw) !important;
+  height: auto;
+  transition: transform 0.4s ease;
+}
+.featured-carousel .swiper-slide-active {
+  transform: scale(1.06);
+}
+.featured-carousel .swiper-slide-active .iris-card {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
 }
 .hero-fullbleed img {
   object-position: center top;

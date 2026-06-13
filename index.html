@@ -18,23 +18,6 @@
     ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
     .badge { font-size:.7rem; padding:.2rem .7rem; border-radius:9999px; font-weight:700; white-space:nowrap; }
 
-    /* سوایپر محبوب‌ترین‌ها — کارت مرکزی بزرگ‌تر */
-    .featured-swiper {
-      padding-top: 20px !important;
-      padding-bottom: 40px !important;
-    }
-    .featured-swiper .swiper-slide {
-      width: min(240px, 70vw) !important;
-      height: auto;
-      transition: transform 0.4s ease;
-    }
-    .featured-swiper .swiper-slide-active {
-      transform: scale(1.06);
-    }
-    .featured-swiper .swiper-slide-active .iris-card {
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
-    }
-
     /* انیمیشن صفحات */
     @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
     [data-page].active { animation: fadeIn 0.2s ease; }
@@ -73,8 +56,9 @@
       transform: translateY(-6px) scale(0.99);
       pointer-events: none;
       transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-      background-color: var(--color-dark-2);
-      border-bottom: 1px solid var(--color-border);
+      background-color: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     }
     #mobile-menu.open {
       opacity: 1;
@@ -151,26 +135,8 @@
   <div data-page="home">
     <div id="hero-section"></div>
 
-    <!-- محبوب‌ترین‌ها -->
-    <section class="py-14 md:py-20 bg-white" id="featured-section">
-      <div class="max-w-[1280px] mx-auto relative">
-        <div class="flex flex-row-reverse items-center justify-between mb-8 px-4 md:px-6">
-          <h2 id="featured-title" class="text-2xl md:text-4xl font-bold text-body">محبوب‌ترین‌ها</h2>
-          <a href="#/shop?featured=1" data-link id="featured-all" class="text-muted text-xs md:text-sm hover:text-body flex flex-row-reverse items-center gap-1 transition-colors">
-            <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i><span>همه</span>
-          </a>
-        </div>
-        <div class="swiper featured-swiper px-4 md:px-6 relative">
-          <div class="swiper-wrapper" id="featured-wrapper"></div>
-          <div class="swiper-button-prev-feat swiper-nav-btn btn-aluminum absolute top-[42%] -translate-y-1/2 right-4 md:right-6 z-10">
-            <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
-          </div>
-          <div class="swiper-button-next-feat swiper-nav-btn btn-aluminum absolute top-[42%] -translate-y-1/2 left-4 md:left-6 z-10">
-            <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
-          </div>
-        </div>
-      </div>
-    </section>
+    <!-- محبوب‌ترین‌ها — توسط FeaturedCarousel پر می‌شود -->
+    <div id="featured-section"></div>
 
     <!-- بخش ویژگی MACHINED PERFECTION -->
     <div id="feature-section"></div>
@@ -335,45 +301,6 @@
 <script src="assets/js/libs/navigo.min.js"></script>
 <script src="assets/js/libs/lucide.min.js"></script>
 <script src="assets/js/libs/swiper-bundle.min.js"></script>
-<script>
-;(function () {
-  const _Orig = window.Swiper;
-  function GhulSwiper(el, cfg) {
-    const node = typeof el === 'string' ? document.querySelector(el) : el;
-    if (node && node.classList && node.classList.contains('featured-swiper')) {
-      const origOn = (cfg && cfg.on) || {};
-      cfg = Object.assign({}, cfg, {
-        effect: 'coverflow',
-        centeredSlides: true,
-        grabCursor: true,
-        simulateTouch: true,
-        coverflowEffect: { rotate: 28, stretch: 18, depth: 130, modifier: 1, slideShadows: true },
-        on: Object.assign({}, origOn, {
-          click: function (swiper, event) {
-            if (origOn.click) origOn.click.call(this, swiper, event);
-            if (event._ghul) return;
-            const btn = event.target.closest('.add-to-cart-quick');
-            if (btn && !btn.disabled) {
-              setTimeout(() => { const e2 = new MouseEvent('click', { bubbles: true }); e2._ghul = true; btn.dispatchEvent(e2); }, 0);
-              return;
-            }
-            const link = event.target.closest('a[data-link]') || event.target.closest('.iris-card[href]');
-            if (link) {
-              const href = link.getAttribute('href') || '';
-              const hash = href.startsWith('#') ? href.slice(1) : href;
-              if (hash && window.location.hash.slice(1) !== hash) window.location.hash = hash;
-            }
-          }
-        })
-      });
-    }
-    return new _Orig(el, cfg);
-  }
-  GhulSwiper.prototype = _Orig.prototype;
-  Object.setPrototypeOf(GhulSwiper, _Orig);
-  window.Swiper = GhulSwiper;
-})();
-</script>
 <script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

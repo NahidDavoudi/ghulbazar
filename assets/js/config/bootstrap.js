@@ -45,7 +45,7 @@ export function mergeStoreSettings(remote) {
   }
 
   if (remote.shop_poster) {
-    storeConfig.hero.image = remote.shop_poster;
+    storeConfig.feature.image = remote.shop_poster;
   }
 
   if (remote.bank_card) storeConfig.payment.cardNumber = remote.bank_card;

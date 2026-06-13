@@ -43,22 +43,53 @@ const Header = {
             </button>
           </div>
         </div>
-        <div id="mobile-menu" class="hidden md:hidden bg-white/95 backdrop-blur-xl border-t border-black/5 px-4 py-3">
+        <div id="mobile-menu" class="md:hidden px-4 py-3">
           <nav class="flex flex-col gap-1">
             ${navLinks.map((l) => `
-              <a href="${l.href}" data-link class="py-2.5 px-3 rounded-xl text-sm text-dim hover:bg-black/5 hover:text-body transition-colors">${l.label}</a>`).join('')}
+              <a href="${l.href}" data-link class="mobile-nav-item">${l.label}</a>`).join('')}
+            ${loggedIn ? `
+              <button id="mobile-logout-btn" class="mobile-auth-btn">
+                <span>خروج از حساب</span>
+                <span class="nav-icon-box"><i data-lucide="log-out" class="w-4 h-4"></i></span>
+              </button>` : `
+              <a href="login.html" class="mobile-auth-btn">
+                <span>ورود به حساب</span>
+                <span class="nav-icon-box"><i data-lucide="user" class="w-4 h-4"></i></span>
+              </a>`}
           </nav>
         </div>
-      </header>`;
+      </header>
+      <div id="mobile-menu-backdrop"></div>`;
   },
 
   bind(container, callbacks = {}) {
+    const menuBtn = container.querySelector('#mobile-menu-btn');
+    const menu = container.querySelector('#mobile-menu');
+    const backdrop = container.querySelector('#mobile-menu-backdrop');
+
+    function setMenuOpen(open) {
+      menu?.classList.toggle('open', open);
+      backdrop?.classList.toggle('open', open);
+      menuBtn?.classList.toggle('menu-open', open);
+      document.body.classList.toggle('overflow-hidden', open);
+
+      const icon = menuBtn?.querySelector('[data-lucide]');
+      if (icon) {
+        icon.setAttribute('data-lucide', open ? 'x' : 'menu');
+        window.lucide?.createIcons();
+      }
+    }
+
     function highlightNav() {
       const hash = location.hash.split('?')[0];
-      container.querySelectorAll('.header-nav-link').forEach((a) => {
+      container.querySelectorAll('.header-nav-link, #mobile-menu a[data-link]').forEach((a) => {
         const href = a.getAttribute('href');
-        a.classList.toggle('text-body', href === hash || (hash === '#/' && href === '#/'));
-        a.classList.toggle('font-bold', href === hash || (hash === '#/' && href === '#/'));
+        const active = href === hash || (hash === '#/' && href === '#/');
+        a.classList.toggle('text-body', active);
+        a.classList.toggle('font-bold', active);
+        if (a.classList.contains('mobile-nav-item')) {
+          a.classList.toggle('text-accent', active);
+        }
       });
     }
 
@@ -69,12 +100,23 @@ const Header = {
       await callbacks.onLogout?.();
     });
 
-    container.querySelector('#mobile-menu-btn')?.addEventListener('click', () => {
-      container.querySelector('#mobile-menu')?.classList.toggle('hidden');
+    container.querySelector('#mobile-logout-btn')?.addEventListener('click', async () => {
+      setMenuOpen(false);
+      await callbacks.onLogout?.();
     });
 
+    menuBtn?.addEventListener('click', () => {
+      setMenuOpen(!menu?.classList.contains('open'));
+    });
+
+    backdrop?.addEventListener('click', () => setMenuOpen(false));
+
     container.querySelectorAll('#mobile-menu a[data-link]').forEach((a) => {
-      a.addEventListener('click', () => container.querySelector('#mobile-menu')?.classList.add('hidden'));
+      a.addEventListener('click', () => setMenuOpen(false));
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menu?.classList.contains('open')) setMenuOpen(false);
     });
   },
 };

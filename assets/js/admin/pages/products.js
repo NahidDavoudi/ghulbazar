@@ -211,7 +211,7 @@
       badge:       getVal('productBadge'),
       era:         getVal('productEra'),
       category_id: getVal('productCategory') || null,
-      is_featured: $('productFeatured')?.checked ? 1 : 0,
+      featured: $('productFeatured')?.checked ? 1 : 0,
     };
     if (!payload.name)  { toast('نام محصول الزامی است', 'error');  return; }
     if (!payload.price) { toast('قیمت محصول الزامی است', 'error'); return; }
