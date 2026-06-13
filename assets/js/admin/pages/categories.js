@@ -36,8 +36,8 @@
         <td class="px-5 py-4 text-stone-400 text-sm">${i + 1}</td>
         <td class="px-5 py-4">
           <div class="flex items-center gap-3">
-            ${c.image_url
-              ? `<img src="${c.image_url}" class="w-10 h-10 rounded-xl object-cover bg-stone-100">`
+            ${(c.poster_image || c.main_image)
+              ? `<img src="${c.poster_image || c.main_image}" class="w-10 h-10 rounded-xl object-cover bg-stone-100">`
               : `<div class="w-10 h-10 rounded-xl bg-stone-100 flex items-center justify-center text-stone-300">
                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -50,7 +50,7 @@
         <td class="px-5 py-4 text-stone-500 text-sm font-mono">${c.slug || '—'}</td>
         <td class="px-5 py-4">
           <div class="flex gap-1">
-            <button onclick="editCategory(${c.id},'${c.name.replace(/'/g, "\\'")}','${(c.slug || '').replace(/'/g, "\\'")}','${c.image_url || ''}')"
+            <button onclick="editCategory(${c.id},'${c.name.replace(/'/g, "\\'")}','${(c.slug || '').replace(/'/g, "\\'")}','${(c.poster_image || c.main_image || '').replace(/'/g, "\\'")}')"
                     class="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors" title="ویرایش">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -135,7 +135,7 @@
       const imgInput = $('catImageInput');
       if (catId && imgInput?.files?.length) {
         try {
-          await API.categories.uploadImage(catId, imgInput.files[0]);
+          await API.categories.uploadPoster(catId, imgInput.files[0]);
           imgInput.value = '';
         } catch (imgErr) {
           toast('دسته‌بندی ذخیره شد ولی آپلود پوستر ناموفق: ' + imgErr.message, 'info');
