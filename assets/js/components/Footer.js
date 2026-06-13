@@ -9,7 +9,7 @@ const Footer = {
       <footer class="border-t border-border bg-body mt-20">
         <div class="max-w-[1280px] mx-auto px-4 md:px-6 py-12">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-            <div class="text-right">
+            <div class="text-right flex flex-col items-start">
               <div class="flex items-center gap-2 justify-end mb-4">
                 <span class="font-display text-lg text-body">${storeConfig.name}</span>
                 <img src="${storeConfig.logo}" alt="" class="w-8 h-8 object-contain">
