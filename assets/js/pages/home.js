@@ -5,11 +5,12 @@ import api from '../core/api.js';
 import Router from '../core/router.js';
 import ProductCard from '../components/ProductCard.js';
 import HeroSection from '../components/HeroSection.js';
+import FeatureSection from '../components/FeatureSection.js';
 import { storeConfig } from '../config/bootstrap.js';
 
 const SWIPER_DEFAULTS = {
   slidesPerView: 1.5,
-  spaceBetween: 12,
+  spaceBetween: 16,
   loop: true,
   breakpoints: {
     480: { slidesPerView: 2.2 },
@@ -31,9 +32,31 @@ function bindProductCards(container) {
   });
 }
 
+function setHomeTexts() {
+  const { home, newsletter } = storeConfig.texts;
+  const featuredTitle = document.getElementById('featured-title');
+  const newestTitle = document.getElementById('newest-title');
+  const featuredAll = document.getElementById('featured-all');
+  const newestAll = document.getElementById('newest-all');
+  const nlTitle = document.getElementById('newsletter-title');
+  const nlSub = document.getElementById('newsletter-subtitle');
+
+  if (featuredTitle) featuredTitle.textContent = home.featured;
+  if (newestTitle) newestTitle.textContent = home.newest;
+  if (featuredAll) featuredAll.querySelector('span').textContent = home.viewAll;
+  if (newestAll) newestAll.querySelector('span').textContent = home.viewAll;
+  if (nlTitle) nlTitle.textContent = newsletter.title;
+  if (nlSub) nlSub.textContent = newsletter.subtitle;
+}
+
 Router.onEnter('home', async function () {
   const heroEl = document.getElementById('hero-section');
   if (heroEl) heroEl.innerHTML = HeroSection.render();
+
+  const featureEl = document.getElementById('feature-section');
+  if (featureEl) featureEl.innerHTML = FeatureSection.render();
+
+  setHomeTexts();
 
   try {
     const featured = await api.products.list({ featured: 1 });
@@ -71,12 +94,6 @@ Router.onEnter('home', async function () {
   } catch (e) {
     console.warn('Products error:', e);
   }
-
-  const nl = storeConfig.texts.newsletter;
-  const nlTitle = document.getElementById('newsletter-title');
-  const nlSub = document.getElementById('newsletter-subtitle');
-  if (nlTitle) nlTitle.textContent = nl.title;
-  if (nlSub) nlSub.textContent = nl.subtitle;
 
   if (window.lucide) lucide.createIcons();
 });

@@ -10,111 +10,29 @@
   <link rel="shortcut icon" href="assets/images/logo.png" type="image/x-icon">
   <script src="assets/js/libs/lucide.min.js"></script>
   <style>
-    body { font-family: var(--font-vazir); background-color: var(--color-dark); color: #1e293b; }
-    .tab-active   { border-bottom: 2px solid var(--color-accent); color: #1e293b; }
+    body { font-family: var(--font-vazir); background-color: #ffffff; color: #1d1d1f; }
+    .tab-active   { border-bottom: 2px solid var(--color-accent); color: #1d1d1f; }
     .tab-inactive { border-bottom: 2px solid transparent; color: var(--color-muted); }
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #e2e8f0; }
+    ::-webkit-scrollbar-track { background: #f5f5f7; }
     ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
     .badge { font-size:.7rem; padding:.2rem .7rem; border-radius:9999px; font-weight:700; white-space:nowrap; }
 
-    /* کارت‌های محصول با تم جدید */
-    .clay-card {
-      position: relative;
-      display: block;
-      aspect-ratio: 3 / 4;
-      background: var(--color-dark-3);
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08), 0 14px 36px rgba(0, 0, 0, 0.05);
-      transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.32s ease;
-      text-decoration: none;
-      color: inherit;
-    }
-    .clay-card:hover {
-      transform: translateY(-6px) scale(1.02);
-      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12), 0 0 0 1.5px rgba(75, 107, 138, 0.3);
-    }
-    .clay-card .card-img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.55s ease;
-    }
-    .clay-card:hover .card-img { transform: scale(1.06); }
-    .clay-card .card-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
-      pointer-events: none;
-    }
-    .clay-card .card-body {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      padding: 0 12px 12px;
-      text-align: right;
-    }
-    .clay-card .card-era {
-      font-size: 10px;
-      color: #94a3b8;
-      margin-bottom: 3px;
-    }
-    .clay-card .card-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: white;
-      margin-bottom: 8px;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .clay-card .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .clay-card .card-price {
-      font-size: 12px;
-      font-weight: 700;
-      color: white;
-    }
-    /* دکمه شیشه‌ای افزودن به سبد */
-    .cart-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 5px 10px 5px 8px;
-      background: rgba(0,0,0,0.05);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(0,0,0,0.1);
-      border-radius: 999px;
-      color: #1e293b;
-      font-size: 11px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-    .cart-pill:hover {
-      background: var(--color-accent);
-      border-color: var(--color-accent);
-      color: white;
-    }
-    .cart-pill:disabled { opacity: 0.3; cursor: not-allowed; }
-
-    /* سوایپر ویژه */
+    /* سوایپر محبوب‌ترین‌ها — کارت مرکزی بزرگ‌تر */
     .featured-swiper {
-      padding-top: 44px !important;
-      padding-bottom: 54px !important;
+      padding-top: 20px !important;
+      padding-bottom: 40px !important;
     }
     .featured-swiper .swiper-slide {
-      width: min(268px, 74vw) !important;
+      width: min(240px, 70vw) !important;
       height: auto;
+      transition: transform 0.4s ease;
     }
-    .featured-swiper .swiper-slide-active .clay-card {
-      box-shadow: 0 22px 55px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--color-accent);
+    .featured-swiper .swiper-slide-active {
+      transform: scale(1.06);
+    }
+    .featured-swiper .swiper-slide-active .iris-card {
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
     }
 
     /* انیمیشن صفحات */
@@ -233,48 +151,45 @@
   <div data-page="home">
     <div id="hero-section"></div>
 
-    <!-- محصولات ویژه (اسلایدر کاورفلو) -->
-    <section class="py-12 md:py-20" id="featured-section">
-      <div class="max-w-[1280px] mx-auto">
-        <div class="flex flex-row-reverse items-center justify-between mb-6 px-4 md:px-6">
-          <a href="#/shop?featured=1" data-link class="text-muted text-xs md:text-sm hover:text-accent flex flex-row-reverse items-center gap-1">
+    <!-- محبوب‌ترین‌ها -->
+    <section class="py-14 md:py-20 bg-white" id="featured-section">
+      <div class="max-w-[1280px] mx-auto relative">
+        <div class="flex flex-row-reverse items-center justify-between mb-8 px-4 md:px-6">
+          <h2 id="featured-title" class="text-2xl md:text-4xl font-bold text-body">محبوب‌ترین‌ها</h2>
+          <a href="#/shop?featured=1" data-link id="featured-all" class="text-muted text-xs md:text-sm hover:text-body flex flex-row-reverse items-center gap-1 transition-colors">
             <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i><span>همه</span>
           </a>
-          <h2 class="text-xl md:text-3xl font-bold flex flex-row-reverse items-center gap-2">
-            <i data-lucide="astroid" class="w-6 h-6 text-accent"></i>
-            <span>محصولات ویژه</span>
-          </h2>
         </div>
-        <div class="swiper featured-swiper px-4 md:px-6">
+        <div class="swiper featured-swiper px-4 md:px-6 relative">
           <div class="swiper-wrapper" id="featured-wrapper"></div>
-          <div class="swiper-button-prev-feat absolute top-[45%] -translate-y-1/2 right-0 z-10 w-9 h-9 bg-surface border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
+          <div class="swiper-button-prev-feat swiper-nav-btn btn-aluminum absolute top-[42%] -translate-y-1/2 right-4 md:right-6 z-10">
             <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
           </div>
-          <div class="swiper-button-next-feat absolute top-[45%] -translate-y-1/2 left-0 z-10 w-9 h-9 bg-surface border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
+          <div class="swiper-button-next-feat swiper-nav-btn btn-aluminum absolute top-[42%] -translate-y-1/2 left-4 md:left-6 z-10">
             <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- تازه‌ترین محصولات -->
-    <section class="py-12 md:py-20">
-      <div class="max-w-[1280px] mx-auto">
-        <div class="flex flex-row-reverse items-center justify-between mb-6 px-4 md:px-6">
-          <a href="#/shop" data-link class="text-muted text-xs md:text-sm hover:text-accent flex flex-row-reverse items-center gap-1 group">
+    <!-- بخش ویژگی MACHINED PERFECTION -->
+    <div id="feature-section"></div>
+
+    <!-- جدیدترین محصولات -->
+    <section class="py-14 md:py-20 bg-[#f5f5f7]">
+      <div class="max-w-[1280px] mx-auto relative">
+        <div class="flex flex-row-reverse items-center justify-between mb-8 px-4 md:px-6">
+          <h2 id="newest-title" class="text-2xl md:text-4xl font-bold text-body">جدیدترین محصولات</h2>
+          <a href="#/shop" data-link id="newest-all" class="text-muted text-xs md:text-sm hover:text-body flex flex-row-reverse items-center gap-1 transition-colors">
             <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i><span>همه</span>
           </a>
-          <h2 class="text-xl md:text-3xl font-bold flex flex-row-reverse items-center gap-2">
-            <i data-lucide="badge-plus" class="w-6 h-6 text-accent"></i>
-            <span>تازه رسیده ها</span>
-          </h2>
         </div>
-        <div class="swiper products-swiper px-4 md:px-6">
+        <div class="swiper products-swiper px-4 md:px-6 relative">
           <div class="swiper-wrapper" id="products-wrapper"></div>
-          <div class="swiper-button-prev-prods absolute top-[45%] -translate-y-1/2 right-0 z-10 w-9 h-9 bg-surface border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
+          <div class="swiper-button-prev-prods swiper-nav-btn btn-glass absolute top-[42%] -translate-y-1/2 right-4 md:right-6 z-10">
             <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
           </div>
-          <div class="swiper-button-next-prods absolute top-[45%] -translate-y-1/2 left-0 z-10 w-9 h-9 bg-surface border border-border rounded-full flex items-center justify-center cursor-pointer hover:bg-accent transition-all">
+          <div class="swiper-button-next-prods swiper-nav-btn btn-glass absolute top-[42%] -translate-y-1/2 left-4 md:left-6 z-10">
             <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
           </div>
         </div>
@@ -282,14 +197,14 @@
     </section>
 
     <!-- خبرنامه -->
-    <section class="py-16 md:py-24 border-t border-border relative overflow-hidden">
+    <section class="py-16 md:py-24 border-t border-black/5 bg-white relative overflow-hidden">
       <div class="max-w-lg mx-auto px-5 text-center relative z-10">
-        <i data-lucide="users" class="w-8 h-8 text-accent mx-auto mb-4"></i>
+        <i data-lucide="users" class="w-8 h-8 text-body mx-auto mb-4"></i>
         <h2 id="newsletter-title" class="text-2xl md:text-3xl font-bold mb-3">به حلقه یاران بپیوندید</h2>
         <p id="newsletter-subtitle" class="text-muted mb-6 text-sm md:text-base">برای دریافت اخبار کالکشن‌های جدید عضو شوید.</p>
         <div class="flex flex-col sm:flex-row gap-3" dir="ltr">
-          <button class="px-6 py-3 bg-accent text-white font-bold rounded-lg hover:bg-accent-hover transition-all shrink-0 order-2 sm:order-1">عضویت</button>
-          <input type="email" placeholder="ایمیل شما..." class="flex-1 bg-surface border border-border rounded-lg px-4 py-3 text-body placeholder:text-muted/60 focus:outline-none focus:border-accent transition-colors order-1 sm:order-2" dir="rtl">
+          <button class="btn btn-aluminum btn-md shrink-0 order-2 sm:order-1">عضویت</button>
+          <input type="email" placeholder="ایمیل شما..." class="flex-1 bg-[#f5f5f7] border border-black/10 rounded-full px-5 py-3 text-body placeholder:text-muted/60 focus:outline-none focus:border-black/20 transition-colors order-1 sm:order-2" dir="rtl">
         </div>
       </div>
     </section>
@@ -442,7 +357,7 @@
               setTimeout(() => { const e2 = new MouseEvent('click', { bubbles: true }); e2._ghul = true; btn.dispatchEvent(e2); }, 0);
               return;
             }
-            const link = event.target.closest('a[data-link]') || event.target.closest('.clay-card[href]');
+            const link = event.target.closest('a[data-link]') || event.target.closest('.iris-card[href]');
             if (link) {
               const href = link.getAttribute('href') || '';
               const hash = href.startsWith('#') ? href.slice(1) : href;

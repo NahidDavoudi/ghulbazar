@@ -88,10 +88,12 @@ document.addEventListener('click', async (e) => {
   e.stopPropagation();
   const id = btn.dataset.productId;
   if (!id) return;
-  const orig = btn.textContent;
+  const inner = btn.querySelector('.btn-inner');
+  const orig = inner ? inner.textContent : btn.textContent;
   btn.disabled = true;
-  btn.textContent = '✓';
-  btn.classList.add('bg-accent', 'border-accent', 'text-white');
+  if (inner) inner.textContent = '✓';
+  else btn.textContent = '✓';
+  btn.classList.add('is-success');
   try {
     await api.cart.add(id, 1);
     window.loadCartCount();
@@ -101,8 +103,9 @@ document.addEventListener('click', async (e) => {
   }
   setTimeout(() => {
     btn.disabled = false;
-    btn.textContent = orig;
-    btn.classList.remove('bg-accent', 'border-accent', 'text-white');
+    if (inner) inner.textContent = orig;
+    else btn.textContent = orig;
+    btn.classList.remove('is-success');
   }, 1800);
 });
 
