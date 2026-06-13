@@ -8,19 +8,46 @@ function nextId() {
   return `fc-${_uid}`;
 }
 
+function isRtl() {
+  return document.documentElement.dir === 'rtl';
+}
+
+function getActiveOffset(cfg) {
+  return window.innerWidth < 992 ? cfg.mobileStackOffset : cfg.stackOffset;
+}
+
+function getCardTransform(index, currentIndex, cardWidth, cfg) {
+  const activeOffset = getActiveOffset(cfg);
+  const step = cardWidth + cfg.cardGap - activeOffset;
+  const slideMove = step * (index < currentIndex ? index : currentIndex);
+  const sign = isRtl() ? 1 : -1;
+  return sign * slideMove;
+}
+
+function getButtonAlign(position) {
+  if (position === 'center') return 'justify-center';
+  if (position === 'end') return 'justify-end';
+  return 'justify-start';
+}
+
 const FeaturedCarousel = {
   render(data = {}) {
     const { carousel } = storeConfig;
     const { home } = storeConfig.texts;
+    const cfg = carousel.featured;
     const products = data.products || [];
     const id = data.id || nextId();
     const title = data.title || home.featured;
-    const viewAllHref = data.viewAllHref || carousel.featured.viewAllHref;
+    const viewAllHref = data.viewAllHref || cfg.viewAllHref;
     const viewAllLabel = data.viewAllLabel || home.viewAll;
-    const navClass = carousel.featured.navVariant === 'glass' ? 'btn-glass' : 'btn-aluminum';
+    const navClass = cfg.navVariant === 'glass' ? 'btn-glass' : 'btn-aluminum';
+    const navAlign = getButtonAlign(cfg.buttonPosition);
 
-    const slides = products
-      .map((p) => `<div class="swiper-slide">${ProductCard.render(p)}</div>`)
+    const cards = products
+      .map(
+        (p, i) =>
+          `<div class="stacking-slider__card" data-card-index="${i}" style="z-index:${i + 1}">${ProductCard.render(p)}</div>`
+      )
       .join('');
 
     return `
@@ -33,13 +60,22 @@ const FeaturedCarousel = {
               <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i><span>${viewAllLabel}</span>
             </a>
           </div>
-          <div class="swiper featured-carousel px-4 md:px-6 relative" data-swiper-id="${id}">
-            <div class="swiper-wrapper">${slides}</div>
-            <div class="swiper-button-prev-${id} swiper-nav-btn ${navClass} absolute top-[42%] -translate-y-1/2 right-4 md:right-6 z-10">
-              <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
+          <div class="stacking-slider px-4 md:px-6" data-slider-id="${id}"
+               style="--stack-card-gap:${cfg.cardGap}px;--stack-transition:${cfg.transitionDuration}ms;">
+            <div class="stacking-slider__viewport">
+              <div class="stacking-slider__track">${cards}</div>
             </div>
-            <div class="swiper-button-next-${id} swiper-nav-btn ${navClass} absolute top-[42%] -translate-y-1/2 left-4 md:left-6 z-10">
-              <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
+            <div class="stacking-slider__nav flex items-center gap-5 mt-5 ${navAlign}">
+              <button type="button" class="stacking-slider__btn stacking-slider__btn--prev ${navClass}"
+                      data-action="prev" aria-label="قبلی" disabled
+                      style="width:${cfg.arrowSize}px;height:${cfg.arrowSize}px;opacity:${cfg.disabledArrowOpacity};">
+                <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
+              </button>
+              <button type="button" class="stacking-slider__btn stacking-slider__btn--next ${navClass}"
+                      data-action="next" aria-label="بعدی"
+                      style="width:${cfg.arrowSize}px;height:${cfg.arrowSize}px;">
+                <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -47,70 +83,136 @@ const FeaturedCarousel = {
   },
 
   bind(container, callbacks = {}) {
-    const swiperEl = container.querySelector('.featured-carousel');
-    if (!swiperEl || typeof Swiper === 'undefined') return null;
+    const sliderEl = container.querySelector('.stacking-slider');
+    if (!sliderEl) return null;
 
-    const id = swiperEl.dataset.swiperId;
-    const { carousel } = storeConfig;
-    const cfg = carousel.featured;
+    const cfg = storeConfig.carousel.featured;
+    const cards = [...sliderEl.querySelectorAll('.stacking-slider__card')];
+    if (!cards.length) return null;
 
-    container.querySelectorAll('.swiper-slide').forEach((slide) => {
-      ProductCard.bind(slide, callbacks);
+    cards.forEach((card) => ProductCard.bind(card, callbacks));
+
+    const prevBtn = sliderEl.querySelector('[data-action="prev"]');
+    const nextBtn = sliderEl.querySelector('[data-action="next"]');
+    let currentIndex = 0;
+    let cardWidth = 0;
+    let touchStartX = 0;
+
+    const state = { currentIndex, ro: null, onResize: null, onPrev: null, onNext: null, onTouchStart: null, onTouchEnd: null };
+
+    function measureCardWidth() {
+      if (cards[0]) cardWidth = cards[0].offsetWidth;
+    }
+
+    function updateButtons() {
+      const atStart = currentIndex === 0;
+      const atEnd = currentIndex >= cards.length - 1;
+      if (prevBtn) {
+        prevBtn.disabled = atStart;
+        prevBtn.style.opacity = atStart ? cfg.disabledArrowOpacity : '1';
+        prevBtn.style.cursor = atStart ? 'not-allowed' : 'pointer';
+      }
+      if (nextBtn) {
+        nextBtn.disabled = atEnd;
+        nextBtn.style.opacity = atEnd ? cfg.disabledArrowOpacity : '1';
+        nextBtn.style.cursor = atEnd ? 'not-allowed' : 'pointer';
+      }
+    }
+
+    function applyTransforms() {
+      cards.forEach((card, index) => {
+        const x = getCardTransform(index, currentIndex, cardWidth, cfg);
+        card.style.transform = `translateX(${x}px)`;
+      });
+      updateButtons();
+    }
+
+    function goTo(index) {
+      const next = Math.max(0, Math.min(index, cards.length - 1));
+      if (next === currentIndex) return;
+      currentIndex = next;
+      state.currentIndex = currentIndex;
+      applyTransforms();
+    }
+
+    state.onResize = () => {
+      measureCardWidth();
+      applyTransforms();
+    };
+
+    state.onPrev = () => goTo(currentIndex - 1);
+    state.onNext = () => goTo(currentIndex + 1);
+
+    state.onTouchStart = (e) => {
+      touchStartX = e.changedTouches?.[0]?.clientX ?? 0;
+    };
+
+    state.onTouchEnd = (e) => {
+      const touchEndX = e.changedTouches?.[0]?.clientX ?? 0;
+      const delta = touchEndX - touchStartX;
+      const threshold = 40;
+      if (Math.abs(delta) < threshold) return;
+      if (isRtl()) {
+        if (delta > 0) goTo(currentIndex + 1);
+        else goTo(currentIndex - 1);
+      } else {
+        if (delta < 0) goTo(currentIndex + 1);
+        else goTo(currentIndex - 1);
+      }
+    };
+
+    sliderEl.addEventListener('click', (event) => {
+      const btn = event.target.closest('.add-to-cart-quick');
+      if (btn && !btn.disabled) return;
+
+      const link = event.target.closest('a[data-link]') || event.target.closest('.iris-card[href]');
+      if (!link) return;
+      const href = link.getAttribute('href') || '';
+      const hash = href.startsWith('#') ? href.slice(1) : href;
+      if (hash && window.location.hash.slice(1) !== hash) {
+        window.location.hash = hash;
+      }
     });
 
-    const instance = new Swiper(swiperEl, {
-      slidesPerView: cfg.slidesPerView,
-      spaceBetween: cfg.spaceBetween,
-      loop: productsLoopEnabled(container),
-      effect: cfg.effect,
-      centeredSlides: cfg.centeredSlides,
-      grabCursor: cfg.grabCursor,
-      coverflowEffect: cfg.coverflowEffect,
-      breakpoints: cfg.breakpoints,
-      navigation: {
-        prevEl: `.swiper-button-prev-${id}`,
-        nextEl: `.swiper-button-next-${id}`,
-      },
-      on: {
-        click(swiper, event) {
-          if (event._ghul) return;
-          const btn = event.target.closest('.add-to-cart-quick');
-          if (btn && !btn.disabled) {
-            setTimeout(() => {
-              const e2 = new MouseEvent('click', { bubbles: true });
-              e2._ghul = true;
-              btn.dispatchEvent(e2);
-            }, 0);
-            return;
-          }
-          const link = event.target.closest('a[data-link]') || event.target.closest('.iris-card[href]');
-          if (link) {
-            const href = link.getAttribute('href') || '';
-            const hash = href.startsWith('#') ? href.slice(1) : href;
-            if (hash && window.location.hash.slice(1) !== hash) {
-              window.location.hash = hash;
-            }
-          }
-        },
-      },
-    });
+    prevBtn?.addEventListener('click', state.onPrev);
+    nextBtn?.addEventListener('click', state.onNext);
+    sliderEl.addEventListener('touchstart', state.onTouchStart, { passive: true });
+    sliderEl.addEventListener('touchend', state.onTouchEnd, { passive: true });
+    window.addEventListener('resize', state.onResize);
 
-    swiperEl._swiperInstance = instance;
-    return instance;
+    if (typeof ResizeObserver !== 'undefined') {
+      state.ro = new ResizeObserver(state.onResize);
+      state.ro.observe(cards[0]);
+    }
+
+    measureCardWidth();
+    setTimeout(() => {
+      measureCardWidth();
+      applyTransforms();
+    }, 100);
+    applyTransforms();
+
+    sliderEl._stackingState = state;
+    return state;
   },
 
   destroy(container) {
-    const swiperEl = container?.querySelector('.featured-carousel');
-    if (swiperEl?._swiperInstance) {
-      swiperEl._swiperInstance.destroy(true, true);
-      swiperEl._swiperInstance = null;
-    }
+    const sliderEl = container?.querySelector('.stacking-slider');
+    const state = sliderEl?._stackingState;
+    if (!state) return;
+
+    window.removeEventListener('resize', state.onResize);
+    state.ro?.disconnect();
+
+    const prevBtn = sliderEl.querySelector('[data-action="prev"]');
+    const nextBtn = sliderEl.querySelector('[data-action="next"]');
+    prevBtn?.removeEventListener('click', state.onPrev);
+    nextBtn?.removeEventListener('click', state.onNext);
+    sliderEl.removeEventListener('touchstart', state.onTouchStart);
+    sliderEl.removeEventListener('touchend', state.onTouchEnd);
+
+    sliderEl._stackingState = null;
   },
 };
-
-function productsLoopEnabled(container) {
-  const count = container.querySelectorAll('.swiper-slide').length;
-  return count > 2;
-}
 
 export default FeaturedCarousel;

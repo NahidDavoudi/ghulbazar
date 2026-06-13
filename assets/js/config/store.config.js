@@ -154,41 +154,19 @@ export default {
 
       navVariant: 'aluminum',
 
-      effect: 'coverflow',
+      cardGap: 16,
 
-      centeredSlides: true,
+      stackOffset: 24,
 
-      grabCursor: true,
+      mobileStackOffset: 12,
 
-      slidesPerView: 1.5,
+      transitionDuration: 350,
 
-      spaceBetween: 16,
+      arrowSize: 40,
 
-      coverflowEffect: {
+      buttonPosition: 'start',
 
-        rotate: 28,
-
-        stretch: 18,
-
-        depth: 130,
-
-        modifier: 1,
-
-        slideShadows: true,
-
-      },
-
-      breakpoints: {
-
-        480: { slidesPerView: 2.2 },
-
-        640: { slidesPerView: 2.5 },
-
-        768: { slidesPerView: 3 },
-
-        1024: { slidesPerView: 4 },
-
-      },
+      disabledArrowOpacity: 0.3,
 
     },
 
