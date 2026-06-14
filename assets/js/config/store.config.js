@@ -114,6 +114,12 @@ export default {
 
   },
 
+  data: {
+
+    iranLocations: 'assets/data/provinces_cities_counties.json',
+
+  },
+
 
 
   payment: {

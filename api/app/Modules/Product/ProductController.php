@@ -15,6 +15,13 @@ class ProductController extends Controller
         $this->service = new ProductService(
             new ProductModel(),
             new ProductImageModel(),
+            new \App\Modules\Variant\VariantService(
+                new \App\Modules\Variant\ProductVariantModel(),
+                new \App\Modules\Variant\InventoryModel(),
+                new ProductModel(),
+                new \App\Modules\Attribute\AttributeValueModel(),
+            ),
+            new \App\Modules\Attribute\AttributeTypeModel(),
         );
     }
 
@@ -56,9 +63,9 @@ class ProductController extends Controller
     public function store(Request $request): void
     {
         $data = $request->only([
-            'name', 'description', 'price',
-            'category_id', 'era', 'material', 'badge',
-            'stock', 'featured', 'is_active',
+            'name', 'slug', 'description', 'short_description', 'full_description',
+            'price', 'sale_price', 'category_id', 'era', 'material', 'badge',
+            'stock', 'low_stock_threshold', 'featured', 'is_active', 'status', 'product_type',
         ]);
 
         try {
@@ -73,9 +80,9 @@ class ProductController extends Controller
     public function update(Request $request, int $id): void
     {
         $data = $request->only([
-            'name', 'description', 'price',
-            'category_id', 'era', 'material', 'badge',
-            'stock', 'featured', 'is_active',
+            'name', 'slug', 'description', 'short_description', 'full_description',
+            'price', 'sale_price', 'category_id', 'era', 'material', 'badge',
+            'stock', 'low_stock_threshold', 'featured', 'is_active', 'status', 'product_type',
         ]);
 
         try {

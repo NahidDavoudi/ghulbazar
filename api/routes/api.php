@@ -12,6 +12,8 @@ use App\Modules\Cart\CartController;
 use App\Modules\Discount\DiscountController;
 use App\Modules\Admin\AdminController;
 use App\Modules\Settings\SettingsController;
+use App\Modules\Attribute\AttributeController;
+use App\Modules\Variant\VariantController;
 
 $router->group([
     'middleware' => [LogMiddleware::class],
@@ -120,6 +122,16 @@ $router->group([
         $router->post('/products/{id}/images',             [ProductController::class, 'addImage']);
         $router->patch('/products/{id}/images/{imageId}',  [ProductController::class, 'setMainImage']);
         $router->delete('/products/{id}/images/{imageId}', [ProductController::class, 'deleteImage']);
+        $router->post('/products/{id}/variants/generate',  [VariantController::class, 'generate']);
+        $router->put('/products/{id}/variants/bulk',       [VariantController::class, 'bulkUpdate']);
+
+        // Variants
+        $router->put('/variants/{id}',                     [VariantController::class, 'update']);
+
+        // Attribute types
+        $router->get('/attribute-types',                  [AttributeController::class, 'index']);
+        $router->post('/attribute-types',                 [AttributeController::class, 'store']);
+        $router->post('/attribute-types/{id}/values',      [AttributeController::class, 'addValue']);
 
         // Categories
         $router->post('/categories',                         [CategoryController::class, 'store']);

@@ -9,15 +9,21 @@ class ProductModel extends Model
     protected string $table = 'products';
     protected array $fillable = [
         'name',
+        'slug',
         'description',
+        'short_description',
         'price',
+        'sale_price',
         'category_id',
         'era',
         'material',
         'badge',
         'stock',
+        'low_stock_threshold',
         'featured',
         'is_active',
+        'status',
+        'product_type',
     ];
     protected bool $timestamps = true;
 
@@ -187,5 +193,10 @@ class ProductModel extends Model
         $this->pdo->prepare("
             UPDATE {$this->table} SET stock = stock + ? WHERE id = ?
         ")->execute([$qty, $id]);
+    }
+
+    public function slugExists(string $slug, ?int $excludeId = null): bool
+    {
+        return $this->exists('slug', $slug, $excludeId);
     }
 }

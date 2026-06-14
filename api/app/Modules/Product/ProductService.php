@@ -2,11 +2,17 @@
 
 namespace App\Modules\Product;
 
+use App\Modules\Attribute\AttributeTypeModel;
+use App\Modules\Variant\VariantService;
+use App\Utils\SlugHelper;
+
 class ProductService
 {
     public function __construct(
         private ProductModel      $productModel,
         private ProductImageModel $imageModel,
+        private VariantService    $variantService,
+        private AttributeTypeModel $attributeTypeModel,
     ) {}
 
     // ─── Public Listing ─────────────────────────────────────────
@@ -29,10 +35,7 @@ class ProductService
             throw new \RuntimeException('محصول یافت نشد.', 404);
         }
 
-        $product['images']  = $this->imageModel->getByProductId($id);
-        $product['options'] = $this->productModel->getOptions($id);
-
-        return $product;
+        return $this->enrichProduct($product);
     }
 
     // ─── Admin CRUD ─────────────────────────────────────────────
@@ -41,18 +44,30 @@ class ProductService
     {
         $this->validateProductData($data);
 
+        $slug = $this->resolveSlug($data['name'], $data['slug'] ?? null);
+        $status = $data['status'] ?? 'active';
+        $isActive = $status === 'active' ? 1 : 0;
+
         $id = $this->productModel->create([
-            'name'        => trim($data['name']),
-            'description' => trim($data['description'] ?? ''),
-            'price'       => (int) $data['price'],
-            'category_id' => (int) ($data['category_id'] ?? 0) ?: null,
-            'era'         => trim($data['era'] ?? ''),
-            'material'    => trim($data['material'] ?? ''),
-            'badge'       => trim($data['badge'] ?? ''),
-            'stock'       => (int) ($data['stock'] ?? 0),
-            'featured'    => (int) ($data['featured'] ?? 0),
-            'is_active'   => (int) ($data['is_active'] ?? 1),
+            'name'                => trim($data['name']),
+            'slug'                => $slug,
+            'description'         => trim($data['description'] ?? $data['full_description'] ?? ''),
+            'short_description'   => trim($data['short_description'] ?? ''),
+            'price'               => (int) $data['price'],
+            'sale_price'          => isset($data['sale_price']) ? (int) $data['sale_price'] : null,
+            'category_id'         => (int) ($data['category_id'] ?? 0) ?: null,
+            'era'                 => trim($data['era'] ?? ''),
+            'material'            => trim($data['material'] ?? ''),
+            'badge'               => trim($data['badge'] ?? ''),
+            'stock'               => (int) ($data['stock'] ?? 0),
+            'low_stock_threshold' => (int) ($data['low_stock_threshold'] ?? 5),
+            'featured'            => (int) ($data['featured'] ?? 0),
+            'is_active'           => $isActive,
+            'status'              => $status,
+            'product_type'        => $data['product_type'] ?? 'simple',
         ]);
+
+        $this->variantService->createDefaultVariant($id, $data);
 
         return $this->getById($id);
     }
@@ -69,16 +84,42 @@ class ProductService
         if (isset($data['name'])) {
             $payload['name'] = trim($data['name']);
         }
-        if (isset($data['description'])) {
-            $payload['description'] = trim($data['description']);
+        if (isset($data['slug'])) {
+            $payload['slug'] = $this->resolveSlug($data['name'] ?? $product['name'], $data['slug'], $id);
+        } elseif (isset($data['name']) && empty($product['slug'])) {
+            $payload['slug'] = $this->resolveSlug($data['name'], null, $id);
+        }
+        if (isset($data['description']) || isset($data['full_description'])) {
+            $payload['description'] = trim($data['description'] ?? $data['full_description'] ?? '');
+        }
+        if (isset($data['short_description'])) {
+            $payload['short_description'] = trim($data['short_description']);
         }
         if (isset($data['price'])) {
-            if ((int) $data['price'] < 0) throw new \RuntimeException('قیمت نمی‌تواند منفی باشد.', 422);
+            if ((int) $data['price'] < 0) {
+                throw new \RuntimeException('قیمت نمی‌تواند منفی باشد.', 422);
+            }
             $payload['price'] = (int) $data['price'];
         }
+        if (isset($data['sale_price'])) {
+            $payload['sale_price'] = $data['sale_price'] !== '' && $data['sale_price'] !== null
+                ? (int) $data['sale_price'] : null;
+        }
         if (isset($data['stock'])) {
-            if ((int) $data['stock'] < 0) throw new \RuntimeException('موجودی نمی‌تواند منفی باشد.', 422);
+            if ((int) $data['stock'] < 0) {
+                throw new \RuntimeException('موجودی نمی‌تواند منفی باشد.', 422);
+            }
             $payload['stock'] = (int) $data['stock'];
+        }
+        if (isset($data['status'])) {
+            $payload['status']    = $data['status'];
+            $payload['is_active'] = $data['status'] === 'active' ? 1 : 0;
+        }
+        if (isset($data['product_type'])) {
+            $payload['product_type'] = $data['product_type'];
+        }
+        if (isset($data['low_stock_threshold'])) {
+            $payload['low_stock_threshold'] = (int) $data['low_stock_threshold'];
         }
 
         $simpleFields = ['category_id', 'era', 'material', 'badge', 'featured', 'is_active'];
@@ -88,11 +129,33 @@ class ProductService
             }
         }
 
-        if (empty($payload)) {
-            throw new \RuntimeException('هیچ فیلدی برای بروزرسانی ارسال نشد.', 422);
+        if (!empty($payload)) {
+            $this->productModel->update($id, $payload);
         }
 
-        $this->productModel->update($id, $payload);
+        if (isset($data['price']) || isset($data['stock']) || isset($data['sale_price'])) {
+            $default = $this->variantService->getDefaultVariant($id);
+            if ($default) {
+                $variantPayload = [];
+                if (isset($data['price'])) {
+                    $variantPayload['price'] = (int) $data['price'];
+                }
+                if (isset($data['sale_price'])) {
+                    $variantPayload['sale_price'] = $data['sale_price'] !== '' && $data['sale_price'] !== null
+                        ? (int) $data['sale_price'] : null;
+                }
+                if (isset($data['stock'])) {
+                    $variantPayload['quantity'] = (int) $data['stock'];
+                }
+                if (!empty($variantPayload)) {
+                    $this->variantService->updateVariant((int) $default['id'], $variantPayload);
+                }
+            }
+        }
+
+        if (empty($payload) && !isset($data['price']) && !isset($data['stock']) && !isset($data['sale_price'])) {
+            throw new \RuntimeException('هیچ فیلدی برای بروزرسانی ارسال نشد.', 422);
+        }
 
         return $this->getById($id);
     }
@@ -115,7 +178,11 @@ class ProductService
             throw new \RuntimeException('محصول یافت نشد.', 404);
         }
 
-        $this->productModel->update($id, ['is_active' => $product['is_active'] ? 0 : 1]);
+        $newStatus = ($product['status'] ?? 'active') === 'active' ? 'archived' : 'active';
+        $this->productModel->update($id, [
+            'status'    => $newStatus,
+            'is_active' => $newStatus === 'active' ? 1 : 0,
+        ]);
 
         return $this->getById($id);
     }
@@ -130,7 +197,6 @@ class ProductService
             throw new \RuntimeException('آدرس تصویر الزامی است.', 422);
         }
 
-        // اگر اولین تصویره، به عنوان اصلی ثبت میشه
         $existing = $this->imageModel->getByProductId($productId);
         $isMain   = empty($existing) ? 1 : (int) ($imageData['is_main'] ?? 0);
 
@@ -166,7 +232,6 @@ class ProductService
 
         $this->imageModel->delete($imageId);
 
-        // اگه تصویر اصلی حذف شد، اولین تصویر باقیمانده رو اصلی میکنه
         if ($image['is_main']) {
             $remaining = $this->imageModel->getByProductId($productId);
             if (!empty($remaining)) {
@@ -175,22 +240,85 @@ class ProductService
         }
     }
 
-    // ─── Stock ───────────────────────────────────────────────────
+    // ─── Stock (delegates to variant layer) ──────────────────────
 
-    public function decrementStock(int $productId, int $qty): void
+    public function decrementStock(int $productId, int $qty, ?int $variantId = null): void
     {
-        $success = $this->productModel->decrementStock($productId, $qty);
-        if (!$success) {
-            throw new \RuntimeException('موجودی کافی نیست.', 422);
-        }
+        $resolvedId = $this->variantService->resolveVariantId($productId, $variantId);
+        $this->variantService->decrementStock($resolvedId, $qty);
     }
 
-    public function incrementStock(int $productId, int $qty): void
+    public function incrementStock(int $productId, int $qty, ?int $variantId = null): void
     {
-        $this->productModel->incrementStock($productId, $qty);
+        $resolvedId = $this->variantService->resolveVariantId($productId, $variantId);
+        $this->variantService->incrementStock($resolvedId, $qty);
     }
 
     // ─── Helpers ────────────────────────────────────────────────
+
+    private function enrichProduct(array $product): array
+    {
+        $id = (int) $product['id'];
+
+        $product['images']   = $this->imageModel->getByProductId($id);
+        $product['options']  = $this->productModel->getOptions($id);
+        $product['variants'] = $this->variantService->getProductVariants($id);
+
+        $default = $this->variantService->getDefaultVariant($id);
+        if ($default) {
+            $product['default_variant_id'] = (int) $default['id'];
+            $product['price']  = $this->variantService->getEffectivePrice($default, $product);
+            $product['stock']  = (int) ($default['inventory']['quantity'] ?? 0);
+        }
+
+        $product['variant_count'] = count($product['variants']);
+        $product['variant_axes']  = $this->buildVariantAxes($product['variants']);
+
+        if (($product['product_type'] ?? 'simple') === 'variable' && count($product['variants']) > 1) {
+            $prices = array_map(fn($v) => $this->variantService->getEffectivePrice($v, $product), $product['variants']);
+            $product['price_min'] = min($prices);
+            $product['price_max'] = max($prices);
+        }
+
+        return $product;
+    }
+
+    private function buildVariantAxes(array $variants): array
+    {
+        $axes = [];
+        foreach ($variants as $variant) {
+            foreach ($variant['attribute_values'] ?? [] as $av) {
+                $slug = $av['type_slug'];
+                if (!isset($axes[$slug])) {
+                    $axes[$slug] = [
+                        'type_id'    => (int) $av['attribute_type_id'],
+                        'type_name'  => $av['type_name'],
+                        'type_slug'  => $slug,
+                        'input_type' => $av['input_type'],
+                        'values'     => [],
+                    ];
+                }
+                $axes[$slug]['values'][$av['id']] = [
+                    'id'         => (int) $av['id'],
+                    'value'      => $av['value'],
+                    'slug'       => $av['slug'],
+                    'swatch_hex' => $av['swatch_hex'] ?? null,
+                ];
+            }
+        }
+
+        foreach ($axes as &$axis) {
+            $axis['values'] = array_values($axis['values']);
+        }
+
+        return array_values($axes);
+    }
+
+    private function resolveSlug(string $name, ?string $slug = null, ?int $excludeId = null): string
+    {
+        $base = $slug ? SlugHelper::make($slug) : SlugHelper::make($name);
+        return SlugHelper::unique($base, fn($s) => $this->productModel->slugExists($s, $excludeId));
+    }
 
     private function validateProductData(array $data): void
     {

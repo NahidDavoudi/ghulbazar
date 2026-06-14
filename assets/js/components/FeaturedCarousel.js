@@ -24,10 +24,11 @@ function getCardTransform(index, currentIndex, cardWidth, cfg) {
   return sign * slideMove;
 }
 
-function getButtonAlign(position) {
-  if (position === 'center') return 'justify-center';
-  if (position === 'end') return 'justify-end';
-  return 'justify-start';
+function getButtonAlign(position, bp = '') {
+  const prefix = bp ? `${bp}:` : '';
+  if (position === 'center') return `${prefix}justify-center`;
+  if (position === 'end') return `${prefix}justify-end`;
+  return `${prefix}justify-start`;
 }
 
 const FeaturedCarousel = {
@@ -41,7 +42,6 @@ const FeaturedCarousel = {
     const viewAllHref = data.viewAllHref || cfg.viewAllHref;
     const viewAllLabel = data.viewAllLabel || home.viewAll;
     const navClass = cfg.navVariant === 'glass' ? 'btn-glass' : 'btn-aluminum';
-    const navAlign = getButtonAlign(cfg.buttonPosition);
 
     const cards = products
       .map(
@@ -53,10 +53,10 @@ const FeaturedCarousel = {
     return `
       <section class="py-14 md:py-20 bg-white featured-carousel-section overflow-x-clip" data-carousel-id="${id}">
         <div class="max-w-[1280px] mx-auto relative">
-          <div class="flex flex-row-reverse items-center justify-between mb-8 px-4 md:px-6">
-            <h2 class="text-2xl md:text-4xl font-bold text-body">${title}</h2>
+          <div class="flex items-center justify-between mb-8 px-4 md:px-6">
+            <h2 class="text-2xl md:text-4xl font-bold text-body text-right">${title}</h2>
             <a href="${viewAllHref}" data-link
-               class="text-muted text-xs md:text-sm hover:text-body flex flex-row-reverse items-center gap-1 transition-colors">
+               class="text-muted text-xs md:text-sm hover:text-body flex flex-row-reverse items-center gap-1 transition-colors shrink-0">
               <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i><span>${viewAllLabel}</span>
             </a>
           </div>
@@ -65,7 +65,7 @@ const FeaturedCarousel = {
             <div class="stacking-slider__viewport">
               <div class="stacking-slider__track">${cards}</div>
             </div>
-            <div class="carousel-nav-row stacking-slider__nav flex items-center gap-3 mt-6 ${navAlign}">
+            <div class="carousel-nav-row stacking-slider__nav flex items-center gap-3 mt-6 justify-center ${getButtonAlign(cfg.buttonPosition, 'md')}">
               <button type="button" class="stacking-slider__btn swiper-nav-btn ${navClass}"
                       data-action="prev" aria-label="قبلی" disabled
                       style="--nav-size:${cfg.arrowSize}px;opacity:${cfg.disabledArrowOpacity};">
