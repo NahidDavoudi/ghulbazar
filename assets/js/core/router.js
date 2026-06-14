@@ -3,7 +3,7 @@
  */
 import { storeConfig } from '../config/bootstrap.js';
 import auth from './auth.js';
-import { pageTitle } from './theme.js';
+import { pageTitle, setMetaDescription } from './theme.js';
 
 const AUTH_ROUTES = new Set(['/checkout', '/payment', '/orders']);
 
@@ -15,7 +15,13 @@ const ROUTES = [
   { path: '/cart', page: 'cart', script: 'cart', title: () => `سبد خرید | ${storeConfig.name}` },
   { path: '/checkout', page: 'checkout', script: 'checkout', title: () => `تکمیل سفارش | ${storeConfig.name}` },
   { path: '/payment', page: 'payment', script: 'payment', title: () => `پرداخت | ${storeConfig.name}` },
-  { path: '/orders', page: 'orders', script: 'orders', title: () => `سفارشات | ${storeConfig.name}` },
+  { path: '/orders', page: 'orders', script: 'orders', title: () => `سفارشات | ${storeConfig.name}`, meta: () => '' },
+  { path: '/about', page: 'about', script: 'about', title: () => `درباره ما | ${storeConfig.name}`, meta: () => storeConfig.texts.legal?.about?.meta || '' },
+  { path: '/contact', page: 'contact', script: 'contact', title: () => `تماس با ما | ${storeConfig.name}`, meta: () => storeConfig.texts.legal?.contact?.meta || '' },
+  { path: '/terms', page: 'terms', script: 'terms', title: () => `قوانین و مقررات | ${storeConfig.name}`, meta: () => storeConfig.texts.legal?.terms?.meta || '' },
+  { path: '/privacy', page: 'privacy', script: 'privacy', title: () => `حریم خصوصی | ${storeConfig.name}`, meta: () => storeConfig.texts.legal?.privacy?.meta || '' },
+  { path: '/refund', page: 'refund', script: 'refund', title: () => `شرایط بازگشت وجه و لغو سفارش | ${storeConfig.name}`, meta: () => storeConfig.texts.legal?.refund?.meta || '' },
+  { path: '/faq', page: 'faq', script: 'faq', title: () => `سوالات متداول | ${storeConfig.name}`, meta: () => storeConfig.texts.legal?.faq?.meta || '' },
 ];
 
 const pageHandlers = new Map();
@@ -51,6 +57,7 @@ function handleRoute(route, match) {
 
   const params = { ...parseQueryFromHash(), ...(match?.data || {}) };
   pageTitle(route.title());
+  if (route.meta) setMetaDescription(route.meta());
   showPage(route.page);
   runPageHandler(route.script, params);
 

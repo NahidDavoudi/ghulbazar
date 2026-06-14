@@ -21,6 +21,12 @@ import './pages/cart.js';
 import './pages/checkout.js';
 import './pages/payment.js';
 import './pages/orders.js';
+import './pages/about.js';
+import './pages/contact.js';
+import './pages/terms.js';
+import './pages/privacy.js';
+import './pages/refund.js';
+import './pages/faq.js';
 
 initConfig();
 

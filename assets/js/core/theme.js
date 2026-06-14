@@ -47,8 +47,18 @@ export function initTheme() {
   document.title = storeConfig.name;
 }
 
-export function pageTitle(suffix) {
-  document.title = suffix ? `${suffix} | ${storeConfig.name}` : storeConfig.name;
+export function pageTitle(title) {
+  document.title = title || storeConfig.name;
 }
 
-export default { initTheme, pageTitle };
+export function setMetaDescription(description) {
+  let meta = document.querySelector('meta[name="description"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'description';
+    document.head.appendChild(meta);
+  }
+  meta.content = description || '';
+}
+
+export default { initTheme, pageTitle, setMetaDescription };

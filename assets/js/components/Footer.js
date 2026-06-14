@@ -4,11 +4,12 @@ const Footer = {
   render() {
     const { footer } = storeConfig.texts;
     const navLinks = storeConfig.texts.nav;
+    const legalLinks = storeConfig.texts.legal?.footerLinks || [];
 
     return `
       <footer class="border-t border-border bg-body mt-20">
         <div class="max-w-[1280px] mx-auto px-4 md:px-6 py-12">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-10">
             <div class="text-right flex flex-col items-start">
               <div class="flex items-center gap-2 justify-end mb-4">
                 <span class="font-display text-lg text-body">${storeConfig.name}</span>
@@ -24,16 +25,29 @@ const Footer = {
               </ul>
             </div>
             <div class="text-right">
+              <h3 class="text-sm font-bold text-body mb-4">قوانین و اعتماد</h3>
+              <ul class="space-y-2">
+                ${legalLinks.map((l) => `
+                  <li><a href="${l.href}" data-link class="text-sm text-muted hover:text-body transition-colors">${l.label}</a></li>`).join('')}
+              </ul>
+            </div>
+            <div class="text-right">
               <h3 class="text-sm font-bold text-body mb-4">تماس با ما</h3>
               <p class="text-sm text-muted mb-2">${footer.support}</p>
+              ${storeConfig.texts.legal?.contact?.phone?.value
+                ? `<p class="text-sm text-body mb-1" dir="ltr">${storeConfig.texts.legal.contact.phone.value}</p>`
+                : ''}
+              ${storeConfig.texts.legal?.contact?.email?.value
+                ? `<p class="text-sm text-body mb-2" dir="ltr">${storeConfig.texts.legal.contact.email.value}</p>`
+                : ''}
               <p class="text-sm text-body" dir="ltr">${footer.social}</p>
             </div>
           </div>
           <div class="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted/60">
             <p>${footer.copyright}</p>
-            <div class="flex gap-4">
-              <a href="#" class="hover:text-body transition-colors">قوانین</a>
-              <a href="#" class="hover:text-body transition-colors">حریم خصوصی</a>
+            <div class="flex flex-wrap gap-4 justify-center">
+              ${legalLinks.slice(2, 4).map((l) => `
+                <a href="${l.href}" data-link class="hover:text-body transition-colors">${l.label}</a>`).join('')}
             </div>
           </div>
         </div>
