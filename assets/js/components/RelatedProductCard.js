@@ -11,7 +11,7 @@ const RelatedProductCard = {
       || '';
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
-    const category = p.category_name || p.era || '';
+    const category = p.category_name || '';
 
     return `
       <a href="${href}" data-link class="group block">

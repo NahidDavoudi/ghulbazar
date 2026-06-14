@@ -31,7 +31,6 @@ class ProductController extends Controller
         $filters = [
             'category_id' => $request->query('category_id'),
             'category'    => $request->query('category'),
-            'era'         => $request->query('era'),
             'featured'    => $request->query('featured'),
             'q'           => $request->query('q'),
             'sort'        => $request->query('sort', 'newest'),

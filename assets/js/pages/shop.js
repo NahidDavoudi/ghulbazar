@@ -44,12 +44,15 @@ function applyClientFilters(products, params) {
     if (price < min || price > max) return false;
 
     if (colors.length) {
-      const material = (p.material || '').toLowerCase();
+      const attrText = (p.attributes || [])
+        .map((a) => (a.custom_value || a.value_value || '').toLowerCase())
+        .join(' ');
       const name = (p.name || '').toLowerCase();
+      const haystack = `${attrText} ${name}`;
       const match = colors.some((c) => {
-        if (c === 'black') return material.includes('مشک') || name.includes('مشک') || material.includes('black');
-        if (c === 'white') return material.includes('سفید') || name.includes('سفید') || material.includes('white');
-        if (c === 'grey') return material.includes('خاکست') || name.includes('خاکست') || material.includes('grey');
+        if (c === 'black') return haystack.includes('مشک') || haystack.includes('black');
+        if (c === 'white') return haystack.includes('سفید') || haystack.includes('white');
+        if (c === 'grey') return haystack.includes('خاکست') || haystack.includes('grey');
         return false;
       });
       if (!match) return false;
@@ -165,7 +168,6 @@ Router.onEnter('shop', async function (params) {
   }
 
   const apiFilters = { limit: 100 };
-  if (params.era) apiFilters.era = params.era;
   if (params.category) apiFilters.category = params.category;
   if (params.sort) apiFilters.sort = params.sort;
   if (params.q) apiFilters.q = params.q;

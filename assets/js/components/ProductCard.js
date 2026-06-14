@@ -15,9 +15,6 @@ const ProductCard = {
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
 
-    const badge = p.badge
-      ? `<span class="absolute top-4 right-4 bg-black text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10">${p.badge}</span>`
-      : '';
     const lowStock = p.stock <= 2 && p.stock > 0
       ? `<span class="absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10">آخرین موجودی</span>`
       : '';
@@ -38,7 +35,7 @@ const ProductCard = {
       <a href="${href}" data-link
          class="group block iris-card ${ui.cardRadius} ${ui.cardHover}">
         <div class="relative aspect-square overflow-hidden bg-[#f5f5f7]">
-          ${badge}${lowStock}${outOfStock}
+          ${lowStock}${outOfStock}
           ${renderImageWithFallback({
             src: img,
             alt: p.name,
@@ -46,7 +43,7 @@ const ProductCard = {
           })}
         </div>
         <div class="p-4 md:p-5 text-right">
-          <p class="text-[10px] text-muted mb-1.5 tracking-wide uppercase">${p.era || p.category_name || ''}</p>
+          <p class="text-[10px] text-muted mb-1.5 tracking-wide uppercase">${p.category_name || ''}</p>
           <h3 class="text-sm font-semibold text-body mb-3 line-clamp-2 leading-snug">${p.name}</h3>
           <div class="flex items-center justify-between gap-2">
             ${addBtn}

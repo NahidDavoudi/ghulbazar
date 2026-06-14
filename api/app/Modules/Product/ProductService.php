@@ -335,7 +335,6 @@ class ProductService
             'limit'       => 12,
             'sort'        => 'newest',
             'category_id' => null,
-            'era'         => null,
             'featured'    => null,
             'q'           => null,
         ], $filters);
