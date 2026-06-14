@@ -74,7 +74,10 @@ class ProductModel extends Model
                    (SELECT pi.image_url FROM product_images pi
                     WHERE pi.product_id = p.id AND pi.is_main = 1
                     LIMIT 1) AS main_image,
-                   c.name AS category_name
+                   c.name AS category_name,
+                   (SELECT COUNT(*) FROM product_variants pv WHERE pv.product_id = p.id) AS variant_count,
+                   (SELECT MIN(COALESCE(pv.price, p.price)) FROM product_variants pv WHERE pv.product_id = p.id) AS price_min,
+                   (SELECT MAX(COALESCE(pv.price, p.price)) FROM product_variants pv WHERE pv.product_id = p.id) AS price_max
             FROM {$this->table} p
             LEFT JOIN categories c ON c.id = p.category_id
             WHERE {$whereStr}

@@ -361,6 +361,10 @@ const products = {
   },
   setMainImage: (id, imageId) => patch(`/admin/products/${id}/images/${imageId}`),
   deleteImage: (id, imageId) => del(`/admin/products/${id}/images/${imageId}`),
+  listAttributeTypes: () => get('/admin/attribute-types'),
+  generateVariants: (id, axes) => post(`/admin/products/${id}/variants/generate`, { axes }),
+  bulkUpdateVariants: (id, variants) => put(`/admin/products/${id}/variants/bulk`, { variants }),
+  updateVariant: (id, data) => put(`/admin/variants/${id}`, data),
 };
 
 const categories = {

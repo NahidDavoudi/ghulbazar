@@ -11,8 +11,21 @@ class CartItemModel extends Model
     protected array $fillable = [
         'cart_id',
         'product_id',
+        'variant_id',
         'quantity',
     ];
+
+    public function findByCartAndVariant(int $cartId, int $variantId): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM {$this->table}
+            WHERE cart_id = ? AND variant_id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$cartId, $variantId]);
+        $result = $stmt->fetch();
+        return $result ?: null;
+    }
 
     public function findByCartAndProduct(int $cartId, int $productId): ?array
     {
@@ -26,10 +39,9 @@ class CartItemModel extends Model
         return $result ?: null;
     }
 
-    // اضافه کردن آیتم — اگه قبلاً هست تعداد رو اضافه می‌کنه
-    public function addOrIncrement(int $cartId, int $productId, int $qty = 1): int
+    public function addOrIncrement(int $cartId, int $productId, int $variantId, int $qty = 1): int
     {
-        $existing = $this->findByCartAndProduct($cartId, $productId);
+        $existing = $this->findByCartAndVariant($cartId, $variantId);
 
         if ($existing) {
             $newQty = $existing['quantity'] + $qty;
@@ -40,8 +52,21 @@ class CartItemModel extends Model
         return $this->create([
             'cart_id'    => $cartId,
             'product_id' => $productId,
+            'variant_id' => $variantId,
             'quantity'   => $qty,
         ]);
+    }
+
+    public function updateQuantityByVariant(int $cartId, int $variantId, int $qty): bool
+    {
+        $item = $this->findByCartAndVariant($cartId, $variantId);
+        if (!$item) return false;
+
+        if ($qty <= 0) {
+            return $this->delete($item['id']);
+        }
+
+        return parent::update($item['id'], ['quantity' => $qty]);
     }
 
     public function updateQuantity(int $cartId, int $productId, int $qty): bool
@@ -54,6 +79,14 @@ class CartItemModel extends Model
         }
 
         return parent::update($item['id'], ['quantity' => $qty]);
+    }
+
+    public function removeByVariant(int $cartId, int $variantId): bool
+    {
+        $stmt = $this->pdo->prepare("
+            DELETE FROM {$this->table} WHERE cart_id = ? AND variant_id = ?
+        ");
+        return $stmt->execute([$cartId, $variantId]);
     }
 
     public function removeItem(int $cartId, int $productId): bool

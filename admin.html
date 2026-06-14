@@ -239,6 +239,7 @@
                                         <th class="text-right px-5 py-4 font-medium">نام محصول</th>
                                         <th class="text-right px-5 py-4 font-medium">قیمت</th>
                                         <th class="text-right px-5 py-4 font-medium">موجودی</th>
+                                        <th class="text-right px-5 py-4 font-medium">واریانت</th>
                                         <th class="text-right px-5 py-4 font-medium">دسته</th>
                                         <th class="text-right px-5 py-4 font-medium">وضعیت</th>
                                         <th class="text-right px-5 py-4 font-medium">عملیات</th>
@@ -580,64 +581,23 @@
 
     <!-- ========== PRODUCT MODAL ========== -->
     <div id="productModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-body border border-border rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scroll animate-scaleIn">
-            <div class="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-body">
+        <div class="bg-body border border-border rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scroll animate-scaleIn">
+            <div class="p-6 border-b border-border flex items-center justify-between sticky top-0 bg-body z-10">
                 <h3 class="text-xl font-bold text-body" id="productModalTitle">افزودن محصول</h3>
                 <button onclick="hideModal('productModal')" class="text-dim hover:text-accent hover:bg-accent/10 p-2 rounded-xl transition-all">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <!-- فرم محصول مشابه قبل با کلاس‌های جدید -->
             <div class="p-6">
-                <form id="productForm" class="space-y-5">
+                <form id="productForm">
                     <input type="hidden" id="productId" value="">
-                    <div>
-                        <label class="block text-muted mb-2 text-sm">نام محصول *</label>
-                        <input type="text" id="productName" required class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                    <div class="flex gap-1 border-b border-border mb-5">
+                        <button type="button" data-tab="general" class="product-editor-tab px-4 py-2 text-sm font-medium border-b-2 border-accent text-accent">عمومی</button>
+                        <button type="button" data-tab="variants" class="product-editor-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-muted">واریانت‌ها</button>
+                        <button type="button" data-tab="media" class="product-editor-tab px-4 py-2 text-sm font-medium border-b-2 border-transparent text-muted">تصاویر</button>
                     </div>
-                    <div>
-                        <label class="block text-muted mb-2 text-sm">توضیحات</label>
-                        <textarea id="productDesc" rows="3" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none"></textarea>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-muted mb-2 text-sm">قیمت (تومان) *</label>
-                            <input type="text" id="productPrice" inputmode="numeric"  required class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-muted mb-2 text-sm">موجودی</label>
-                            <input type="number" id="productStock" value="1" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-muted mb-2 text-sm">دسته‌بندی</label>
-                        <select id="productCategory" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none"></select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-muted mb-2 text-sm">جنس (material)</label>
-                            <input type="text" id="productMaterial" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-muted mb-2 text-sm">بج (badge)</label>
-                            <input type="text" id="productBadge" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="flex items-center gap-2 text-muted">
-                            <input type="checkbox" id="productFeatured" class="rounded bg-surface border-border">
-                            محصول ویژه
-                        </label>
-                    </div>
-                    <div>
-                        <label class="block text-muted mb-2 text-sm">تصاویر محصول</label>
-                        <div id="productImagesGrid" class="grid grid-cols-3 sm:grid-cols-4 gap-3 mb-3"></div>
-                        <input type="file" id="productImageInput" accept="image/*" multiple class="hidden" onchange="uploadProductImage(this)">
-                        <button type="button" onclick="document.getElementById('productImageInput').click()" class="bg-surface hover:bg-card text-muted px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition">
-                            <i data-lucide="image-plus" class="w-4 h-4"></i> افزودن تصویر
-                        </button>
-                    </div>
-                    <div class="flex gap-3 p-5 mt-2 bg-card border border-border rounded-2xl">
+                    <div id="productTabPanels" class="min-h-[280px]"></div>
+                    <div class="flex gap-3 p-5 mt-4 bg-card border border-border rounded-2xl">
                         <button type="submit" class="bg-accent hover:bg-accent-hover text-white px-8 py-3 rounded-xl font-medium transition-all flex items-center gap-2">
                             <i data-lucide="check" class="w-5 h-5"></i><span id="productSubmitText">ذخیره محصول</span>
                         </button>

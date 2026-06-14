@@ -962,6 +962,46 @@ export default {
 
         addImage: 'افزودن تصویر',
 
+        slug: 'شناسه (slug)',
+
+        status: 'وضعیت',
+
+        statusDraft: 'پیش‌نویس',
+
+        statusActive: 'فعال',
+
+        statusArchived: 'آرشیو',
+
+        shortDesc: 'توضیح کوتاه',
+
+        fullDesc: 'توضیحات کامل',
+
+        category: 'دسته‌بندی',
+
+        productType: 'نوع محصول',
+
+        typeSimple: 'ساده',
+
+        typeVariable: 'چند واریانت',
+
+        price: 'قیمت',
+
+        stock: 'موجودی',
+
+        generateVariants: 'تولید واریانت‌ها',
+
+        variantsHint: 'محورهای واریانت را انتخاب و تولید کنید.',
+
+        variantTitle: 'عنوان',
+
+        emptyVariants: 'واریانتی وجود ندارد',
+
+        tabGeneral: 'عمومی',
+
+        tabVariants: 'واریانت‌ها',
+
+        tabMedia: 'تصاویر',
+
       },
 
       categories: {
