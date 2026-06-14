@@ -160,4 +160,19 @@ class UsersService
         $this->usersModel->activate($userId);
         Logger::info('user_activated', ['user_id' => $userId]);
     }
+
+    public function updateRole(int $userId, string $role): void
+    {
+        if (!in_array($role, ['admin', 'user'], true)) {
+            throw new \RuntimeException('نقش نامعتبر است.', 422);
+        }
+
+        $user = $this->usersModel->find($userId);
+        if (!$user) {
+            throw new \RuntimeException('کاربر یافت نشد.', 404);
+        }
+
+        $this->usersModel->update($userId, ['role' => $role]);
+        Logger::info('user_role_updated', ['user_id' => $userId, 'role' => $role]);
+    }
 }

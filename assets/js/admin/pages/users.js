@@ -19,7 +19,7 @@
       setLoading(true);
       const data = await API.users.list();
       setLoading(false);
-      _users = data.data?.data || data.data || [];
+      _users = Array.isArray(data) ? data : (data?.data || []);
       _renderUsers(_users);
     } catch (e) {
       setLoading(false);

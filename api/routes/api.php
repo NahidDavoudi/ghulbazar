@@ -108,6 +108,7 @@ $router->group([
 
         // Users
         $router->get('/users',                   [UsersController::class, 'index']);
+        $router->patch('/users/{id}/role',       [UsersController::class, 'updateRole']);
         $router->patch('/users/{id}/activate',   [UsersController::class, 'activate']);
         $router->patch('/users/{id}/deactivate', [UsersController::class, 'deactivate']);
 

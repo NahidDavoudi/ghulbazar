@@ -134,4 +134,21 @@ class UsersController extends Controller
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
+
+    // PATCH /admin/users/{id}/role  (ادمین)
+    public function updateRole(Request $request, int $userId): void
+    {
+        $role = $request->input('role');
+
+        if (!$role) {
+            $this->error('نقش الزامی است', 422);
+        }
+
+        try {
+            $this->service->updateRole($userId, $role);
+            $this->success(null, 'نقش کاربر تغییر کرد');
+        } catch (\RuntimeException $e) {
+            $this->error($e->getMessage(), $e->getCode() ?: 400);
+        }
+    }
 }

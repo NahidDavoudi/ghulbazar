@@ -323,7 +323,10 @@ const users = {
   addAddress: (data) => post('/users/me/addresses', data),
   updateAddress: (id, data) => patch(`/users/me/addresses/${id}`, data),
   deleteAddress: (id) => del(`/users/me/addresses/${id}`),
+  list: () => get('/admin/users'),
   all: () => get('/admin/users'),
+  updateRole: (id, role) => patch(`/admin/users/${id}/role`, { role }),
+  delete: (id) => patch(`/admin/users/${id}/deactivate`),
   activate: (id) => patch(`/admin/users/${id}/activate`),
   deactivate: (id) => patch(`/admin/users/${id}/deactivate`),
 };
