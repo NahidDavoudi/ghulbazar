@@ -37,7 +37,10 @@ function buildRefCode(p) {
 function buildDetailBullets(p) {
   const t = storeConfig.texts.product;
   const bullets = [];
-  if (p.material) bullets.push(`ترکیب: ${p.material}`);
+  (p.attributes || []).forEach((attr) => {
+    const val = attr.custom_value || attr.value_value;
+    if (val) bullets.push(`${attr.type_name}: ${val}`);
+  });
   bullets.push(...t.detailItems);
   return bullets;
 }
@@ -53,7 +56,6 @@ async function fetchRelated(p) {
   try {
     const filters = { limit: 5 };
     if (p.category_id) filters.category_id = p.category_id;
-    else if (p.era) filters.era = p.era;
     else return [];
 
     const data = await api.products.list(filters);
@@ -99,7 +101,7 @@ Router.onEnter('products', async function (params) {
       { href: '#/', label: shopT.breadcrumbHome },
       { href: hashHref('shop'), label: shopT.breadcrumbShop },
     ];
-    if (p.era) bcItems.push({ href: hashHref('shop', { era: p.era }), label: p.era });
+    if (p.era) bcItems.push({ href: hashHref('shop'), label: p.era });
     bcItems.push({ href: hashHref('product', { id: p.id }), label: p.name });
 
     const bcEl = document.getElementById('product-breadcrumb');

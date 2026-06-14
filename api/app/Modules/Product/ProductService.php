@@ -56,9 +56,6 @@ class ProductService
             'price'               => (int) $data['price'],
             'sale_price'          => isset($data['sale_price']) ? (int) $data['sale_price'] : null,
             'category_id'         => (int) ($data['category_id'] ?? 0) ?: null,
-            'era'                 => trim($data['era'] ?? ''),
-            'material'            => trim($data['material'] ?? ''),
-            'badge'               => trim($data['badge'] ?? ''),
             'stock'               => (int) ($data['stock'] ?? 0),
             'low_stock_threshold' => (int) ($data['low_stock_threshold'] ?? 5),
             'featured'            => (int) ($data['featured'] ?? 0),
@@ -122,7 +119,7 @@ class ProductService
             $payload['low_stock_threshold'] = (int) $data['low_stock_threshold'];
         }
 
-        $simpleFields = ['category_id', 'era', 'material', 'badge', 'featured', 'is_active'];
+        $simpleFields = ['category_id', 'featured', 'is_active'];
         foreach ($simpleFields as $field) {
             if (isset($data[$field])) {
                 $payload[$field] = $data[$field];
@@ -260,9 +257,10 @@ class ProductService
     {
         $id = (int) $product['id'];
 
-        $product['images']   = $this->imageModel->getByProductId($id);
-        $product['options']  = $this->productModel->getOptions($id);
-        $product['variants'] = $this->variantService->getProductVariants($id);
+        $product['images']      = $this->imageModel->getByProductId($id);
+        $product['options']     = $this->productModel->getOptions($id);
+        $product['attributes']  = $this->productModel->getDescriptiveAttributes($id);
+        $product['variants']    = $this->variantService->getProductVariants($id);
 
         $default = $this->variantService->getDefaultVariant($id);
         if ($default) {

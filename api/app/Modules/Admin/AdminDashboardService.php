@@ -13,8 +13,6 @@ class AdminDashboardService
         $this->pdo = Database::getInstance()->getConnection();
     }
 
-    // ─── Main Dashboard ───────────────────────────────────────────
-
     public function getOverview(): array
     {
         return [
@@ -25,27 +23,22 @@ class AdminDashboardService
         ];
     }
 
-    // ─── Counts & Totals ──────────────────────────────────────────
-
     public function getStats(): array
     {
         return [
             'total_users'        => $this->count('users', "is_active = 1"),
-            'total_products'     => $this->count('products', "is_active = 1"),
+            'total_products'     => $this->count('products', "status = 'active'"),
             'total_orders'       => $this->count('orders'),
             'pending_orders'     => $this->count('orders', "status = 'pending'"),
             'total_revenue'      => $this->getTotalRevenue(),
             'revenue_this_month' => $this->getRevenueThisMonth(),
             'new_users_today'    => $this->count('users', "DATE(created_at) = CURDATE()"),
             'orders_today'       => $this->count('orders', "DATE(created_at) = CURDATE()"),
-            // داده‌های مورد نیاز داشبورد فرانت
-            'low_stock_items'    => $this->count('products', "stock <= 5 AND is_active = 1"),
+            'low_stock_items'    => $this->countLowStockVariants(),
             'weekly_revenue'     => $this->getRevenueByDay(7),
             'order_status'       => $this->getOrderStatusMap(),
         ];
     }
-
-    // ─── Recent Orders ────────────────────────────────────────────
 
     public function getRecentOrders(int $limit = 10): array
     {
@@ -62,27 +55,30 @@ class AdminDashboardService
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    // ─── Low Stock ────────────────────────────────────────────────
-
     public function getLowStockProducts(int $threshold = 5, int $limit = 20): array
     {
         $stmt = $this->pdo->prepare("
-            SELECT p.id, p.name, p.slug, p.stock, p.price,
+            SELECT p.id, p.name, p.slug,
+                   pv.sku, pv.title AS variant_title,
+                   ii.quantity AS stock,
+                   COALESCE(pv.price, p.price) AS price,
                    c.name AS category_name,
                    (SELECT pi.image_url FROM product_images pi
                     WHERE pi.product_id = p.id AND pi.is_main = 1
                     LIMIT 1) AS main_image
-            FROM products p
+            FROM inventory_items ii
+            JOIN product_variants pv ON pv.id = ii.variant_id
+            JOIN products p ON p.id = pv.product_id
             LEFT JOIN categories c ON c.id = p.category_id
-            WHERE p.stock <= ? AND p.is_active = 1
-            ORDER BY p.stock ASC
+            WHERE ii.quantity <= COALESCE(ii.low_stock_threshold, p.low_stock_threshold, ?)
+              AND p.status = 'active'
+              AND pv.is_active = 1
+            ORDER BY ii.quantity ASC
             LIMIT ?
         ");
         $stmt->execute([$threshold, $limit]);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-
-    // ─── Revenue Charts ───────────────────────────────────────────
 
     public function getRevenueByDay(int $days = 7): array
     {
@@ -116,8 +112,6 @@ class AdminDashboardService
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    // ─── Orders by Status ─────────────────────────────────────────
-
     public function getOrdersByStatus(): array
     {
         $stmt = $this->pdo->query("
@@ -127,8 +121,6 @@ class AdminDashboardService
         ");
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
-
-    // ─── Top Products ─────────────────────────────────────────────
 
     public function getTopSellingProducts(int $limit = 10): array
     {
@@ -151,8 +143,6 @@ class AdminDashboardService
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    // ─── Private Helpers ──────────────────────────────────────────
-
     private function getOrderStatusMap(): array
     {
         $rows = $this->pdo->query("
@@ -166,6 +156,21 @@ class AdminDashboardService
             $map[$row['status']] = (int) $row['count'];
         }
         return $map;
+    }
+
+    private function countLowStockVariants(int $threshold = 5): int
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*)
+            FROM inventory_items ii
+            JOIN product_variants pv ON pv.id = ii.variant_id
+            JOIN products p ON p.id = pv.product_id
+            WHERE ii.quantity <= COALESCE(ii.low_stock_threshold, p.low_stock_threshold, ?)
+              AND p.status = 'active'
+              AND pv.is_active = 1
+        ");
+        $stmt->execute([$threshold]);
+        return (int) $stmt->fetchColumn();
     }
 
     private function count(string $table, string $where = ''): int

@@ -15,9 +15,6 @@ class ProductModel extends Model
         'price',
         'sale_price',
         'category_id',
-        'era',
-        'material',
-        'badge',
         'stock',
         'low_stock_threshold',
         'featured',
@@ -36,14 +33,9 @@ class ProductModel extends Model
         if (!empty($filters['category_id'])) {
             $where[]  = 'p.category_id = ?';
             $params[] = (int) $filters['category_id'];
-        } elseif (!empty($filters['category'])) {
-            // فرانت slug می‌فرسته — join به categories برای تطبیق
+        } else        if (!empty($filters['category'])) {
             $where[]  = 'c.slug = ?';
             $params[] = $filters['category'];
-        }
-        if (!empty($filters['era'])) {
-            $where[]  = 'p.era LIKE ?';
-            $params[] = "%{$filters['era']}%";
         }
         if (isset($filters['featured']) && $filters['featured'] !== null) {
             $where[]  = 'p.featured = ?';
@@ -128,9 +120,20 @@ class ProductModel extends Model
 
     public function getOptions(int $productId): array
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT option_type, option_value FROM product_options WHERE product_id = ?'
-        );
+        return [];
+    }
+
+    public function getDescriptiveAttributes(int $productId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT at.slug AS type_slug, at.name AS type_name,
+                   av.value AS value_value, pa.custom_value
+            FROM product_attributes pa
+            JOIN attribute_types at ON at.id = pa.attribute_type_id
+            LEFT JOIN attribute_values av ON av.id = pa.attribute_value_id
+            WHERE pa.product_id = ?
+            ORDER BY at.sort_order ASC
+        ");
         $stmt->execute([$productId]);
         return $stmt->fetchAll();
     }

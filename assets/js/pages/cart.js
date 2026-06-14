@@ -28,27 +28,28 @@ function _renderCart(data) {
   const cartItemsEl = document.getElementById('cart-items');
   if (cartItemsEl) {
     cartItemsEl.innerHTML = data.items.map((item) => `
-      <div class="bg-card border border-border rounded-xl p-4 flex gap-4 items-center" id="ci-${item.id}">
+      <div class="bg-card border border-border rounded-xl p-4 flex gap-4 items-center" id="ci-${item.variant_id || item.product_id}">
         <div class="w-20 h-20 rounded-lg shrink-0 overflow-hidden bg-[#f5f5f7] relative">
           ${renderImageWithFallback({ src: item.image || '', alt: item.name, iconSize: 'w-8 h-8' })}
         </div>
         <div class="flex-1 text-right min-w-0">
           <h3 class="font-medium mb-1 truncate">
-            <a href="${hashHref('product', { id: item.id })}" data-link class="hover:text-accent">${item.name}</a>
+            <a href="${hashHref('product', { id: item.product_id })}" data-link class="hover:text-accent">${item.name}</a>
           </h3>
           <p class="text-accent font-bold mt-1">${api.utils.formatPrice(item.price)}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-          <button data-remove="${item.id}" class="w-8 h-8 rounded border border-border text-muted hover:border-red-500 hover:text-red-400 transition-colors text-sm">✕</button>
-          <input type="number" value="${item.qty}" min="1" max="10" data-update="${item.id}"
+          <button data-remove="${item.product_id}" data-variant="${item.variant_id || ''}" class="w-8 h-8 rounded border border-border text-muted hover:border-red-500 hover:text-red-400 transition-colors text-sm">✕</button>
+          <input type="number" value="${item.qty}" min="1" max="10"
+                 data-update="${item.product_id}" data-variant="${item.variant_id || ''}"
                  class="w-14 bg-body border border-border rounded px-2 py-1 text-center text-sm">
         </div>
       </div>`).join('');
 
     cartItemsEl.querySelectorAll('[data-remove]').forEach((btn) =>
-      btn.addEventListener('click', () => _cartRemove(btn.dataset.remove)));
+      btn.addEventListener('click', () => _cartRemove(btn.dataset.remove, btn.dataset.variant || null)));
     cartItemsEl.querySelectorAll('[data-update]').forEach((inp) =>
-      inp.addEventListener('change', () => _cartUpdate(inp.dataset.update, inp.value)));
+      inp.addEventListener('change', () => _cartUpdate(inp.dataset.update, inp.value, inp.dataset.variant || null)));
   }
 
   const summaryEl = document.getElementById('summary-lines');
@@ -62,17 +63,17 @@ function _renderCart(data) {
   text('final-total', api.utils.formatPrice(realTotal));
 }
 
-async function _cartRemove(productId) {
+async function _cartRemove(productId, variantId = null) {
   try {
-    await api.cart.remove(productId);
+    await api.cart.remove(productId, variantId ? Number(variantId) : null);
     await _loadCart();
     window.loadCartCount?.();
   } catch (e) { api.utils.toast(e.message, 'error'); }
 }
 
-async function _cartUpdate(productId, qty) {
+async function _cartUpdate(productId, qty, variantId = null) {
   try {
-    await api.cart.update(productId, parseInt(qty, 10));
+    await api.cart.update(productId, parseInt(qty, 10), variantId ? Number(variantId) : null);
     await _loadCart();
     window.loadCartCount?.();
   } catch (e) { api.utils.toast(e.message, 'error'); }
