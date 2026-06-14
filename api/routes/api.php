@@ -136,8 +136,9 @@ $router->group([
         $router->patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
 
         // Settings
-        $router->get('/settings',   [SettingsController::class, 'show']);
-        $router->patch('/settings', [SettingsController::class, 'update']);
+        $router->get('/settings',                    [SettingsController::class, 'show']);
+        $router->patch('/settings',                  [SettingsController::class, 'update']);
+        $router->post('/settings/upload/{type}',     [SettingsController::class, 'uploadImage']);
 
         // Discounts
         $router->get('/discounts',                   [DiscountController::class, 'index']);

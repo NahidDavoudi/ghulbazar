@@ -304,6 +304,11 @@ const settings = {
   get: () => withFallback(get('/settings'), CFG().fallback?.settings ?? null),
   adminGet: () => get('/admin/settings'),
   adminUpdate: (data) => patch('/admin/settings', data),
+  uploadImage: (type, file) => {
+    const form = new FormData();
+    form.append('image', file);
+    return upload(`/admin/settings/upload/${type}`, form);
+  },
   paymentInfo: async () => {
     const s = await settings.get();
     if (!s) return null;

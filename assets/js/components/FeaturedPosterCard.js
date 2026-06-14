@@ -5,7 +5,11 @@ import DOM from '../utils/dom.js';
 const FeaturedPosterCard = {
   render(p) {
     const { ui } = storeConfig;
-    const img = p.images?.find((i) => i.is_main)?.url || p.images?.[0]?.url || p.image || '';
+    const img = p.images?.find((i) => i.is_main)?.url
+    || p.images?.[0]?.url
+    || p.main_image
+    || p.image
+    || '';
     const href = DOM.hashHref('product', { id: p.id });
 
     return `

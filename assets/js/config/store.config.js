@@ -110,6 +110,8 @@ export default {
 
     standardCost: 50000,
 
+    minOrder: 0,
+
   },
 
 
@@ -1054,7 +1056,68 @@ export default {
 
         subtitle: 'تنظیمات فروشگاه',
 
-        placeholder: 'تنظیمات فروشگاه شما در این بخش قرار می‌گیرد.',
+        tabs: {
+          identity: 'هویت فروشگاه',
+          payment: 'پرداخت',
+          contact: 'تماس و شبکه‌ها',
+          shipping: 'ارسال و سفارش',
+          sms: 'پیامک',
+          seo: 'سئو',
+        },
+
+        identity: {
+          shopName: 'نام فروشگاه',
+          shopSlogan: 'شعار فروشگاه',
+          shopDescription: 'توضیحات فروشگاه',
+          logo: 'لوگو',
+          heroImage: 'تصویر هیرو (صفحه اصلی)',
+          poster: 'پوستر بخش ویژگی',
+          favicon: 'فاویکون',
+          upload: 'آپلود تصویر',
+          change: 'تغییر تصویر',
+        },
+
+        payment: {
+          method: 'روش پرداخت',
+          cardToCard: 'کارت به کارت',
+          zarinpal: 'زرین‌پال',
+          both: 'هر دو',
+          bankCard: 'شماره کارت',
+          bankOwner: 'نام صاحب کارت',
+          merchantId: 'شناسه پذیرنده زرین‌پال',
+        },
+
+        contact: {
+          phone: 'تلفن تماس',
+          email: 'ایمیل',
+          address: 'آدرس',
+          instagram: 'اینستاگرام',
+          telegram: 'تلگرام',
+          whatsapp: 'واتساپ',
+        },
+
+        shipping: {
+          standardCost: 'هزینه ارسال (تومان)',
+          freeFrom: 'ارسال رایگان از (تومان)',
+          minOrder: 'حداقل مبلغ سفارش (تومان)',
+        },
+
+        sms: {
+          enabled: 'فعال‌سازی پیامک',
+          provider: 'سرویس‌دهنده',
+          apiKey: 'کلید API',
+        },
+
+        seo: {
+          metaTitle: 'عنوان سئو',
+          metaDescription: 'توضیحات سئو',
+        },
+
+        save: 'ذخیره تنظیمات',
+        saving: 'در حال ذخیره...',
+        saved: 'تنظیمات ذخیره شد',
+        loading: 'در حال بارگذاری...',
+        uploadSuccess: 'تصویر آپلود شد',
 
       },
 

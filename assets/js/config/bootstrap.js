@@ -39,13 +39,43 @@ export function mergeStoreSettings(remote) {
     storeConfig.texts.footer.tagline = remote.shop_slogan;
   }
 
+  if (remote.shop_description) {
+    storeConfig.texts.legal.about.intro = remote.shop_description;
+  }
+
   if (remote.shop_logo) {
     storeConfig.logo = remote.shop_logo;
+  }
+
+  if (remote.shop_favicon) {
+    storeConfig.favicon = remote.shop_favicon;
+  } else if (remote.shop_logo) {
     storeConfig.favicon = remote.shop_logo;
+  }
+
+  if (remote.shop_hero_image) {
+    storeConfig.hero.image = remote.shop_hero_image;
   }
 
   if (remote.shop_poster) {
     storeConfig.feature.image = remote.shop_poster;
+  }
+
+  if (remote.contact_phone) {
+    storeConfig.texts.legal.contact.phone.value = remote.contact_phone;
+  }
+  if (remote.contact_email) {
+    storeConfig.texts.legal.contact.email.value = remote.contact_email;
+  }
+  if (remote.contact_address) {
+    storeConfig.texts.legal.contact.address.value = remote.contact_address;
+  }
+  if (remote.social_instagram) {
+    storeConfig.texts.footer.social = remote.social_instagram;
+  }
+
+  if (remote.min_order_amount != null) {
+    storeConfig.shipping.minOrder = Number(remote.min_order_amount);
   }
 
   if (remote.bank_card) storeConfig.payment.cardNumber = remote.bank_card;

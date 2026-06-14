@@ -366,12 +366,212 @@
 
                 <!-- ========== SETTINGS PAGE ========== -->
                 <section id="page-settings" class="page-section hidden animate-fadeIn">
-                    <div class="mb-8">
-                        <h1 class="text-2xl md:text-3xl font-bold text-body" data-admin-text="settings.title">تنظیمات</h1>
-                        <p class="text-muted mt-1" data-admin-text="settings.subtitle">تنظیمات فروشگاه</p>
+                    <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-body" data-admin-text="settings.title">تنظیمات</h1>
+                            <p class="text-muted mt-1" data-admin-text="settings.subtitle">تنظیمات فروشگاه</p>
+                        </div>
+                        <button id="settingsSaveBtn" type="button"
+                            class="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-black/10">
+                            <i data-lucide="save" class="w-5 h-5"></i>
+                            <span data-admin-text="settings.save">ذخیره تنظیمات</span>
+                        </button>
                     </div>
-                    <div class="bg-body border border-border rounded-2xl p-8">
-                        <p class="text-dim text-center py-12" data-admin-text="settings.placeholder">تنظیمات فروشگاه شما در این بخش قرار می‌گیرد.</p>
+
+                    <div id="settingsContainer" class="bg-body border border-border rounded-2xl overflow-hidden">
+                        <div class="flex flex-wrap gap-2 p-4 border-b border-border bg-surface/50">
+                            <button type="button" data-settings-tab="identity"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all bg-accent text-white"
+                                data-admin-text="settings.tabs.identity">هویت فروشگاه</button>
+                            <button type="button" data-settings-tab="payment"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="settings.tabs.payment">پرداخت</button>
+                            <button type="button" data-settings-tab="contact"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="settings.tabs.contact">تماس و شبکه‌ها</button>
+                            <button type="button" data-settings-tab="shipping"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="settings.tabs.shipping">ارسال و سفارش</button>
+                            <button type="button" data-settings-tab="sms"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="settings.tabs.sms">پیامک</button>
+                            <button type="button" data-settings-tab="seo"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="settings.tabs.seo">سئو</button>
+                        </div>
+
+                        <div class="p-6 md:p-8 space-y-6">
+                            <!-- Identity -->
+                            <div data-settings-panel="identity" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.identity.shopName">نام فروشگاه</label>
+                                        <input type="text" id="settingsShopName" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.identity.shopSlogan">شعار فروشگاه</label>
+                                        <input type="text" id="settingsShopSlogan" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-muted mb-2 text-sm" data-admin-text="settings.identity.shopDescription">توضیحات فروشگاه</label>
+                                    <textarea id="settingsShopDescription" rows="4" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none"></textarea>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                                    <div class="bg-surface border border-border rounded-2xl p-4 space-y-3">
+                                        <p class="text-sm font-medium text-body" data-admin-text="settings.identity.logo">لوگو</p>
+                                        <div class="aspect-square rounded-xl bg-card border border-border overflow-hidden flex items-center justify-center">
+                                            <img id="settingsLogoPreview" alt="" class="w-full h-full object-cover hidden">
+                                        </div>
+                                        <input type="file" id="settingsLogoInput" accept="image/*" class="hidden">
+                                        <button type="button" onclick="triggerSettingsUpload('settingsLogoInput')"
+                                            class="w-full py-2 text-sm bg-card hover:bg-surface border border-border rounded-xl transition-all"
+                                            data-admin-text="settings.identity.change">تغییر تصویر</button>
+                                    </div>
+                                    <div class="bg-surface border border-border rounded-2xl p-4 space-y-3">
+                                        <p class="text-sm font-medium text-body" data-admin-text="settings.identity.heroImage">تصویر هیرو</p>
+                                        <div class="aspect-video rounded-xl bg-card border border-border overflow-hidden flex items-center justify-center">
+                                            <img id="settingsHeroPreview" alt="" class="w-full h-full object-cover hidden">
+                                        </div>
+                                        <input type="file" id="settingsHeroInput" accept="image/*" class="hidden">
+                                        <button type="button" onclick="triggerSettingsUpload('settingsHeroInput')"
+                                            class="w-full py-2 text-sm bg-card hover:bg-surface border border-border rounded-xl transition-all"
+                                            data-admin-text="settings.identity.change">تغییر تصویر</button>
+                                    </div>
+                                    <div class="bg-surface border border-border rounded-2xl p-4 space-y-3">
+                                        <p class="text-sm font-medium text-body" data-admin-text="settings.identity.poster">پوستر بخش ویژگی</p>
+                                        <div class="aspect-video rounded-xl bg-card border border-border overflow-hidden flex items-center justify-center">
+                                            <img id="settingsPosterPreview" alt="" class="w-full h-full object-cover hidden">
+                                        </div>
+                                        <input type="file" id="settingsPosterInput" accept="image/*" class="hidden">
+                                        <button type="button" onclick="triggerSettingsUpload('settingsPosterInput')"
+                                            class="w-full py-2 text-sm bg-card hover:bg-surface border border-border rounded-xl transition-all"
+                                            data-admin-text="settings.identity.change">تغییر تصویر</button>
+                                    </div>
+                                    <div class="bg-surface border border-border rounded-2xl p-4 space-y-3">
+                                        <p class="text-sm font-medium text-body" data-admin-text="settings.identity.favicon">فاویکون</p>
+                                        <div class="aspect-square rounded-xl bg-card border border-border overflow-hidden flex items-center justify-center max-w-[120px] mx-auto">
+                                            <img id="settingsFaviconPreview" alt="" class="w-full h-full object-cover hidden">
+                                        </div>
+                                        <input type="file" id="settingsFaviconInput" accept="image/*" class="hidden">
+                                        <button type="button" onclick="triggerSettingsUpload('settingsFaviconInput')"
+                                            class="w-full py-2 text-sm bg-card hover:bg-surface border border-border rounded-xl transition-all"
+                                            data-admin-text="settings.identity.change">تغییر تصویر</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payment -->
+                            <div data-settings-panel="payment" class="hidden space-y-5">
+                                <div>
+                                    <label class="block text-muted mb-2 text-sm" data-admin-text="settings.payment.method">روش پرداخت</label>
+                                    <select id="settingsPaymentMethod" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                        <option value="card_to_card" data-admin-text="settings.payment.cardToCard">کارت به کارت</option>
+                                        <option value="zarinpal" data-admin-text="settings.payment.zarinpal">زرین‌پال</option>
+                                        <option value="both" data-admin-text="settings.payment.both">هر دو</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.payment.bankCard">شماره کارت</label>
+                                        <input type="text" id="settingsBankCard" dir="ltr" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.payment.bankOwner">نام صاحب کارت</label>
+                                        <input type="text" id="settingsBankOwner" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                </div>
+                                <div id="settingsMerchantWrap">
+                                    <label class="block text-muted mb-2 text-sm" data-admin-text="settings.payment.merchantId">شناسه پذیرنده زرین‌پال</label>
+                                    <input type="text" id="settingsMerchantId" dir="ltr" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                </div>
+                            </div>
+
+                            <!-- Contact -->
+                            <div data-settings-panel="contact" class="hidden space-y-5">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.contact.phone">تلفن تماس</label>
+                                        <input type="text" id="settingsContactPhone" dir="ltr" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.contact.email">ایمیل</label>
+                                        <input type="email" id="settingsContactEmail" dir="ltr" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-muted mb-2 text-sm" data-admin-text="settings.contact.address">آدرس</label>
+                                    <textarea id="settingsContactAddress" rows="3" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none"></textarea>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.contact.instagram">اینستاگرام</label>
+                                        <input type="text" id="settingsSocialInstagram" dir="ltr" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.contact.telegram">تلگرام</label>
+                                        <input type="text" id="settingsSocialTelegram" dir="ltr" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.contact.whatsapp">واتساپ</label>
+                                        <input type="text" id="settingsSocialWhatsapp" dir="ltr" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Shipping -->
+                            <div data-settings-panel="shipping" class="hidden space-y-5">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.shipping.standardCost">هزینه ارسال (تومان)</label>
+                                        <input type="number" id="settingsShippingCost" min="0" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.shipping.freeFrom">ارسال رایگان از (تومان)</label>
+                                        <input type="number" id="settingsShippingFreeFrom" min="0" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.shipping.minOrder">حداقل مبلغ سفارش (تومان)</label>
+                                        <input type="number" id="settingsMinOrder" min="0" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SMS -->
+                            <div data-settings-panel="sms" class="hidden space-y-5">
+                                <label class="flex items-center gap-3 text-body">
+                                    <input type="checkbox" id="settingsSmsEnabled" class="rounded bg-surface border-border w-5 h-5">
+                                    <span data-admin-text="settings.sms.enabled">فعال‌سازی پیامک</span>
+                                </label>
+                                <div data-sms-field class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.sms.provider">سرویس‌دهنده</label>
+                                        <select id="settingsSmsProvider" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                            <option value="kavenegar">کاوه‌نگار</option>
+                                            <option value="melipayamak">ملی‌پیامک</option>
+                                            <option value="smsir">SMS.ir</option>
+                                        </select>
+                                    </div>
+                                    <div data-sms-field>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.sms.apiKey">کلید API</label>
+                                        <input type="text" id="settingsSmsApiKey" dir="ltr" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SEO -->
+                            <div data-settings-panel="seo" class="hidden space-y-5">
+                                <div>
+                                    <label class="block text-muted mb-2 text-sm" data-admin-text="settings.seo.metaTitle">عنوان سئو</label>
+                                    <input type="text" id="settingsMetaTitle" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-muted mb-2 text-sm" data-admin-text="settings.seo.metaDescription">توضیحات سئو</label>
+                                    <textarea id="settingsMetaDescription" rows="4" maxlength="500" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </div>

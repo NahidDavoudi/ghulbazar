@@ -7,7 +7,11 @@ import Button from './Button.js';
 const ProductCard = {
   render(p) {
     const ui = storeConfig.ui;
-    const img = p.images?.find((i) => i.is_main)?.url || p.images?.[0]?.url || p.image || '';
+    const img = p.images?.find((i) => i.is_main)?.url
+      || p.images?.[0]?.url
+      || p.main_image
+      || p.image
+      || '';
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
 
