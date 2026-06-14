@@ -22,8 +22,8 @@ const FeaturedPosterCard = {
             imgClass: 'w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]',
             iconSize: 'w-12 h-12',
           })}
-          <div class="absolute inset-x-0 bottom-0 p-5 md:p-7 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
-            <h3 class="text-white font-bold text-xl md:text-2xl text-right leading-snug drop-shadow-sm">${p.name}</h3>
+          <div class="absolute inset-x-0 bottom-0 p-4 sm:p-5 md:p-7 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none">
+            <h3 class="text-white font-bold text-base sm:text-xl md:text-2xl text-right leading-snug drop-shadow-sm line-clamp-2">${p.name}</h3>
           </div>
         </div>
       </a>`;

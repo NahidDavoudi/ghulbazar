@@ -204,26 +204,38 @@ div[data-page].active { display: block; }
 }
 
 /* ── Featured Carousel (stacking slider) ── */
+.featured-carousel-section {
+  overflow-x: clip;
+}
 .stacking-slider__viewport {
   position: relative;
-  overflow: visible;
-  display: flex;
-  align-items: center;
-  min-height: 280px;
+  overflow: hidden;
+  width: 100%;
   padding-block: 16px 28px;
+  touch-action: pan-y;
 }
 .stacking-slider__track {
-  display: flex;
-  flex-direction: row;
-  gap: var(--stack-card-gap, 16px);
-  width: fit-content;
   position: relative;
+  width: min(var(--stack-poster-width-mobile, var(--stack-poster-width, 520px)), 100%);
+  max-width: 100%;
+  aspect-ratio: var(--stack-poster-ratio, 16 / 10);
+}
+@media (min-width: 768px) {
+  .stacking-slider__track {
+    width: min(var(--stack-poster-width, 520px), 100%);
+  }
 }
 .stacking-slider__card {
-  flex-shrink: 0;
-  width: min(var(--stack-poster-width, 520px), 88vw);
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   transition: transform var(--stack-transition, 350ms) ease-in-out;
+}
+[dir="rtl"] .stacking-slider__card {
+  left: auto;
+  right: 0;
 }
 .featured-poster {
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);

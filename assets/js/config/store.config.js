@@ -170,6 +170,8 @@ export default {
 
       posterWidth: 520,
 
+      mobilePosterWidth: 340,
+
       posterAspect: '16 / 10',
 
     },

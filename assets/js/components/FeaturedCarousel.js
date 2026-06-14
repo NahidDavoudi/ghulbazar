@@ -51,7 +51,7 @@ const FeaturedCarousel = {
       .join('');
 
     return `
-      <section class="py-14 md:py-20 bg-white featured-carousel-section" data-carousel-id="${id}">
+      <section class="py-14 md:py-20 bg-white featured-carousel-section overflow-x-clip" data-carousel-id="${id}">
         <div class="max-w-[1280px] mx-auto relative">
           <div class="flex flex-row-reverse items-center justify-between mb-8 px-4 md:px-6">
             <h2 class="text-2xl md:text-4xl font-bold text-body">${title}</h2>
@@ -61,7 +61,7 @@ const FeaturedCarousel = {
             </a>
           </div>
           <div class="stacking-slider px-4 md:px-6" data-slider-id="${id}"
-               style="--stack-card-gap:${cfg.cardGap}px;--stack-transition:${cfg.transitionDuration}ms;--stack-poster-width:${cfg.posterWidth}px;--stack-poster-ratio:${cfg.posterAspect};">
+               style="--stack-card-gap:${cfg.cardGap}px;--stack-transition:${cfg.transitionDuration}ms;--stack-poster-width:${cfg.posterWidth}px;--stack-poster-width-mobile:${cfg.mobilePosterWidth || cfg.posterWidth}px;--stack-poster-ratio:${cfg.posterAspect};">
             <div class="stacking-slider__viewport">
               <div class="stacking-slider__track">${cards}</div>
             </div>
@@ -99,7 +99,8 @@ const FeaturedCarousel = {
     const state = { currentIndex, ro: null, onResize: null, onPrev: null, onNext: null, onTouchStart: null, onTouchEnd: null };
 
     function measureCardWidth() {
-      if (cards[0]) cardWidth = cards[0].offsetWidth;
+      const track = sliderEl.querySelector('.stacking-slider__track');
+      cardWidth = track?.offsetWidth || cards[0]?.offsetWidth || 0;
     }
 
     function updateButtons() {
@@ -177,7 +178,8 @@ const FeaturedCarousel = {
 
     if (typeof ResizeObserver !== 'undefined') {
       state.ro = new ResizeObserver(state.onResize);
-      state.ro.observe(cards[0]);
+      const track = sliderEl.querySelector('.stacking-slider__track');
+      state.ro.observe(track || cards[0]);
     }
 
     measureCardWidth();
