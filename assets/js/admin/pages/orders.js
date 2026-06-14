@@ -7,6 +7,10 @@
 ;(function () {
   'use strict';
 
+  function _t(path, fallback) {
+    return window.getAdminText?.(path, fallback) ?? fallback;
+  }
+
   let _orders = [];
 
   /* ── Public loader ─────────────────────────────────────────── */
@@ -30,7 +34,7 @@
     const tbody = $('ordersTableBody');
     if (!tbody) return;
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-stone-400">سفارشی یافت نشد</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-dim">${_t('orders.empty', 'سفارشی یافت نشد')}</td></tr>`;
       return;
     }
     tbody.innerHTML = list.map(o => {
@@ -40,36 +44,36 @@
         <div class="flex flex-wrap gap-1 mt-1.5">
           <a href="${receiptUrl}" target="_blank"
              class="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors">
-            مشاهده رسید
+            ${_t('orders.viewReceipt', 'مشاهده رسید')}
           </a>
           ${o.status === 'pending' ? `
           <button onclick="approveReceipt(${o.id})"
                   class="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors">
             <i data-lucide="check" class="w-3.5 h-3.5"></i>
-            تایید
+            ${_t('orders.approve', 'تایید')}
           </button>
           <button onclick="rejectReceipt(${o.id})"
-                  class="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors">
+                  class="flex items-center gap-1 text-[10px] px-2 py-0.5 bg-accent/10 text-accent rounded-md hover:bg-accent/20 transition-colors">
             <i data-lucide="x" class="w-3.5 h-3.5"></i>
-            رد
+            ${_t('orders.reject', 'رد')}
           </button>` : ''}
         </div>` : '';
 
-      return `<tr class="hover:bg-stone-50 transition-colors">
+      return `<tr class="hover:bg-row transition-colors">
         <td class="px-4 py-3">
-          <p class="font-mono text-sm text-stone-700">#${o.order_number}</p>
+          <p class="font-mono text-sm text-body">#${o.order_number}</p>
           ${receiptHtml}
         </td>
         <td class="px-4 py-3">
-          <p class="text-sm font-medium text-stone-800">${o.customer_name || '—'}</p>
-          <p class="text-xs text-stone-400" dir="ltr">${o.customer_phone || ''}</p>
+          <p class="text-sm font-medium text-body">${o.customer_name || '—'}</p>
+          <p class="text-xs text-dim" dir="ltr">${o.customer_phone || ''}</p>
         </td>
         <td class="px-4 py-3 text-sm font-medium">${API.utils.formatPrice(o.total_amount || 0)}</td>
-        <td class="px-4 py-3 text-xs text-stone-400">${date}</td>
+        <td class="px-4 py-3 text-xs text-dim">${date}</td>
         <td class="px-4 py-3">${statusBadge(o.status)}</td>
         <td class="px-4 py-3">
           <select onchange="changeOrderStatus(${o.id},this.value)"
-                  class="text-xs bg-stone-100 border border-stone-200 rounded-lg px-2 py-1.5 text-stone-700 focus:outline-none focus:border-red-700">
+                  class="text-xs bg-card border border-border rounded-lg px-2 py-1.5 text-body focus:outline-none focus:border-accent">
             ${Object.entries(STATUS_MAP).map(([k, v]) =>
               `<option value="${k}" ${o.status === k ? 'selected' : ''}>${v.label}</option>`
             ).join('')}

@@ -69,7 +69,8 @@
         });
 
     if (data.every(d => +d.amount === 0)) {
-      container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#a8a29e;font-size:14px;">هنوز فروشی ثبت نشده</div>';
+      const { muted } = _theme();
+      container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:${muted};font-size:14px;">${_t('dashboard.noSales', 'هنوز فروشی ثبت نشده')}</div>`;
       return;
     }
 
@@ -89,6 +90,7 @@
     const g = svg.append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
+    const { accent, accentHover, muted, border, bodyText, body } = _theme();
     const maxVal = d3.max(data, d => +d.amount) || 1;
 
     const x = d3.scaleBand().domain(data.map(d => d.date)).range([0, w]).padding(0.35);
@@ -97,15 +99,15 @@
     const defs = svg.append('defs');
     const grad = defs.append('linearGradient').attr('id', 'wkBarGrad')
       .attr('x1', '0').attr('y1', '0').attr('x2', '0').attr('y2', '1');
-    grad.append('stop').attr('offset', '0%').attr('stop-color', '#dc2626');
-    grad.append('stop').attr('offset', '100%').attr('stop-color', '#7f1d1d');
+    grad.append('stop').attr('offset', '0%').attr('stop-color', accent);
+    grad.append('stop').attr('offset', '100%').attr('stop-color', accentHover);
 
     // grid lines
     g.append('g').call(
       d3.axisLeft(y).ticks(4).tickSize(-w).tickFormat('')
     ).call(el => {
       el.select('.domain').remove();
-      el.selectAll('line').attr('stroke', '#e7e5e4').attr('stroke-dasharray', '4,3');
+      el.selectAll('line').attr('stroke', border).attr('stroke-dasharray', '4,3');
     });
 
     // Y axis labels
@@ -120,20 +122,20 @@
       el.select('.domain').remove();
       el.selectAll('line').remove();
       el.selectAll('text')
-        .attr('fill', '#a8a29e')
+        .attr('fill', muted)
         .style('font-size', '10px')
-        .style('font-family', 'Vazirmatn,sans-serif');
+        .style('font-family', 'var(--font-vazir, Vazirmatn, sans-serif)');
     });
 
     // X axis
     g.append('g').attr('transform', `translate(0,${h})`)
       .call(d3.axisBottom(x).tickSize(0))
       .call(el => {
-        el.select('.domain').attr('stroke', '#e7e5e4');
+        el.select('.domain').attr('stroke', border);
         el.selectAll('text')
-          .attr('fill', '#a8a29e')
+          .attr('fill', muted)
           .style('font-size', '10px')
-          .style('font-family', 'Vazirmatn,sans-serif')
+          .style('font-family', 'var(--font-vazir, Vazirmatn, sans-serif)')
           .attr('dy', '1.2em');
       });
 
@@ -151,13 +153,13 @@
     // tooltip
     container.style.position = 'relative';
     const tip = d3.select(container).append('div')
-      .style('position', 'absolute').style('background', '#1c1917').style('color', '#fff')
+      .style('position', 'absolute').style('background', bodyText).style('color', body)
       .style('font-size', '12px').style('padding', '5px 10px').style('border-radius', '8px')
       .style('pointer-events', 'none').style('opacity', '0').style('transition', 'opacity .15s')
       .style('white-space', 'nowrap').style('font-family', 'Vazirmatn,sans-serif');
 
     bars.on('mouseenter', function (_ev, d) {
-      d3.select(this).attr('fill', '#ef4444');
+      d3.select(this).attr('fill', accentHover);
       tip.style('opacity', '1').html(Number(d.amount).toLocaleString('fa-IR') + ' تومان');
     }).on('mousemove', function (ev) {
       const r = container.getBoundingClientRect();
@@ -170,6 +172,7 @@
   }
 
   function _renderWeeklyVanilla(data, el) {
+    const { accent, accentHover, muted } = _theme();
     const max = Math.max(...data.map(d => +d.amount), 1);
     el.style.cssText = 'display:flex;align-items:flex-end;gap:8px;padding:0 8px;height:100%;';
     data.forEach(d => {
@@ -179,9 +182,9 @@
       col.innerHTML = `
         <div style="width:100%;flex:1;display:flex;align-items:flex-end;">
           <div style="width:100%;height:${pct}%;min-height:4px;border-radius:6px 6px 0 0;
-               background:linear-gradient(to top,#7f1d1d,#dc2626);"></div>
+               background:linear-gradient(to top,${accentHover},${accent});"></div>
         </div>
-        <div style="font-size:10px;color:#a8a29e;">${d.date}</div>`;
+        <div style="font-size:10px;color:${muted};">${d.date}</div>`;
       el.appendChild(col);
     });
   }
@@ -194,11 +197,13 @@
 
     const entries = Object.entries(data || {}).filter(([, v]) => v > 0);
     if (!entries.length) {
-      container.innerHTML = '<div style="text-align:center;padding:40px 0;color:#a8a29e;font-size:14px;">داده‌ای موجود نیست</div>';
+      const { muted } = _theme();
+      container.innerHTML = `<div style="text-align:center;padding:40px 0;color:${muted};font-size:14px;">${_t('dashboard.noData', 'داده‌ای موجود نیست')}</div>`;
       return;
     }
 
-    const COLORS = ['#b91c1c', '#1d4ed8', '#7c3aed', '#15803d', '#78716c', '#c2410c'];
+    const { accent, accentHover, muted, bodyText, body } = _theme();
+    const COLORS = [accent, accentHover, '#1d4ed8', '#7c3aed', '#15803d', muted];
 
     if (typeof d3 === 'undefined') {
       _renderDonutVanilla(entries, COLORS, container);
@@ -221,14 +226,14 @@
     const arcHov = d3.arc().innerRadius(inner).outerRadius(R + 5).cornerRadius(3);
 
     const tip = d3.select(wrap).append('div')
-      .style('position', 'absolute').style('background', '#1c1917').style('color', '#fff')
+      .style('position', 'absolute').style('background', bodyText).style('color', body)
       .style('font-size', '12px').style('padding', '5px 10px').style('border-radius', '8px')
       .style('pointer-events', 'none').style('opacity', '0').style('white-space', 'nowrap')
       .style('font-family', 'Vazirmatn,sans-serif').style('transition', 'opacity .15s');
 
     const arcs = g.selectAll('path').data(pie(entries)).join('path')
       .attr('fill', (_, i) => COLORS[i % COLORS.length])
-      .attr('stroke', '#fff').attr('stroke-width', 2)
+      .attr('stroke', body).attr('stroke-width', 2)
       .each(function (d) { this._current = { startAngle: d.startAngle, endAngle: d.startAngle }; });
 
     arcs.transition().duration(700).ease(d3.easeCubicOut)
@@ -239,11 +244,11 @@
       });
 
     g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.15em')
-      .style('font-size', '20px').style('font-weight', '700').style('fill', '#1c1917')
-      .style('font-family', 'Vazirmatn,sans-serif').text(total.toLocaleString('fa-IR'));
+      .style('font-size', '20px').style('font-weight', '700').style('fill', bodyText)
+      .style('font-family', 'var(--font-vazir, Vazirmatn, sans-serif)').text(total.toLocaleString('fa-IR'));
     g.append('text').attr('text-anchor', 'middle').attr('dy', '1.2em')
-      .style('font-size', '11px').style('fill', '#a8a29e')
-      .style('font-family', 'Vazirmatn,sans-serif').text('سفارش');
+      .style('font-size', '11px').style('fill', muted)
+      .style('font-family', 'var(--font-vazir, Vazirmatn, sans-serif)').text(_t('dashboard.ordersLabel', 'سفارش'));
 
     arcs.on('mouseenter', function (_ev, d) {
       d3.select(this).transition().duration(120).attr('d', arcHov);
@@ -269,11 +274,11 @@
       row.innerHTML = `
         <div style="display:flex;align-items:center;gap:7px;">
           <span style="width:9px;height:9px;border-radius:50%;background:${color};flex-shrink:0;"></span>
-          <span style="font-size:12px;color:#57534e;">${label}</span>
+          <span style="font-size:12px;color:${muted};">${label}</span>
         </div>
         <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
-          <span style="font-size:12px;font-weight:600;color:#1c1917;">${val.toLocaleString('fa-IR')}</span>
-          <span style="font-size:11px;color:#a8a29e;">(${pct}٪)</span>
+          <span style="font-size:12px;font-weight:600;color:${bodyText};">${val.toLocaleString('fa-IR')}</span>
+          <span style="font-size:11px;color:${muted};">(${pct}٪)</span>
         </div>`;
       legend.appendChild(row);
     });
@@ -281,6 +286,7 @@
   }
 
   function _renderDonutVanilla(entries, COLORS, el) {
+    const { bodyText, muted, body } = _theme();
     const total = entries.reduce((s, [, v]) => s + v, 0) || 1;
     let deg = 0;
     const gradient = entries.map(([, v], i) => {
@@ -297,8 +303,8 @@
     const donut = document.createElement('div');
     donut.style.cssText = `width:160px;height:160px;border-radius:50%;background:conic-gradient(${gradient});position:relative;`;
     const hole = document.createElement('div');
-    hole.style.cssText = 'position:absolute;inset:28px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;';
-    hole.innerHTML = `<span style="font-size:22px;font-weight:700;color:#1c1917;">${total.toLocaleString('fa-IR')}</span><span style="font-size:11px;color:#a8a29e;">سفارش</span>`;
+    hole.style.cssText = `position:absolute;inset:28px;background:${body};border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;`;
+    hole.innerHTML = `<span style="font-size:22px;font-weight:700;color:${bodyText};">${total.toLocaleString('fa-IR')}</span><span style="font-size:11px;color:${muted};">${_t('dashboard.ordersLabel', 'سفارش')}</span>`;
     donut.appendChild(hole);
     donutWrap.appendChild(donut);
     el.appendChild(donutWrap);
@@ -313,11 +319,11 @@
       row.innerHTML = `
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></span>
-          <span style="font-size:12px;color:#57534e;">${label}</span>
+          <span style="font-size:12px;color:${muted};">${label}</span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:12px;font-weight:600;color:#1c1917;">${val.toLocaleString('fa-IR')}</span>
-          <span style="font-size:11px;color:#a8a29e;">(${pct}٪)</span>
+          <span style="font-size:12px;font-weight:600;color:${bodyText};">${val.toLocaleString('fa-IR')}</span>
+          <span style="font-size:11px;color:${muted};">(${pct}٪)</span>
         </div>`;
       legend.appendChild(row);
     });

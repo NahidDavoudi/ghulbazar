@@ -7,13 +7,17 @@
 ;(function () {
   'use strict';
 
+  function _t(path, fallback) {
+    return window.getAdminText?.(path, fallback) ?? fallback;
+  }
+
   /* ── Render list ───────────────────────────────────────────── */
   function renderDiscounts(list) {
     const el = $('discountsContainer');
     if (!el) return;
 
     if (!list?.length) {
-      el.innerHTML = '<p class="text-stone-400 col-span-full text-center py-8">کد تخفیفی ثبت نشده</p>';
+      el.innerHTML = `<p class="text-dim col-span-full text-center py-8">${_t('discounts.empty', 'کد تخفیفی ثبت نشده')}</p>`;
       return;
     }
 
@@ -24,65 +28,56 @@
       const active  = d.is_active && !expired;
 
       const statusBadge = active
-        ? 'bg-green-900/30 text-green-400 border border-green-800'
+        ? 'bg-green-100 text-green-800 border border-green-200'
         : expired
-          ? 'bg-[#3a1f24] text-[#c8939c] border border-[#47242a]'
-          : 'bg-[#2d161a] text-[rgba(255,255,255,0.4)] border border-[#47242a]';
+          ? 'bg-card text-muted border border-border'
+          : 'bg-surface text-dim border border-border';
 
-      const statusLabel = active ? 'فعال' : (expired ? 'منقضی' : 'غیرفعال');
+      const statusLabel = active
+        ? _t('discounts.active', 'فعال')
+        : (expired ? _t('discounts.expired', 'منقضی') : _t('discounts.inactive', 'غیرفعال'));
 
       const valueLabel = d.type === 'percent'
-        ? `${d.value}٪ تخفیف`
-        : `${Number(d.value).toLocaleString('fa-IR')} تومان تخفیف`;
+        ? `${d.value}${_t('discounts.percentOff', '٪ تخفیف')}`
+        : `${Number(d.value).toLocaleString('fa-IR')} ${_t('discounts.fixedOff', 'تومان تخفیف')}`;
 
       return `
-        <div class="bg-[#2d161a] border border-[#47242a] rounded-2xl p-5 flex flex-col gap-4
-                    hover:border-accent/40 transition-colors relative overflow-hidden">
-
-          <!-- گلو اثر پس‌زمینه -->
+        <div class="admin-card rounded-2xl p-5 flex flex-col gap-4 hover:border-accent/30 transition-colors relative overflow-hidden">
           <div class="absolute top-0 left-0 w-32 h-32 bg-accent/5 rounded-full blur-2xl pointer-events-none"></div>
-
-          <!-- ردیف اول: کد + وضعیت -->
           <div class="flex items-center justify-between gap-3">
-            <span class="font-mono font-black text-white tracking-widest text-base bg-[#3a1f24]
-                         border border-[#47242a] px-3 py-1.5 rounded-lg select-all">
+            <span class="font-mono font-black text-body tracking-widest text-base bg-card
+                         border border-border px-3 py-1.5 rounded-lg select-all">
               ${d.code}
             </span>
             <span class="text-xs px-3 py-1 rounded-full font-bold whitespace-nowrap ${statusBadge}">
               ${statusLabel}
             </span>
           </div>
-
-          <!-- ردیف دوم: مقدار تخفیف -->
           <div class="flex items-center gap-2">
             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--color-accent)" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M7 7h.01M17 17h.01M7 17h.01M17 7h.01
                    M3 12a9 9 0 1118 0 9 9 0 01-18 0z"/>
             </svg>
-            <span class="text-white font-bold text-sm">${valueLabel}</span>
+            <span class="text-body font-bold text-sm">${valueLabel}</span>
           </div>
-
-          <!-- ردیف سوم: تاریخ‌ها -->
-          <div class="flex gap-4 text-xs text-[rgba(255,255,255,0.5)]">
+          <div class="flex gap-4 text-xs text-dim">
             ${d.valid_from ? `<span>از ${new Date(d.valid_from).toLocaleDateString('fa-IR')}</span>` : ''}
-            ${d.valid_to   ? `<span>تا ${new Date(d.valid_to).toLocaleDateString('fa-IR')}</span>`   : '<span>بدون تاریخ انقضا</span>'}
+            ${d.valid_to   ? `<span>تا ${new Date(d.valid_to).toLocaleDateString('fa-IR')}</span>`   : `<span>${_t('discounts.noExpiry', 'بدون تاریخ انقضا')}</span>`}
           </div>
-
-          <!-- ردیف چهارم: دکمه‌ها -->
-          <div class="flex gap-2 pt-1 border-t border-[#47242a]">
+          <div class="flex gap-2 pt-1 border-t border-border">
             ${active ? `
               <button onclick="deactivateDiscount(${d.id})"
-                class="flex-1 py-2 text-xs font-bold bg-[#3a1f24] hover:bg-[#47242a]
-                       text-[rgba(255,255,255,0.7)] hover:text-white border border-[#47242a]
+                class="flex-1 py-2 text-xs font-bold bg-surface hover:bg-card
+                       text-muted hover:text-body border border-border
                        rounded-lg transition-all">
-                غیرفعال کردن
+                ${_t('discounts.deactivate', 'غیرفعال کردن')}
               </button>` : ''}
             <button onclick="deleteDiscount(${d.id})"
               class="flex-1 py-2 text-xs font-bold bg-accent/10 hover:bg-accent/20
                      text-accent border border-accent/30 hover:border-accent/60
                      rounded-lg transition-all">
-              حذف
+              ${_t('discounts.delete', 'حذف')}
             </button>
           </div>
         </div>`;
@@ -94,13 +89,13 @@
     const el = $('discountsContainer');
     if (!el) return;
 
-    el.innerHTML = '<p class="text-stone-400 col-span-full text-center py-8 animate-pulse">در حال بارگذاری...</p>';
+    el.innerHTML = `<p class="text-dim col-span-full text-center py-8 animate-pulse">${_t('discounts.loading', 'در حال بارگذاری...')}</p>`;
 
     try {
       const list = await API.discounts.list();
       renderDiscounts(Array.isArray(list) ? list : (list?.data || []));
     } catch (e) {
-      el.innerHTML = `<p class="text-red-400 col-span-full text-center py-8">${e.message}</p>`;
+      el.innerHTML = `<p class="text-accent col-span-full text-center py-8">${e.message}</p>`;
     }
   };
 
@@ -141,7 +136,7 @@
       valid_to:   getVal('discountValidTo'),
     };
     if (!payload.code || !payload.value) {
-      toast('کد و مقدار الزامی‌اند', 'error');
+      toast(_t('common.codeValueRequired', 'کد و مقدار الزامی‌اند'), 'error');
       return;
     }
     try {

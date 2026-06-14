@@ -33,6 +33,10 @@ import { renderImageWithFallback } from '../../utils/imagePlaceholder.js';
     }
   };
 
+  function _t(path, fallback) {
+    return window.getAdminText?.(path, fallback) ?? fallback;
+  }
+
   /* ── Category dropdowns ────────────────────────────────────── */
   function _fillCatFilter() {
     ['productCategoryFilter', 'productCategory'].forEach(id => {
@@ -40,8 +44,8 @@ import { renderImageWithFallback } from '../../utils/imagePlaceholder.js';
       if (!el) return;
       const opts = _categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
       el.innerHTML = id === 'productCategoryFilter'
-        ? '<option value="">همه دسته‌بندی‌ها</option>' + opts
-        : '<option value="">انتخاب دسته‌بندی</option>' + opts;
+        ? `<option value="">${_t('products.allCategories', 'همه دسته‌بندی‌ها')}</option>` + opts
+        : `<option value="">${_t('products.selectCategory', 'انتخاب دسته‌بندی')}</option>` + opts;
     });
   }
 
@@ -51,41 +55,41 @@ import { renderImageWithFallback } from '../../utils/imagePlaceholder.js';
     if (!tbody) return;
     setText('products-count', `${list.length} محصول`);
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-stone-400">محصولی یافت نشد</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-dim">${_t('products.empty', 'محصولی یافت نشد')}</td></tr>`;
       return;
     }
     tbody.innerHTML = list.map(p => {
       const img      = p.main_image || p.images?.find(i => i.is_main)?.url || p.images?.[0]?.url || p.image || '';
-      const stockCls = p.stock === 0 ? 'text-red-600' : p.stock < 5 ? 'text-yellow-600' : 'text-green-600';
-      return `<tr class="hover:bg-stone-50 transition-colors">
+      const stockCls = p.stock === 0 ? 'text-accent' : p.stock < 5 ? 'text-yellow-600' : 'text-green-600';
+      return `<tr class="hover:bg-row transition-colors">
         <td class="px-4 py-3">
-          <div class="w-12 h-12 rounded-xl overflow-hidden bg-stone-100 relative">
+          <div class="w-12 h-12 rounded-xl overflow-hidden bg-surface relative">
             ${renderImageWithFallback({ src: img, alt: p.name, iconSize: 'w-5 h-5' })}
           </div>
         </td>
         <td class="px-4 py-3">
-          <p class="font-medium text-stone-800 text-sm">${p.name}</p>
-          <p class="text-xs text-stone-400">${p.era || ''}</p>
+          <p class="font-medium text-body text-sm">${p.name}</p>
+          <p class="text-xs text-dim">${p.era || ''}</p>
         </td>
         <td class="px-4 py-3 text-sm">${API.utils.formatPrice(p.price)}</td>
         <td class="px-4 py-3 text-sm font-bold ${stockCls}">${p.stock}</td>
-        <td class="px-4 py-3 text-sm text-stone-500">${p.category_name || '—'}</td>
+        <td class="px-4 py-3 text-sm text-muted">${p.category_name || '—'}</td>
         <td class="px-4 py-3">
-          <span class="px-2 py-1 rounded-full text-xs font-medium ${(p.featured || p.is_featured) ? 'bg-amber-100 text-amber-800' : 'bg-stone-100 text-stone-500'}">
-            ${(p.featured || p.featured) ? 'ویژه' : 'عادی'}
+          <span class="px-2 py-1 rounded-full text-xs font-medium ${(p.featured || p.is_featured) ? 'bg-amber-100 text-amber-800' : 'bg-card text-muted'}">
+            ${(p.featured || p.is_featured) ? _t('products.featuredBadge', 'ویژه') : _t('products.normalBadge', 'عادی')}
           </span>
         </td>
         <td class="px-4 py-3">
           <div class="flex gap-1">
-            <button onclick="editProduct(${p.id})" title="ویرایش"
+            <button onclick="editProduct(${p.id})" title="${_t('common.edit', 'ویرایش')}"
                     class="p-2 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a4 4 0 01-1.414.914l-3 1 1-3a4 4 0 01.914-1.414z"/>
               </svg>
             </button>
-            <button onclick="deleteProduct(${p.id},'${p.name.replace(/'/g, "\\'")}')" title="حذف"
-                    class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors">
+            <button onclick="deleteProduct(${p.id},'${p.name.replace(/'/g, "\\'")}')" title="${_t('common.delete', 'حذف')}"
+                    class="p-2 rounded-lg hover:bg-accent/10 text-accent transition-colors">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3M4 7h16"/>
@@ -159,10 +163,10 @@ import { renderImageWithFallback } from '../../utils/imagePlaceholder.js';
       const grid = $('productImagesGrid');
       if (grid) {
         grid.innerHTML = (p.images || []).map(img => `
-          <div class="relative aspect-square rounded-xl overflow-hidden bg-stone-100 group" id="img-item-${img.id}">
+          <div class="relative aspect-square rounded-xl overflow-hidden bg-surface group" id="img-item-${img.id}">
             ${renderImageWithFallback({ src: img.image_url, alt: '', iconSize: 'w-8 h-8' })}
             ${img.is_main
-              ? '<span class="absolute top-1 right-1 bg-red-800 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">اصلی</span>'
+              ? `<span class="absolute top-1 right-1 bg-accent text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">${_t('products.mainImage', 'اصلی')}</span>`
               : `<button onclick="setMainProductImage(${id}, ${img.id})"
                          title="تنظیم به عنوان اصلی"
                          class="absolute top-1 right-1 hidden group-hover:flex items-center justify-center
@@ -171,7 +175,7 @@ import { renderImageWithFallback } from '../../utils/imagePlaceholder.js';
             <button onclick="deleteProductImage(${id}, ${img.id})"
                     title="حذف تصویر"
                     class="absolute top-1 left-1 hidden group-hover:flex items-center justify-center
-                           w-6 h-6 bg-red-600 text-white rounded-full text-xs z-10 hover:bg-red-700">×</button>
+                           w-6 h-6 bg-accent text-white rounded-full text-xs z-10 hover:bg-accent-hover">×</button>
           </div>`).join('');
       }
 
