@@ -64,7 +64,7 @@ class ProductController extends Controller
     {
         $data = $request->only([
             'name', 'slug', 'description', 'short_description', 'full_description',
-            'price', 'sale_price', 'category_id', 'era', 'material', 'badge',
+            'price', 'sale_price', 'category_id',
             'stock', 'low_stock_threshold', 'featured', 'is_active', 'status', 'product_type',
         ]);
 
@@ -81,7 +81,7 @@ class ProductController extends Controller
     {
         $data = $request->only([
             'name', 'slug', 'description', 'short_description', 'full_description',
-            'price', 'sale_price', 'category_id', 'era', 'material', 'badge',
+            'price', 'sale_price', 'category_id',
             'stock', 'low_stock_threshold', 'featured', 'is_active', 'status', 'product_type',
         ]);
 

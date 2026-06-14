@@ -101,7 +101,6 @@ Router.onEnter('products', async function (params) {
       { href: '#/', label: shopT.breadcrumbHome },
       { href: hashHref('shop'), label: shopT.breadcrumbShop },
     ];
-    if (p.era) bcItems.push({ href: hashHref('shop'), label: p.era });
     bcItems.push({ href: hashHref('product', { id: p.id }), label: p.name });
 
     const bcEl = document.getElementById('product-breadcrumb');

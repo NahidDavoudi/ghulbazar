@@ -33,7 +33,7 @@ class ProductModel extends Model
         if (!empty($filters['category_id'])) {
             $where[]  = 'p.category_id = ?';
             $params[] = (int) $filters['category_id'];
-        } else        if (!empty($filters['category'])) {
+        } elseif (!empty($filters['category'])) {
             $where[]  = 'c.slug = ?';
             $params[] = $filters['category'];
         }

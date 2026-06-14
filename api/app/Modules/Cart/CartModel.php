@@ -32,7 +32,7 @@ class CartModel extends Model
         $stmt = $this->pdo->prepare("
             SELECT ci.*,
                    p.name, p.price AS product_price, p.stock AS product_stock,
-                   p.era, p.material, p.is_active, p.slug AS product_slug,
+                   p.is_active, p.slug AS product_slug,
                    pv.sku, pv.title AS variant_title,
                    pv.price AS variant_price, pv.sale_price AS variant_sale_price,
                    COALESCE(ii.quantity, 0) AS variant_stock,

@@ -24,8 +24,6 @@ class OrderItemModel extends Model
             SELECT oi.*,
                    p.name AS product_name,
                    p.slug AS product_slug,
-                   p.era,
-                   p.material,
                    (SELECT pi.image_url FROM product_images pi
                     WHERE pi.product_id = oi.product_id AND pi.is_main = 1
                     LIMIT 1) AS product_image
