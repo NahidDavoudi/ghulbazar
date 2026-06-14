@@ -344,6 +344,13 @@ const products = {
     if (meta.sort_order !== undefined) form.append('sort_order', meta.sort_order);
     return upload(`/admin/products/${id}/images`, form);
   },
+  uploadImage: (id, file, isMain = false, sortOrder = 0) => {
+    const form = new FormData();
+    form.append('image', file);
+    form.append('is_main', isMain ? 1 : 0);
+    form.append('sort_order', sortOrder);
+    return upload(`/admin/products/${id}/images`, form);
+  },
   setMainImage: (id, imageId) => patch(`/admin/products/${id}/images/${imageId}`),
   deleteImage: (id, imageId) => del(`/admin/products/${id}/images/${imageId}`),
 };

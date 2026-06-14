@@ -34,7 +34,7 @@ async function boot() {
   applyLoginBranding();
 
   if (api.auth.isLoggedIn()) {
-    const redirect = new URLSearchParams(location.search).get('redirect') || 'app.html#/';
+    const redirect = new URLSearchParams(location.search).get('redirect') || 'index.html#/';
     location.replace(redirect);
     return;
   }
@@ -90,7 +90,7 @@ async function doLogin() {
     const redirect = new URLSearchParams(location.search).get('redirect');
     if (redirect) location.href = redirect;
     else if (data.user?.role === 'admin') location.href = 'admin.html';
-    else location.href = 'app.html#/';
+    else location.href = 'index.html#/';
   } catch (e) {
     showError('login-error', e.message);
     setLoading('login-btn', 'login-btn-text', 'ورود به حساب', false);
@@ -115,7 +115,7 @@ async function doRegister() {
   setLoading('register-btn', 'register-btn-text', 'در حال ثبت...', true);
   try {
     await api.auth.register({ name: `${fname} ${lname}`.trim(), phone, password });
-    location.href = 'app.html#/';
+    location.href = 'index.html#/';
   } catch (e) {
     showError('register-error', e.message);
     setLoading('register-btn', 'register-btn-text', 'ساخت حساب', false);

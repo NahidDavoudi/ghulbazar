@@ -39,6 +39,18 @@ export function formatDate(dateStr) {
 }
 
 /** Admin DOM shortcuts — exposed on window for admin pages */
+const DEFAULT_STATUS_MAP = {
+  pending:   { label: 'در انتظار',       cls: 'bg-yellow-100 text-yellow-800' },
+  paid:      { label: 'پرداخت شده',      cls: 'bg-blue-100 text-blue-800' },
+  shipped:   { label: 'ارسال شده',       cls: 'bg-purple-100 text-purple-800' },
+  delivered: { label: 'تحویل داده شده', cls: 'bg-green-100 text-green-800' },
+  cancelled: { label: 'لغو شده',         cls: 'bg-card text-muted' },
+};
+
+export function refreshStatusMap() {
+  window.STATUS_MAP = window.StoreConfig?.texts?.admin?.orderStatuses || DEFAULT_STATUS_MAP;
+}
+
 export function installAdminHelpers() {
   window.$ = (id) => document.getElementById(id);
   window.show = (id) => window.$(id)?.classList.remove('hidden');
@@ -53,18 +65,14 @@ export function installAdminHelpers() {
   window.showModal = (id) => window.$(id)?.classList.remove('hidden');
   window.hideModal = (id) => window.$(id)?.classList.add('hidden');
 
-  window.STATUS_MAP = {
-    pending:   { label: 'در انتظار',       cls: 'bg-yellow-100 text-yellow-800' },
-    paid:      { label: 'پرداخت شده',      cls: 'bg-blue-100 text-blue-800' },
-    shipped:   { label: 'ارسال شده',       cls: 'bg-purple-100 text-purple-800' },
-    delivered: { label: 'تحویل داده شده', cls: 'bg-green-100 text-green-800' },
-    cancelled: { label: 'لغو شده',         cls: 'bg-stone-100 text-stone-500' },
-  };
+  refreshStatusMap();
 
   window.statusBadge = function (s) {
-    const m = window.STATUS_MAP[s] || { label: s, cls: 'bg-stone-100 text-stone-500' };
+    const m = window.STATUS_MAP[s] || { label: s, cls: 'bg-card text-muted' };
     return `<span class="px-2.5 py-1 rounded-full text-xs font-medium ${m.cls}">${m.label}</span>`;
   };
+
+  window.refreshStatusMap = refreshStatusMap;
 }
 
 if (typeof window !== 'undefined') {

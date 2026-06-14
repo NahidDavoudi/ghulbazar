@@ -1,5 +1,5 @@
 import { storeConfig } from '../config/bootstrap.js';
-import ProductCard from './ProductCard.js';
+import FeaturedPosterCard from './FeaturedPosterCard.js';
 
 let _uid = 0;
 
@@ -46,7 +46,7 @@ const FeaturedCarousel = {
     const cards = products
       .map(
         (p, i) =>
-          `<div class="stacking-slider__card" data-card-index="${i}" style="z-index:${i + 1}">${ProductCard.render(p)}</div>`
+          `<div class="stacking-slider__card" data-card-index="${i}" style="z-index:${i + 1}">${FeaturedPosterCard.render(p)}</div>`
       )
       .join('');
 
@@ -61,7 +61,7 @@ const FeaturedCarousel = {
             </a>
           </div>
           <div class="stacking-slider px-4 md:px-6" data-slider-id="${id}"
-               style="--stack-card-gap:${cfg.cardGap}px;--stack-transition:${cfg.transitionDuration}ms;">
+               style="--stack-card-gap:${cfg.cardGap}px;--stack-transition:${cfg.transitionDuration}ms;--stack-poster-width:${cfg.posterWidth}px;--stack-poster-ratio:${cfg.posterAspect};">
             <div class="stacking-slider__viewport">
               <div class="stacking-slider__track">${cards}</div>
             </div>
@@ -89,8 +89,6 @@ const FeaturedCarousel = {
     const cfg = storeConfig.carousel.featured;
     const cards = [...sliderEl.querySelectorAll('.stacking-slider__card')];
     if (!cards.length) return null;
-
-    cards.forEach((card) => ProductCard.bind(card, callbacks));
 
     const prevBtn = sliderEl.querySelector('[data-action="prev"]');
     const nextBtn = sliderEl.querySelector('[data-action="next"]');
@@ -162,10 +160,7 @@ const FeaturedCarousel = {
     };
 
     sliderEl.addEventListener('click', (event) => {
-      const btn = event.target.closest('.add-to-cart-quick');
-      if (btn && !btn.disabled) return;
-
-      const link = event.target.closest('a[data-link]') || event.target.closest('.iris-card[href]');
+      const link = event.target.closest('a[data-link].featured-poster');
       if (!link) return;
       const href = link.getAttribute('href') || '';
       const hash = href.startsWith('#') ? href.slice(1) : href;

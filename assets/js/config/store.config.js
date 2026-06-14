@@ -166,6 +166,10 @@ export default {
 
       disabledArrowOpacity: 0.3,
 
+      posterWidth: 520,
+
+      posterAspect: '16 / 10',
+
     },
 
   },
@@ -311,6 +315,260 @@ export default {
       button: 'عضویت',
 
       placeholder: 'ایمیل شما...',
+
+    },
+
+    admin: {
+
+      title: 'پنل مدیریت',
+
+      panelLabel: 'پنل مدیریت',
+
+      logout: 'خروج',
+
+      lightMode: 'حالت روشن',
+
+      loading: 'در حال بارگذاری...',
+
+      nav: {
+
+        dashboard: 'داشبورد',
+
+        products: 'محصولات',
+
+        categories: 'دسته‌بندی‌ها',
+
+        orders: 'سفارش‌ها',
+
+        users: 'کاربران',
+
+        discounts: 'کدهای تخفیف',
+
+        settings: 'تنظیمات',
+
+      },
+
+      dashboard: {
+
+        title: 'داشبورد',
+
+        subtitle: 'خلاصه عملکرد فروشگاه',
+
+        refresh: 'بروزرسانی',
+
+        stats: {
+
+          products: 'محصولات',
+
+          ordersToday: 'سفارش‌های امروز',
+
+          lowStock: 'موجودی کم',
+
+          pending: 'در انتظار بررسی',
+
+          totalOrders: 'کل سفارش‌ها',
+
+          totalRevenue: 'کل درآمد',
+
+          totalUsers: 'کاربران',
+
+        },
+
+        weeklyRevenue: 'درآمد ۷ روز اخیر',
+
+        orderStatus: 'وضعیت سفارش‌ها',
+
+        financialSummary: 'خلاصه مالی',
+
+        noSales: 'هنوز فروشی ثبت نشده',
+
+        noData: 'داده‌ای موجود نیست',
+
+        ordersLabel: 'سفارش',
+
+      },
+
+      products: {
+
+        title: 'محصولات',
+
+        subtitle: 'مدیریت محصولات فروشگاه',
+
+        add: 'افزودن محصول',
+
+        searchPlaceholder: 'جستجوی محصول...',
+
+        allCategories: 'همه دسته‌بندی‌ها',
+
+        selectCategory: 'انتخاب دسته‌بندی',
+
+        sortNewest: 'جدیدترین',
+
+        sortPriceAsc: 'قیمت: کم به زیاد',
+
+        sortPriceDesc: 'قیمت: زیاد به کم',
+
+        search: 'جستجو',
+
+        empty: 'محصولی یافت نشد',
+
+        modalAdd: 'افزودن محصول',
+
+        modalEdit: 'ویرایش محصول',
+
+        save: 'ذخیره محصول',
+
+        update: 'بروزرسانی',
+
+        featured: 'محصول ویژه',
+
+        featuredBadge: 'ویژه',
+
+        normalBadge: 'عادی',
+
+        mainImage: 'اصلی',
+
+        addImage: 'افزودن تصویر',
+
+      },
+
+      categories: {
+
+        title: 'دسته‌بندی‌ها',
+
+        subtitle: 'مدیریت دسته‌بندی محصولات',
+
+        add: 'افزودن دسته‌بندی',
+
+        empty: 'دسته‌بندی‌ای یافت نشد',
+
+        modalAdd: 'افزودن دسته‌بندی',
+
+        modalEdit: 'ویرایش دسته‌بندی',
+
+        save: 'ذخیره',
+
+        update: 'بروزرسانی',
+
+        selectImage: 'انتخاب تصویر',
+
+      },
+
+      orders: {
+
+        title: 'سفارش‌ها',
+
+        subtitle: 'مدیریت سفارشات',
+
+        searchPlaceholder: 'جستجوی سفارش...',
+
+        allStatuses: 'همه وضعیت‌ها',
+
+        filter: 'فیلتر',
+
+        empty: 'سفارشی یافت نشد',
+
+        viewReceipt: 'مشاهده رسید',
+
+        approve: 'تایید',
+
+        reject: 'رد',
+
+      },
+
+      users: {
+
+        title: 'کاربران',
+
+        subtitle: 'مدیریت کاربران',
+
+        empty: 'کاربری یافت نشد',
+
+        roleAdmin: 'ادمین',
+
+        roleUser: 'کاربر',
+
+        demote: 'حذف ادمین',
+
+      },
+
+      discounts: {
+
+        title: 'کدهای تخفیف',
+
+        subtitle: 'مدیریت کدهای تخفیف',
+
+        add: 'کد تخفیف جدید',
+
+        empty: 'کد تخفیفی ثبت نشده',
+
+        loading: 'در حال بارگذاری...',
+
+        modalTitle: 'کد تخفیف جدید',
+
+        create: 'ایجاد کد تخفیف',
+
+        active: 'فعال',
+
+        expired: 'منقضی',
+
+        inactive: 'غیرفعال',
+
+        deactivate: 'غیرفعال کردن',
+
+        delete: 'حذف',
+
+        noExpiry: 'بدون تاریخ انقضا',
+
+        percentOff: '٪ تخفیف',
+
+        fixedOff: 'تومان تخفیف',
+
+      },
+
+      settings: {
+
+        title: 'تنظیمات',
+
+        subtitle: 'تنظیمات فروشگاه',
+
+        placeholder: 'تنظیمات فروشگاه شما در این بخش قرار می‌گیرد.',
+
+      },
+
+      orderStatuses: {
+
+        pending:   { label: 'در انتظار',       cls: 'bg-yellow-100 text-yellow-800' },
+
+        paid:      { label: 'پرداخت شده',      cls: 'bg-blue-100 text-blue-800' },
+
+        shipped:   { label: 'ارسال شده',       cls: 'bg-purple-100 text-purple-800' },
+
+        delivered: { label: 'تحویل داده شده', cls: 'bg-green-100 text-green-800' },
+
+        cancelled: { label: 'لغو شده',         cls: 'bg-card text-muted' },
+
+      },
+
+      common: {
+
+        cancel: 'انصراف',
+
+        save: 'ذخیره',
+
+        search: 'جستجو',
+
+        filter: 'فیلتر',
+
+        edit: 'ویرایش',
+
+        delete: 'حذف',
+
+        nameRequired: 'نام الزامی است',
+
+        codeValueRequired: 'کد و مقدار الزامی‌اند',
+
+      },
 
     },
 

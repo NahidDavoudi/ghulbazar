@@ -12,6 +12,7 @@ const VAR_MAP = {
   border: '--color-border',
   muted: '--color-muted',
   textDim: '--color-text-dim',
+  bodyText: '--color-body-text',
 };
 
 export function initTheme() {
@@ -35,6 +36,13 @@ export function initTheme() {
     }
     link.href = storeConfig.favicon;
   }
+
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+  if (themeColor && theme?.background) themeColor.content = theme.background;
+
+  document.body?.style.setProperty('font-family', 'var(--font-vazir)');
+  if (theme?.background) document.body?.style.setProperty('background-color', theme.background);
+  if (theme?.bodyText) document.body?.style.setProperty('color', theme.bodyText);
 
   document.title = storeConfig.name;
 }

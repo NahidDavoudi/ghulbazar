@@ -64,13 +64,7 @@ Router.onEnter('home', async function () {
 
       if (arr.length) {
         featuredEl.innerHTML = FeaturedCarousel.render({ products: arr });
-        FeaturedCarousel.bind(featuredEl, {
-          onAddToCart: async (id) => {
-            await api.cart.add(id, 1);
-            window.loadCartCount?.();
-            api.utils.toast('به سبد اضافه شد', 'success', 2000);
-          },
-        });
+        FeaturedCarousel.bind(featuredEl);
       } else {
         featuredEl.innerHTML = '';
       }

@@ -7,6 +7,26 @@
 ;(function () {
   'use strict';
 
+  function _cssVar(name, fallback) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+  }
+
+  function _theme() {
+    return {
+      accent: _cssVar('--color-accent', '#000'),
+      accentHover: _cssVar('--color-accent-hover', '#333'),
+      muted: _cssVar('--color-muted', '#86868b'),
+      border: _cssVar('--color-border', '#d2d2d7'),
+      bodyText: _cssVar('--color-body-text', '#1d1d1f'),
+      surface: _cssVar('--color-dark-2', '#f5f5f7'),
+      body: _cssVar('--color-dark', '#fff'),
+    };
+  }
+
+  function _t(path, fallback) {
+    return window.getAdminText?.(path, fallback) ?? fallback;
+  }
+
   /* ── Public loader ─────────────────────────────────────────── */
   window.loadDashboard = async function () {
     try {

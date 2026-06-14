@@ -7,6 +7,7 @@ import loadStoreSettings from '../core/storeSettings.js';
 import api from '../core/api.js';
 import { installAdminHelpers } from '../utils/helpers.js';
 import { attachPriceFormatter } from '../utils/priceFormatter.js';
+import { applyAdminBranding, getAdminText } from './branding.js';
 
 initConfig();
 installAdminHelpers();
@@ -14,6 +15,8 @@ installAdminHelpers();
 window.API = api;
 window.Api = api;
 window.attachPriceFormatter = attachPriceFormatter;
+
+window.getAdminText = getAdminText;
 
 window.toggleSidebar = () => {
   document.getElementById('sidebar')?.classList.toggle('translate-x-full');
@@ -57,8 +60,8 @@ window.switchPage = function (name, linkEl) {
   document.getElementById(`page-${name}`)?.classList.remove('hidden');
 
   document.querySelectorAll('.nav-link').forEach((a) =>
-    a.classList.remove('bg-red-50', 'text-red-800', 'font-semibold'));
-  if (linkEl) linkEl.classList.add('bg-red-50', 'text-red-800', 'font-semibold');
+    a.classList.remove('admin-nav-active'));
+  if (linkEl) linkEl.classList.add('admin-nav-active');
 
   window.closeSidebar();
   PAGE_LOADERS[name]?.();
@@ -70,6 +73,7 @@ window.handleLogout = () => api.auth.logout();
 async function bootAdmin() {
   await loadStoreSettings(api);
   initTheme();
+  applyAdminBranding();
   if (window.lucide) lucide.createIcons();
   attachPriceFormatter('productPrice');
   const page = location.hash.replace('#', '') || 'dashboard';
