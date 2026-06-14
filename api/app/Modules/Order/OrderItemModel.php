@@ -11,6 +11,9 @@ class OrderItemModel extends Model
     protected array $fillable = [
         'order_id',
         'product_id',
+        'variant_id',
+        'variant_title',
+        'sku',
         'quantity',
         'price',
     ];
@@ -34,17 +37,20 @@ class OrderItemModel extends Model
         return $stmt->fetchAll();
     }
 
-    // ثبت چند آیتم یکجا (در یک transaction)
     public function createBulk(int $orderId, array $items): void
     {
         $stmt = $this->pdo->prepare("
-            INSERT INTO {$this->table} (order_id, product_id, quantity, price)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO {$this->table}
+                (order_id, product_id, variant_id, variant_title, sku, quantity, price)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         ");
         foreach ($items as $item) {
             $stmt->execute([
                 $orderId,
                 $item['product_id'],
+                $item['variant_id'] ?? null,
+                $item['variant_title'] ?? null,
+                $item['sku'] ?? null,
                 $item['quantity'],
                 $item['price'],
             ]);

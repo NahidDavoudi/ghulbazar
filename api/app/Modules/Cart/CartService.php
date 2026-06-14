@@ -2,8 +2,10 @@
 
 namespace App\Modules\Cart;
 
-use App\Modules\Product\ProductModel;
 use App\Modules\Discount\DiscountModel;
+use App\Modules\Product\ProductModel;
+use App\Modules\Variant\InventoryModel;
+use App\Modules\Variant\VariantService;
 
 class CartService
 {
@@ -12,16 +14,15 @@ class CartService
         private CartItemModel $itemModel,
         private ProductModel  $productModel,
         private DiscountModel $discountModel,
+        private VariantService $variantService,
+        private InventoryModel $inventoryModel,
     ) {}
-
-    // ─── View ────────────────────────────────────────────────────
 
     public function getCart(int $userId): array
     {
         $cart = $this->cartModel->getCartWithItems($userId);
 
         if (!$cart) {
-            // سبد هنوز وجود نداشته — یکی خالی برمی‌گردونه
             $this->cartModel->getOrCreateForUser($userId);
             return $this->emptyCart();
         }
@@ -29,9 +30,7 @@ class CartService
         return $cart;
     }
 
-    // ─── Add / Update ────────────────────────────────────────────
-
-    public function addItem(int $userId, int $productId, int $qty = 1): array
+    public function addItem(int $userId, int $productId, int $qty = 1, ?int $variantId = null): array
     {
         if ($qty < 1) {
             throw new \RuntimeException('تعداد باید حداقل ۱ باشد.', 422);
@@ -42,34 +41,49 @@ class CartService
             throw new \RuntimeException('محصول یافت نشد.', 404);
         }
 
-        // بررسی موجودی کافی
-        $cart        = $this->cartModel->getOrCreateForUser($userId);
-        $existing    = $this->itemModel->findByCartAndProduct($cart['id'], $productId);
-        $currentQty  = $existing ? $existing['quantity'] : 0;
-        $totalNeeded = $currentQty + $qty;
+        $variantId = $this->variantService->resolveVariantId($productId, $variantId);
+        $variant   = $this->variantService->getProductVariants($productId);
+        $variantRow = null;
+        foreach ($variant as $v) {
+            if ((int) $v['id'] === $variantId) {
+                $variantRow = $v;
+                break;
+            }
+        }
+        if (!$variantRow || !$variantRow['is_active']) {
+            throw new \RuntimeException('واریانت یافت نشد.', 404);
+        }
 
-        if ($product['stock'] < $totalNeeded) {
+        $available = $this->inventoryModel->getAvailable($variantId);
+        $cart      = $this->cartModel->getOrCreateForUser($userId);
+        $existing  = $this->itemModel->findByCartAndVariant($cart['id'], $variantId);
+        $totalNeeded = ($existing ? $existing['quantity'] : 0) + $qty;
+
+        if ($available < $totalNeeded) {
             throw new \RuntimeException(
-                "موجودی کافی نیست. فقط {$product['stock']} عدد در انبار موجود است.",
+                "موجودی کافی نیست. فقط {$available} عدد در انبار موجود است.",
                 422
             );
         }
 
-        $this->itemModel->addOrIncrement($cart['id'], $productId, $qty);
+        $this->itemModel->addOrIncrement($cart['id'], $productId, $variantId, $qty);
 
         return $this->getCart($userId);
     }
 
-    public function updateItem(int $userId, int $productId, int $qty): array
+    public function updateItem(int $userId, int $productId, int $qty, ?int $variantId = null): array
     {
         $product = $this->productModel->find($productId);
         if (!$product || !$product['is_active']) {
             throw new \RuntimeException('محصول یافت نشد.', 404);
         }
 
-        if ($qty > $product['stock']) {
+        $variantId = $this->variantService->resolveVariantId($productId, $variantId);
+        $available = $this->inventoryModel->getAvailable($variantId);
+
+        if ($qty > $available) {
             throw new \RuntimeException(
-                "موجودی کافی نیست. فقط {$product['stock']} عدد در انبار موجود است.",
+                "موجودی کافی نیست. فقط {$available} عدد در انبار موجود است.",
                 422
             );
         }
@@ -79,20 +93,23 @@ class CartService
             throw new \RuntimeException('سبد خرید یافت نشد.', 404);
         }
 
-        // qty <= 0 باعث حذف آیتم میشه (داخل model هندل شده)
-        $this->itemModel->updateQuantity($cart['id'], $productId, $qty);
+        $this->itemModel->updateQuantityByVariant($cart['id'], $variantId, $qty);
 
         return $this->getCart($userId);
     }
 
-    public function removeItem(int $userId, int $productId): array
+    public function removeItem(int $userId, int $productId, ?int $variantId = null): array
     {
         $cart = $this->cartModel->findByUserId($userId);
         if (!$cart) {
             throw new \RuntimeException('سبد خرید یافت نشد.', 404);
         }
 
-        $this->itemModel->removeItem($cart['id'], $productId);
+        if ($variantId) {
+            $this->itemModel->removeByVariant($cart['id'], $variantId);
+        } else {
+            $this->itemModel->removeItem($cart['id'], $productId);
+        }
 
         return $this->getCart($userId);
     }
@@ -105,15 +122,11 @@ class CartService
         }
     }
 
-    /**
-     * ادغام سبد مهمان (localStorage) با سبد کاربر بعد از ورود
-     *
-     * @param array<int, array{product_id?: int, qty?: int, quantity?: int}> $items
-     */
     public function mergeGuestItems(int $userId, array $items): array
     {
         foreach ($items as $item) {
             $productId = (int) ($item['product_id'] ?? 0);
+            $variantId = (int) ($item['variant_id'] ?? 0) ?: null;
             $qty       = max(1, (int) ($item['qty'] ?? $item['quantity'] ?? 1));
 
             if (!$productId) {
@@ -121,7 +134,7 @@ class CartService
             }
 
             try {
-                $this->addItem($userId, $productId, $qty);
+                $this->addItem($userId, $productId, $qty, $variantId);
             } catch (\RuntimeException) {
                 continue;
             }
@@ -129,8 +142,6 @@ class CartService
 
         return $this->getCart($userId);
     }
-
-    // ─── Discount ────────────────────────────────────────────────
 
     public function applyDiscount(int $userId, string $code): array
     {
@@ -155,11 +166,6 @@ class CartService
         ];
     }
 
-    // ─── Checkout helper ─────────────────────────────────────────
-
-    /**
-     * قبل از ثبت سفارش فراخوانی میشه — موجودی همه آیتم‌ها رو چک میکنه
-     */
     public function validateForCheckout(int $userId): array
     {
         $cart = $this->getCart($userId);
@@ -185,8 +191,6 @@ class CartService
 
         return $cart;
     }
-
-    // ─── Private ─────────────────────────────────────────────────
 
     private function emptyCart(): array
     {

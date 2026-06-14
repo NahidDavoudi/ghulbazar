@@ -85,7 +85,9 @@ $router->group([
         $router->post('/cart/merge',               [CartController::class, 'merge']);
         $router->post('/cart/items',               [CartController::class, 'add']);
         $router->patch('/cart/items/{productId}',  [CartController::class, 'update']);
+        $router->patch('/cart/items/variant/{variantId}', [CartController::class, 'update']);
         $router->delete('/cart/items/{productId}', [CartController::class, 'remove']);
+        $router->delete('/cart/items/variant/{variantId}', [CartController::class, 'remove']);
         $router->post('/cart/discount',            [CartController::class, 'discount']);
 
     });

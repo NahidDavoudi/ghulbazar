@@ -7,6 +7,7 @@ use App\Modules\Cart\CartModel;
 use App\Modules\Cart\CartService;
 use App\Modules\Discount\DiscountModel;
 use App\Modules\Product\ProductModel;
+use App\Modules\Variant\VariantService;
 
 class OrderService
 {
@@ -18,6 +19,7 @@ class OrderService
         private CartService         $cartService,
         private ProductModel        $productModel,
         private DiscountModel       $discountModel,
+        private VariantService      $variantService,
     ) {}
 
     // ─── User: place order ────────────────────────────────────────
@@ -75,15 +77,22 @@ class OrderService
             // ثبت آیتم‌ها و کاهش موجودی
             $orderItems = [];
             foreach ($cart['items'] as $item) {
+                $variantId = (int) ($item['variant_id'] ?? 0);
                 $orderItems[] = [
-                    'product_id' => $item['product_id'],
-                    'quantity'   => $item['quantity'],
-                    'price'      => $item['price'],
+                    'product_id'     => $item['product_id'],
+                    'variant_id'     => $variantId ?: null,
+                    'variant_title'  => $item['variant_title'] ?? null,
+                    'sku'            => $item['sku'] ?? null,
+                    'quantity'       => $item['quantity'],
+                    'price'          => $item['price'],
                 ];
-                // کاهش موجودی — اگه stock کم بود rollback میشه
-                $ok = $this->productModel->decrementStock($item['product_id'], $item['quantity']);
-                if (!$ok) {
-                    throw new \RuntimeException("موجودی «{$item['name']}» کافی نیست.", 422);
+                if ($variantId) {
+                    $this->variantService->decrementStock($variantId, $item['quantity']);
+                } else {
+                    $ok = $this->productModel->decrementStock($item['product_id'], $item['quantity']);
+                    if (!$ok) {
+                        throw new \RuntimeException("موجودی «{$item['name']}» کافی نیست.", 422);
+                    }
                 }
             }
             $this->itemModel->createBulk($orderId, $orderItems);
@@ -204,7 +213,11 @@ class OrderService
         if ($status === 'cancelled' && $order['status'] !== 'cancelled') {
             $items = $this->itemModel->getByOrderId($orderId);
             foreach ($items as $item) {
-                $this->productModel->incrementStock($item['product_id'], $item['quantity']);
+                if (!empty($item['variant_id'])) {
+                    $this->variantService->incrementStock((int) $item['variant_id'], $item['quantity']);
+                } else {
+                    $this->productModel->incrementStock($item['product_id'], $item['quantity']);
+                }
             }
         }
 

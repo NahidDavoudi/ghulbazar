@@ -10,6 +10,10 @@ use App\Modules\Cart\CartService;
 use App\Modules\Cart\CartItemModel;
 use App\Modules\Discount\DiscountModel;
 use App\Modules\Product\ProductModel;
+use App\Modules\Variant\VariantService;
+use App\Modules\Variant\ProductVariantModel;
+use App\Modules\Variant\InventoryModel;
+use App\Modules\Attribute\AttributeValueModel;
 
 class OrderController extends Controller
 {
@@ -17,11 +21,20 @@ class OrderController extends Controller
 
     public function __construct()
     {
+        $variantService = new VariantService(
+            new ProductVariantModel(),
+            new InventoryModel(),
+            new ProductModel(),
+            new AttributeValueModel(),
+        );
+
         $cartService = new CartService(
             new CartModel(),
             new CartItemModel(),
             new ProductModel(),
             new DiscountModel(),
+            $variantService,
+            new InventoryModel(),
         );
 
         $this->service = new OrderService(
@@ -32,6 +45,7 @@ class OrderController extends Controller
             $cartService,
             new ProductModel(),
             new DiscountModel(),
+            $variantService,
         );
     }
 

@@ -42,18 +42,11 @@ function buildDetailBullets(p) {
   return bullets;
 }
 
-function getSizeData(p) {
-  const t = storeConfig.texts.product;
-  const sizeOpts = (p.options || [])
-    .filter((o) => o.option_type === 'size')
-    .map((o) => o.option_value);
-
-  const sizes = t.defaultSizes;
-  const availableSizes = sizeOpts.length
-    ? sizeOpts
-    : (p.stock > 0 ? sizes : []);
-
-  return { sizes, availableSizes };
+function getVariantPrice(variant, product) {
+  if (variant?.sale_price) return Number(variant.sale_price);
+  if (variant?.price) return Number(variant.price);
+  if (product.sale_price) return Number(product.sale_price);
+  return Number(product.price) || 0;
 }
 
 async function fetchRelated(p) {
@@ -73,10 +66,9 @@ async function fetchRelated(p) {
   }
 }
 
-async function addToCart(p, { size, qty }) {
-  const opts = {};
-  if (size) opts.size = size;
-  await api.cart.add(p.id, qty, opts);
+async function addToCart(p, { variant, qty }) {
+  const variantId = variant?.id || p.default_variant_id || null;
+  await api.cart.add(p.id, qty, variantId);
   window.loadCartCount?.();
 }
 
@@ -114,6 +106,13 @@ Router.onEnter('products', async function (params) {
     if (bcEl) bcEl.innerHTML = Breadcrumb.render(bcItems);
 
     const images = p.images.length ? p.images : [];
+    const defaultVariant = p.variants?.find((v) => v.is_default) || p.variants?.[0];
+    const displayPrice = defaultVariant
+      ? getVariantPrice(defaultVariant, p)
+      : Number(p.price);
+    const displayStock = defaultVariant
+      ? Number(defaultVariant.inventory?.quantity ?? 0)
+      : Number(p.stock ?? 0);
 
     const galleryWrap = document.getElementById('product-gallery-wrap');
     if (galleryWrap) {
@@ -125,33 +124,44 @@ Router.onEnter('products', async function (params) {
       ProductGallery.bind(galleryWrap, { images });
     }
 
-    const { sizes, availableSizes } = getSizeData(p);
     const infoWrap = document.getElementById('product-info-wrap');
     if (infoWrap) {
       infoWrap.innerHTML = ProductInfo.render({
         name: p.name,
-        price: p.price,
+        price: displayPrice,
         description: p.description,
-        sizes,
-        availableSizes,
-        stock: p.stock,
+        shortDescription: p.short_description,
+        variantAxes: p.variant_axes || [],
+        variants: p.variants || [],
+        stock: displayStock,
         detailBullets: buildDetailBullets(p),
       });
 
       ProductInfo.bind(infoWrap, {
-        maxQty: Math.max(1, p.stock || 1),
-        onAddToCart: async ({ size, qty }) => {
+        variants: p.variants || [],
+        variantAxes: p.variant_axes || [],
+        maxQty: Math.max(1, displayStock || 1),
+        getVariantPrice: (variant) => getVariantPrice(variant, p),
+        onAddToCart: async ({ variant, qty }) => {
           try {
-            await addToCart(p, { size, qty });
+            if ((p.variant_axes?.length || 0) > 0 && !variant) {
+              api.utils.toast('لطفاً گزینه محصول را انتخاب کنید', 'error');
+              return;
+            }
+            await addToCart(p, { variant, qty });
             document.getElementById('added-toast')?.classList.remove('hidden');
             api.utils.toast(t.addedToCart, 'success', 2000);
           } catch (e) {
             api.utils.toast(e.message, 'error');
           }
         },
-        onQuickBuy: async ({ size, qty }) => {
+        onQuickBuy: async ({ variant, qty }) => {
           try {
-            await addToCart(p, { size, qty });
+            if ((p.variant_axes?.length || 0) > 0 && !variant) {
+              api.utils.toast('لطفاً گزینه محصول را انتخاب کنید', 'error');
+              return;
+            }
+            await addToCart(p, { variant, qty });
             Router.go('/checkout');
           } catch (e) {
             api.utils.toast(e.message, 'error');

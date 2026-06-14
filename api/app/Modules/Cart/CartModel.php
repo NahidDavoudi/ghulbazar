@@ -10,7 +10,6 @@ class CartModel extends Model
     protected bool $timestamps = true;
     protected array $fillable = ['user_id'];
 
-    // سبد فعال کاربر — اگه نداشت می‌سازه
     public function getOrCreateForUser(int $userId): array
     {
         $cart = $this->findBy('user_id', $userId);
@@ -25,7 +24,6 @@ class CartModel extends Model
         return $this->findBy('user_id', $userId);
     }
 
-    // سبد کامل با آیتم‌ها و اطلاعات محصول
     public function getCartWithItems(int $userId): ?array
     {
         $cart = $this->findByUserId($userId);
@@ -33,22 +31,35 @@ class CartModel extends Model
 
         $stmt = $this->pdo->prepare("
             SELECT ci.*,
-                   p.name, p.price, p.stock, p.era, p.material,
-                   p.is_active,
+                   p.name, p.price AS product_price, p.stock AS product_stock,
+                   p.era, p.material, p.is_active, p.slug AS product_slug,
+                   pv.sku, pv.title AS variant_title,
+                   pv.price AS variant_price, pv.sale_price AS variant_sale_price,
+                   COALESCE(ii.quantity, 0) AS variant_stock,
                    (SELECT pi.image_url FROM product_images pi
                     WHERE pi.product_id = ci.product_id AND pi.is_main = 1
                     LIMIT 1) AS image
             FROM cart_items ci
             JOIN products p ON p.id = ci.product_id
+            LEFT JOIN product_variants pv ON pv.id = ci.variant_id
+            LEFT JOIN inventory_items ii ON ii.variant_id = ci.variant_id
             WHERE ci.cart_id = ?
             ORDER BY ci.created_at ASC
         ");
         $stmt->execute([$cart['id']]);
-        $cart['items'] = $stmt->fetchAll();
+        $items = $stmt->fetchAll();
 
-        $cart['total'] = array_reduce($cart['items'], function ($carry, $item) {
-            return $carry + ($item['price'] * $item['quantity']);
-        }, 0);
+        foreach ($items as &$item) {
+            $item['price'] = $item['variant_sale_price'] ?? $item['variant_price'] ?? $item['product_price'];
+            $item['stock'] = (int) ($item['variant_stock'] ?? $item['product_stock']);
+            $item['name']  = $item['variant_title'] && $item['variant_title'] !== 'Default'
+                ? $item['name'] . ' — ' . $item['variant_title']
+                : $item['name'];
+        }
+        unset($item);
+
+        $cart['items'] = $items;
+        $cart['total'] = array_reduce($items, fn($carry, $item) => $carry + ($item['price'] * $item['quantity']), 0);
 
         return $cart;
     }

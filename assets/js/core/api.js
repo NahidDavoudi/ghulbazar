@@ -394,9 +394,9 @@ const categories = {
 
 const cart = {
   get: () => getCartStore().get(),
-  add: (productId, qty = 1) => getCartStore().add(productId, qty),
-  update: (productId, qty) => getCartStore().update(productId, qty),
-  remove: (productId) => getCartStore().remove(productId),
+  add: (productId, qty = 1, variantId = null) => getCartStore().add(productId, qty, variantId),
+  update: (productId, qty, variantId = null) => getCartStore().update(productId, qty, variantId),
+  remove: (productId, variantId = null) => getCartStore().remove(productId, variantId),
   clear: () => getCartStore().clear(),
   applyDiscount: (code) => getCartStore().applyDiscount(code),
   mergeGuestIfNeeded: () => getCartStore().mergeGuestIfNeeded(),
