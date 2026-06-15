@@ -10,7 +10,7 @@ const HeroSection = {
         <div class="relative w-full aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9] min-h-[320px] sm:min-h-[420px] md:min-h-[560px]">
           <img src="${hero.image}" alt="${storeConfig.name}"
                class="w-full h-full object-cover">
-          <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none"></div>
         </div>
         <div class="absolute bottom-8 md:bottom-12 left-0 right-0 z-10 px-4 md:px-6">
           <div class="max-w-[1280px] mx-auto flex flex-col md:flex-row items-stretch md:items-end justify-between gap-6">

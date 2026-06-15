@@ -158,27 +158,25 @@ export default {
 
       viewAllHref: '#/shop?featured=1',
 
-      navVariant: 'aluminum',
+      speed: 1.5,
 
-      cardGap: 16,
+      gap: 16,
 
-      stackOffset: 24,
+      direction: 'left',
 
-      mobileStackOffset: 12,
+      cardRadius: 12,
 
-      transitionDuration: 350,
+      backgroundColor: '#ffffff',
 
-      arrowSize: 40,
+      height: 420,
 
-      buttonPosition: 'start',
+      heightMd: 480,
 
-      disabledArrowOpacity: 0.3,
+      mobileBreakpoint: 600,
 
-      posterWidth: 520,
+      tabletBreakpoint: 1024,
 
-      mobilePosterWidth: 340,
-
-      posterAspect: '16 / 10',
+      pauseOnHover: true,
 
     },
 

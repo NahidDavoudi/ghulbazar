@@ -1,3 +1,5 @@
+import { parsePrice } from '../../../../utils/priceFormatter.js';
+
 const GeneralTab = {
   render({ t = {}, categories = [] } = {}) {
     const catOpts = categories.map((c) =>
@@ -98,8 +100,6 @@ const GeneralTab = {
   },
 
   collect() {
-    const rawPrice = (document.getElementById('productPrice')?.value || '').replace(/[^0-9]/g, '');
-    const rawStock = (document.getElementById('productStock')?.value || '').replace(/[^0-9]/g, '');
     return {
       name: document.getElementById('productName')?.value?.trim() || '',
       slug: document.getElementById('productSlug')?.value?.trim() || '',
@@ -107,8 +107,8 @@ const GeneralTab = {
       description: document.getElementById('productDesc')?.value?.trim() || '',
       status: document.getElementById('productStatus')?.value || 'active',
       product_type: document.getElementById('productType')?.value || 'simple',
-      price: parseInt(rawPrice, 10) || 0,
-      stock: parseInt(rawStock, 10) || 0,
+      price: parsePrice(document.getElementById('productPrice')?.value),
+      stock: parseInt(document.getElementById('productStock')?.value || '0', 10) || 0,
       category_id: document.getElementById('productCategory')?.value || null,
       featured: document.getElementById('productFeatured')?.checked ? 1 : 0,
     };

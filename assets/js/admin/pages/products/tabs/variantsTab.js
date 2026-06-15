@@ -55,7 +55,15 @@ const VariantsTab = {
 
   updateTable(container, variants, t) {
     const wrap = container.querySelector('#variantTableWrap');
-    if (wrap) wrap.innerHTML = VariantTable.render({ variants, t });
+    if (wrap) {
+      wrap.innerHTML = VariantTable.render({ variants, t });
+      VariantTable.bindPriceInputs(wrap);
+    }
+  },
+
+  bindPriceInputs(container) {
+    const wrap = container?.querySelector('#variantTableWrap');
+    if (wrap) VariantTable.bindPriceInputs(wrap);
   },
 };
 

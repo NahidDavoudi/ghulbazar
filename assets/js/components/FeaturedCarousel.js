@@ -8,50 +8,35 @@ function nextId() {
   return `fc-${_uid}`;
 }
 
-function isRtl() {
-  return document.documentElement.dir === 'rtl';
-}
-
-function getActiveOffset(cfg) {
-  return window.innerWidth < 992 ? cfg.mobileStackOffset : cfg.stackOffset;
-}
-
-function getCardTransform(index, currentIndex, cardWidth, cfg) {
-  const activeOffset = getActiveOffset(cfg);
-  const step = cardWidth + cfg.cardGap - activeOffset;
-  const slideMove = step * (index < currentIndex ? index : currentIndex);
-  const sign = isRtl() ? 1 : -1;
-  return sign * slideMove;
-}
-
-function getButtonAlign(position, bp = '') {
-  const prefix = bp ? `${bp}:` : '';
-  if (position === 'center') return `${prefix}justify-center`;
-  if (position === 'end') return `${prefix}justify-end`;
-  return `${prefix}justify-start`;
+function getCardWidth(containerWidth, gap, cfg) {
+  if (containerWidth < cfg.mobileBreakpoint) return containerWidth - gap;
+  if (containerWidth < cfg.tabletBreakpoint) return containerWidth / 2 - gap;
+  return containerWidth / 3 - gap;
 }
 
 const FeaturedCarousel = {
   render(data = {}) {
-    const { carousel } = storeConfig;
+    const cfg = storeConfig.carousel.featured;
     const { home } = storeConfig.texts;
-    const cfg = carousel.featured;
     const products = data.products || [];
     const id = data.id || nextId();
     const title = data.title || home.featured;
     const viewAllHref = data.viewAllHref || cfg.viewAllHref;
     const viewAllLabel = data.viewAllLabel || home.viewAll;
-    const navClass = cfg.navVariant === 'glass' ? 'btn-glass' : 'btn-aluminum';
 
     const cards = products
       .map(
         (p, i) =>
-          `<div class="stacking-slider__card" data-card-index="${i}" style="z-index:${i + 1}">${FeaturedPosterCard.render(p)}</div>`
+          `<div class="flow-marquee__card" data-card-index="${i % products.length}">${FeaturedPosterCard.render(p, { variant: 'marquee' })}</div>`
       )
       .join('');
 
+    const duplicateSets = products.length ? 4 : 0;
+    const allCards = Array.from({ length: duplicateSets }, () => cards).join('');
+
     return `
-      <section class="py-14 md:py-20 bg-white featured-carousel-section overflow-x-clip" data-carousel-id="${id}">
+      <section class="py-14 md:py-20 featured-carousel-section overflow-x-clip" data-carousel-id="${id}"
+               style="background-color:${cfg.backgroundColor}">
         <div class="max-w-[1280px] mx-auto relative">
           <div class="flex items-center justify-between mb-8 px-4 md:px-6">
             <h2 class="text-2xl md:text-4xl font-bold text-body text-right">${title}</h2>
@@ -60,22 +45,10 @@ const FeaturedCarousel = {
               <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i><span>${viewAllLabel}</span>
             </a>
           </div>
-          <div class="stacking-slider px-4 md:px-6" data-slider-id="${id}"
-               style="--stack-card-gap:${cfg.cardGap}px;--stack-transition:${cfg.transitionDuration}ms;--stack-poster-width:${cfg.posterWidth}px;--stack-poster-width-mobile:${cfg.mobilePosterWidth || cfg.posterWidth}px;--stack-poster-ratio:${cfg.posterAspect};">
-            <div class="stacking-slider__viewport">
-              <div class="stacking-slider__track">${cards}</div>
-            </div>
-            <div class="carousel-nav-row stacking-slider__nav flex items-center gap-3 mt-6 justify-center ${getButtonAlign(cfg.buttonPosition, 'md')}">
-              <button type="button" class="stacking-slider__btn swiper-nav-btn ${navClass}"
-                      data-action="prev" aria-label="قبلی" disabled
-                      style="--nav-size:${cfg.arrowSize}px;opacity:${cfg.disabledArrowOpacity};">
-                <i data-lucide="chevron-right" class="w-4 h-4 text-body"></i>
-              </button>
-              <button type="button" class="stacking-slider__btn swiper-nav-btn ${navClass}"
-                      data-action="next" aria-label="بعدی"
-                      style="--nav-size:${cfg.arrowSize}px;">
-                <i data-lucide="chevron-left" class="w-4 h-4 text-body"></i>
-              </button>
+          <div class="flow-marquee px-4 md:px-6" data-marquee-id="${id}"
+               style="--marquee-gap:${cfg.gap}px;--marquee-radius:${cfg.cardRadius}px;--marquee-height:${cfg.height}px;--marquee-height-md:${cfg.heightMd}px;">
+            <div class="flow-marquee__viewport">
+              ${allCards}
             </div>
           </div>
         </div>
@@ -83,84 +56,74 @@ const FeaturedCarousel = {
   },
 
   bind(container, callbacks = {}) {
-    const sliderEl = container.querySelector('.stacking-slider');
-    if (!sliderEl) return null;
+    const marqueeEl = container.querySelector('.flow-marquee');
+    if (!marqueeEl) return null;
 
     const cfg = storeConfig.carousel.featured;
-    const cards = [...sliderEl.querySelectorAll('.stacking-slider__card')];
+    const viewport = marqueeEl.querySelector('.flow-marquee__viewport');
+    const cards = [...marqueeEl.querySelectorAll('.flow-marquee__card')];
     if (!cards.length) return null;
 
-    const prevBtn = sliderEl.querySelector('[data-action="prev"]');
-    const nextBtn = sliderEl.querySelector('[data-action="next"]');
-    let currentIndex = 0;
-    let cardWidth = 0;
-    let touchStartX = 0;
+    const uniqueCount = new Set(cards.map((c) => c.dataset.cardIndex)).size;
+    let containerWidth = viewport.offsetWidth || 0;
+    let cardWidth = getCardWidth(containerWidth, cfg.gap, cfg);
+    let loopWidth = 0;
+    let offset = 0;
+    let paused = false;
+    let rafId = null;
+    let lastTime = 0;
 
-    const state = { currentIndex, ro: null, onResize: null, onPrev: null, onNext: null, onTouchStart: null, onTouchEnd: null };
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    function measureCardWidth() {
-      const track = sliderEl.querySelector('.stacking-slider__track');
-      cardWidth = track?.offsetWidth || cards[0]?.offsetWidth || 0;
-    }
+    const state = {
+      ro: null,
+      onResize: null,
+      onClick: null,
+      onMouseEnter: null,
+      onMouseLeave: null,
+      onVisibility: null,
+    };
 
-    function updateButtons() {
-      const atStart = currentIndex === 0;
-      const atEnd = currentIndex >= cards.length - 1;
-      if (prevBtn) {
-        prevBtn.disabled = atStart;
-        prevBtn.style.opacity = atStart ? cfg.disabledArrowOpacity : '1';
-        prevBtn.style.cursor = atStart ? 'not-allowed' : 'pointer';
-      }
-      if (nextBtn) {
-        nextBtn.disabled = atEnd;
-        nextBtn.style.opacity = atEnd ? cfg.disabledArrowOpacity : '1';
-        nextBtn.style.cursor = atEnd ? 'not-allowed' : 'pointer';
-      }
-    }
-
-    function applyTransforms() {
+    function layoutCards() {
       cards.forEach((card, index) => {
-        const x = getCardTransform(index, currentIndex, cardWidth, cfg);
+        const x = index * (cardWidth + cfg.gap) - offset;
+        card.style.width = `${cardWidth}px`;
         card.style.transform = `translateX(${x}px)`;
       });
-      updateButtons();
     }
 
-    function goTo(index) {
-      const next = Math.max(0, Math.min(index, cards.length - 1));
-      if (next === currentIndex) return;
-      currentIndex = next;
-      state.currentIndex = currentIndex;
-      applyTransforms();
+    function measure() {
+      containerWidth = viewport.offsetWidth || 0;
+      cardWidth = getCardWidth(containerWidth, cfg.gap, cfg);
+      loopWidth = uniqueCount * (cardWidth + cfg.gap);
+      if (loopWidth > 0) offset = ((offset % loopWidth) + loopWidth) % loopWidth;
+      layoutCards();
+    }
+
+    function tick(time) {
+      if (!lastTime) lastTime = time;
+      const delta = time - lastTime;
+      lastTime = time;
+
+      if (!paused && !prefersReducedMotion && loopWidth > 0) {
+        if (cfg.direction === 'left') {
+          offset += cfg.speed * (delta / 16);
+          if (offset >= loopWidth) offset -= loopWidth;
+        } else {
+          offset -= cfg.speed * (delta / 16);
+          if (offset < 0) offset += loopWidth;
+        }
+        layoutCards();
+      }
+
+      rafId = requestAnimationFrame(tick);
     }
 
     state.onResize = () => {
-      measureCardWidth();
-      applyTransforms();
+      measure();
     };
 
-    state.onPrev = () => goTo(currentIndex - 1);
-    state.onNext = () => goTo(currentIndex + 1);
-
-    state.onTouchStart = (e) => {
-      touchStartX = e.changedTouches?.[0]?.clientX ?? 0;
-    };
-
-    state.onTouchEnd = (e) => {
-      const touchEndX = e.changedTouches?.[0]?.clientX ?? 0;
-      const delta = touchEndX - touchStartX;
-      const threshold = 40;
-      if (Math.abs(delta) < threshold) return;
-      if (isRtl()) {
-        if (delta > 0) goTo(currentIndex + 1);
-        else goTo(currentIndex - 1);
-      } else {
-        if (delta < 0) goTo(currentIndex + 1);
-        else goTo(currentIndex - 1);
-      }
-    };
-
-    sliderEl.addEventListener('click', (event) => {
+    state.onClick = (event) => {
       const link = event.target.closest('a[data-link].featured-poster');
       if (!link) return;
       const href = link.getAttribute('href') || '';
@@ -168,47 +131,57 @@ const FeaturedCarousel = {
       if (hash && window.location.hash.slice(1) !== hash) {
         window.location.hash = hash;
       }
-    });
+    };
 
-    prevBtn?.addEventListener('click', state.onPrev);
-    nextBtn?.addEventListener('click', state.onNext);
-    sliderEl.addEventListener('touchstart', state.onTouchStart, { passive: true });
-    sliderEl.addEventListener('touchend', state.onTouchEnd, { passive: true });
+    if (cfg.pauseOnHover) {
+      state.onMouseEnter = () => {
+        paused = true;
+      };
+      state.onMouseLeave = () => {
+        paused = false;
+        lastTime = 0;
+      };
+      marqueeEl.addEventListener('mouseenter', state.onMouseEnter);
+      marqueeEl.addEventListener('mouseleave', state.onMouseLeave);
+    }
+
+    state.onVisibility = () => {
+      paused = document.hidden;
+      if (!paused) lastTime = 0;
+    };
+    document.addEventListener('visibilitychange', state.onVisibility);
+
+    marqueeEl.addEventListener('click', state.onClick);
     window.addEventListener('resize', state.onResize);
 
     if (typeof ResizeObserver !== 'undefined') {
       state.ro = new ResizeObserver(state.onResize);
-      const track = sliderEl.querySelector('.stacking-slider__track');
-      state.ro.observe(track || cards[0]);
+      state.ro.observe(viewport);
     }
 
-    measureCardWidth();
-    setTimeout(() => {
-      measureCardWidth();
-      applyTransforms();
-    }, 100);
-    applyTransforms();
+    measure();
+    rafId = requestAnimationFrame(tick);
 
-    sliderEl._stackingState = state;
-    return state;
+    marqueeEl._marqueeState = { ...state, rafId };
+    return marqueeEl._marqueeState;
   },
 
   destroy(container) {
-    const sliderEl = container?.querySelector('.stacking-slider');
-    const state = sliderEl?._stackingState;
+    const marqueeEl = container?.querySelector('.flow-marquee');
+    const state = marqueeEl?._marqueeState;
     if (!state) return;
 
+    if (state.rafId) cancelAnimationFrame(state.rafId);
     window.removeEventListener('resize', state.onResize);
     state.ro?.disconnect();
+    document.removeEventListener('visibilitychange', state.onVisibility);
+    marqueeEl.removeEventListener('click', state.onClick);
+    if (state.onMouseEnter) {
+      marqueeEl.removeEventListener('mouseenter', state.onMouseEnter);
+      marqueeEl.removeEventListener('mouseleave', state.onMouseLeave);
+    }
 
-    const prevBtn = sliderEl.querySelector('[data-action="prev"]');
-    const nextBtn = sliderEl.querySelector('[data-action="next"]');
-    prevBtn?.removeEventListener('click', state.onPrev);
-    nextBtn?.removeEventListener('click', state.onNext);
-    sliderEl.removeEventListener('touchstart', state.onTouchStart);
-    sliderEl.removeEventListener('touchend', state.onTouchEnd);
-
-    sliderEl._stackingState = null;
+    marqueeEl._marqueeState = null;
   },
 };
 

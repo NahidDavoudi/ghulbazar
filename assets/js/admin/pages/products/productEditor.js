@@ -87,6 +87,7 @@ function _bindActiveTab() {
   }
 
   if (variantsPanel) {
+    VariantsTab.bindPriceInputs(variantsPanel);
     VariantsTab.bind(variantsPanel, {
       onGenerate: async (axes) => {
         if (!_editingProdId) {

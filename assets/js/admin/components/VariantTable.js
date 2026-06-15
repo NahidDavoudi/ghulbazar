@@ -1,3 +1,5 @@
+import { parsePrice, attachPriceFormatterAll } from '../../utils/priceFormatter.js';
+
 const VariantTable = {
   render({ variants = [], t = {} } = {}) {
     if (!variants.length) {
@@ -42,16 +44,19 @@ const VariantTable = {
       </div>`;
   },
 
+  bindPriceInputs(container) {
+    attachPriceFormatterAll(container);
+  },
+
   collectRows(container) {
     const rows = container?.querySelectorAll('[data-variant-id]') || [];
     return Array.from(rows).map((row) => {
       const id = Number(row.dataset.variantId);
       const sku = row.querySelector('[data-field="sku"]')?.value?.trim() || '';
-      const rawPrice = row.querySelector('[data-field="price"]')?.value || '';
-      const price = rawPrice.replace(/[^0-9]/g, '');
+      const price = parsePrice(row.querySelector('[data-field="price"]')?.value);
       const quantity = Number(row.querySelector('[data-field="quantity"]')?.value) || 0;
       const payload = { id, sku, quantity };
-      if (price) payload.price = parseInt(price, 10);
+      if (price) payload.price = price;
       return payload;
     });
   },
