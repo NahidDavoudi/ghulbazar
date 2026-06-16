@@ -138,7 +138,7 @@ export default {
 
   ui: {
 
-    cardRadius: 'rounded-[28px]',
+    cardRadius: 'rounded-2xl',
 
     btnRadius: 'rounded-full',
 

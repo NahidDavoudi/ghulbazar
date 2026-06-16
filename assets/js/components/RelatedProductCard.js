@@ -1,8 +1,9 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { formatPrice } from '../utils/priceFormatter.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
-import { escapeHtml } from '../utils/htmlEscape.js';
+import { renderProductCardOverlay } from '../utils/productCardOverlay.js';
 import DOM from '../utils/dom.js';
+import Button from './Button.js';
 
 const RelatedProductCard = {
   render(p) {
@@ -14,28 +15,36 @@ const RelatedProductCard = {
       || '';
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
-    const category = escapeHtml(p.category_name || '');
-    const name = escapeHtml(p.name);
+
+    const addBtn = Button.render({
+      variant: 'aluminum',
+      size: 'icon',
+      label: '+',
+      className: 'add-to-cart-quick shrink-0 !shadow-none',
+      attrs: { 'data-product-id': p.id, title: 'افزودن به سبد' },
+      disabled: p.stock === 0,
+    });
 
     return `
       <a href="${href}" data-link class="group block iris-card ${ui.cardBase} ${ui.cardRadius} ${ui.cardHover}">
-        <div class="relative aspect-square bg-surface overflow-hidden">
+        <div class="relative aspect-square overflow-hidden bg-surface">
           ${renderImageWithFallback({
             src: img,
             alt: p.name,
             imgClass: 'w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500',
             iconSize: 'w-8 h-8',
           })}
-          ${category ? `<span class="absolute bottom-2 right-2 bg-card/90 backdrop-blur-sm text-[10px] font-medium px-2 py-0.5 rounded-md text-muted border border-border">${category}</span>` : ''}
-        </div>
-        <div class="p-3 bg-card text-right">
-          <h3 class="text-sm font-medium text-body mb-1 line-clamp-1">${name}</h3>
-          <p class="text-xs font-bold text-accent">${price}</p>
+          ${renderProductCardOverlay({
+            name: p.name,
+            category: p.category_name || '',
+            price,
+            addBtnHtml: addBtn,
+          })}
         </div>
       </a>`;
   },
 
-  bind() { /* router handles links */ },
+  bind() { /* add-to-cart handled globally in app.js */ },
 };
 
 export default RelatedProductCard;

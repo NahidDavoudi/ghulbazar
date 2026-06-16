@@ -1,7 +1,7 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { formatPrice } from '../utils/priceFormatter.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
-import { escapeHtml } from '../utils/htmlEscape.js';
+import { renderProductCardOverlay } from '../utils/productCardOverlay.js';
 import DOM from '../utils/dom.js';
 import Button from './Button.js';
 
@@ -15,21 +15,19 @@ const ProductCard = {
       || '';
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
-    const name = escapeHtml(p.name);
-    const categoryName = escapeHtml(p.category_name || '');
 
     const lowStock = p.stock <= 2 && p.stock > 0
-      ? `<span class="absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10">آخرین موجودی</span>`
+      ? `<span class="absolute top-3 left-3 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10">آخرین موجودی</span>`
       : '';
     const outOfStock = p.stock === 0
       ? `<div class="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-10"><span class="text-sm text-white/80 font-medium">ناموجود</span></div>`
       : '';
 
     const addBtn = Button.render({
-      variant: 'glass',
+      variant: 'aluminum',
       size: 'icon',
       label: '+',
-      className: 'add-to-cart-quick shrink-0',
+      className: 'add-to-cart-quick shrink-0 !shadow-none',
       attrs: { 'data-product-id': p.id, title: 'افزودن به سبد' },
       disabled: p.stock === 0,
     });
@@ -44,14 +42,12 @@ const ProductCard = {
             alt: p.name,
             imgClass: 'w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out',
           })}
-        </div>
-        <div class="p-4 md:p-5 text-right bg-card">
-          <p class="text-[10px] text-muted mb-1.5 tracking-wide uppercase">${categoryName}</p>
-          <h3 class="text-sm font-semibold text-body mb-3 line-clamp-2 leading-snug">${name}</h3>
-          <div class="flex items-center justify-between gap-2">
-            ${addBtn}
-            <span class="text-sm font-bold text-accent">${price}</span>
-          </div>
+          ${renderProductCardOverlay({
+            name: p.name,
+            category: p.category_name || '',
+            price,
+            addBtnHtml: addBtn,
+          })}
         </div>
       </a>`;
   },

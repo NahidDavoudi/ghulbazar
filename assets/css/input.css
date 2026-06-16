@@ -78,6 +78,16 @@ div[data-page].active { display: block; }
   transform: scale(0.97);
 }
 
+.add-to-cart-quick.btn-accent.is-success {
+  background: #16a34a;
+  border-color: #15803d;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+.add-to-cart-quick.btn-accent.is-success:hover {
+  background: #15803d;
+}
+
 /* ── Aluminum Button (Apple-like brushed metal) ── */
 .btn-aluminum {
   position: relative;
@@ -194,6 +204,16 @@ div[data-page].active { display: block; }
   transform: translateY(-4px);
   box-shadow: 0 16px 48px rgba(220, 38, 38, 0.14);
   border-color: color-mix(in oklab, var(--color-accent) 35%, var(--color-border));
+}
+
+.product-card__gradient {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.92) 0%,
+    rgba(0, 0, 0, 0.72) 38%,
+    rgba(0, 0, 0, 0.25) 68%,
+    transparent 100%
+  );
 }
 
 /* ── Carousel Nav Buttons ── */
