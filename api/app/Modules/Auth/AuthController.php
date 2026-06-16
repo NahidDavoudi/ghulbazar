@@ -92,16 +92,22 @@ class AuthController extends Controller
             $this->error('شماره تلفن و رمز عبور الزامی است', 422);
         }
 
-        if ($this->loginRateLimiter->tooManyAttempts('login', $phone)) {
-            $this->tooManyRequests('تعداد تلاش‌های ورود بیش از حد مجاز است. ۱۵ دقیقه دیگر تلاش کنید.');
-        }
-
         try {
+            if ($this->loginRateLimiter->tooManyAttempts('login', $phone)) {
+                $this->tooManyRequests('تعداد تلاش‌های ورود بیش از حد مجاز است. ۱۵ دقیقه دیگر تلاش کنید.');
+            }
+
             $result = $this->service->login($phone, $password);
             $this->loginRateLimiter->clear('login', $phone);
             $this->success($result, 'ورود موفق');
+        } catch (\PDOException $e) {
+            $this->error('خطا در سرویس ورود. لطفاً با پشتیبانی تماس بگیرید.', 503);
         } catch (\Exception $e) {
-            $this->loginRateLimiter->hit('login', $phone);
+            try {
+                $this->loginRateLimiter->hit('login', $phone);
+            } catch (\PDOException) {
+                /* rate limit storage unavailable */
+            }
             $this->error($e->getMessage(), $e->getCode() ?: 401);
         }
     }
