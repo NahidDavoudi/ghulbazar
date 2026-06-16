@@ -62,7 +62,7 @@ class OrderController extends Controller
             $order = $this->service->placeOrder($request->userId(), $data);
             $this->created($order, 'سفارش با موفقیت ثبت شد');
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 400);
+            $this->error($e->getMessage(), $this->exceptionStatus($e, 400));
         }
     }
 
@@ -82,7 +82,7 @@ class OrderController extends Controller
             $order   = $this->service->getFullOrder($id, $userId);
             $this->success($order);
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 404);
+            $this->error($e->getMessage(), $this->exceptionStatus($e, 404));
         }
     }
 
@@ -93,7 +93,7 @@ class OrderController extends Controller
             $order = $this->service->getOrderByNumber($number, $request->userId());
             $this->success($order);
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 404);
+            $this->error($e->getMessage(), $this->exceptionStatus($e, 404));
         }
     }
 
@@ -104,7 +104,7 @@ class OrderController extends Controller
             $order = $this->service->cancelOrder($id, $request->userId());
             $this->success($order, 'سفارش لغو شد');
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 400);
+            $this->error($e->getMessage(), $this->exceptionStatus($e, 400));
         }
     }
 
@@ -122,7 +122,7 @@ class OrderController extends Controller
             $receipt  = $this->service->uploadReceipt($id, $request->userId(), $fileData);
             $this->created($receipt, 'رسید پرداخت با موفقیت ثبت شد');
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 400);
+            $this->error($e->getMessage(), $this->exceptionStatus($e, 400));
         }
     }
 
@@ -146,7 +146,7 @@ class OrderController extends Controller
             $order = $this->service->getFullOrder($id);
             $this->success($order);
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 404);
+            $this->error($e->getMessage(), $this->exceptionStatus($e, 404));
         }
     }
 
@@ -165,7 +165,7 @@ class OrderController extends Controller
             $order = $this->service->updateStatus($id, $status, $reason);
             $this->success($order, 'وضعیت سفارش بروزرسانی شد');
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 400);
+            $this->error($e->getMessage(), $this->exceptionStatus($e, 400));
         }
     }
 
@@ -176,7 +176,7 @@ class OrderController extends Controller
             $order = $this->service->approveReceipt($id);
             $this->success($order, 'رسید تایید و سفارش پرداخت‌شده علامت‌گذاری شد');
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 400);
+            $this->error($e->getMessage(), $this->exceptionStatus($e, 400));
         }
     }
 
@@ -189,7 +189,7 @@ class OrderController extends Controller
             $order = $this->service->rejectReceipt($id, $reason);
             $this->success($order, 'رسید رد شد و سفارش لغو شد');
         } catch (\RuntimeException $e) {
-            $this->error($e->getMessage(), $e->getCode() ?: 400);
+            $this->error($e->getMessage(), $this->exceptionStatus($e, 400));
         }
     }
 }

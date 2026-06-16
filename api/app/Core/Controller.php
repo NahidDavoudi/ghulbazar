@@ -28,6 +28,13 @@ abstract class Controller
         Response::error($message, $code, $errors);
     }
 
+    /** Map exception code to HTTP status (PDO/SQL codes are ignored). */
+    protected function exceptionStatus(\Throwable $e, int $default = 400): int
+    {
+        $code = (int) $e->getCode();
+        return ($code >= 400 && $code < 600) ? $code : $default;
+    }
+
     protected function validationError(array $errors, string $message = 'خطای اعتبارسنجی'): void
     {
         Response::validation($errors, $message);

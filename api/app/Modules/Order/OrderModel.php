@@ -47,7 +47,7 @@ class OrderModel extends Model
     {
         $stmt = $this->pdo->prepare("
             SELECT oi.*,
-                   p.title AS product_name,
+                   p.name AS product_name,
                    (SELECT pi.image_url FROM product_images pi
                     WHERE pi.product_id = oi.product_id AND pi.is_main = 1
                     LIMIT 1) AS product_image

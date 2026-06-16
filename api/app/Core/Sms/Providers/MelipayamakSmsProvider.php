@@ -22,6 +22,7 @@ class MelipayamakSmsProvider implements SmsProviderInterface
     {
         $this->client = $client ?? new Client([
             'timeout' => (int) Env::get('SMS_API_TIMEOUT', 15),
+            'verify'  => true,
         ]);
     }
 
@@ -53,6 +54,9 @@ class MelipayamakSmsProvider implements SmsProviderInterface
     private function sendConsole(string $phone, string $message, string $apiKey, string $sender): bool
     {
         $url = trim((string) Env::get('MELIPAYAMAK_CONSOLE_URL', self::CONSOLE_URL));
+        if ($url === '') {
+            $url = self::CONSOLE_URL;
+        }
 
         try {
             $response = $this->client->post($url, [
