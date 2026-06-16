@@ -13,15 +13,19 @@
 
   let _orders = [];
 
+  function _normalizeOrdersList(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.data)) return data.data;
+    return data?.orders ?? [];
+  }
+
   /* ── Public loader ─────────────────────────────────────────── */
   window.loadOrders = async function () {
     try {
       setLoading(true);
-      const data = await API.orders.list({ limit: 200 });
+      const data = await API.orders.adminList({ limit: 200 });
       setLoading(false);
-      _orders = Array.isArray(data.data)
-        ? data.data
-        : (data.data?.data || data.data?.orders || []);
+      _orders = _normalizeOrdersList(data);
       _renderOrders(_orders);
     } catch (e) {
       setLoading(false);
@@ -39,7 +43,7 @@
     }
     tbody.innerHTML = list.map(o => {
       const date        = o.created_at ? new Date(o.created_at).toLocaleDateString('fa-IR') : '—';
-      const receiptUrl  = o.receipt_path || o.receipt_file || '';
+      const receiptUrl  = o.receipt_path || o.receipt_file || o.receipt?.file_path || '';
       const receiptHtml = receiptUrl ? `
         <div class="flex flex-wrap gap-1 mt-1.5">
           <a href="${receiptUrl}" target="_blank"

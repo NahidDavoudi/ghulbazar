@@ -82,234 +82,6 @@ import { deepMerge } from '../../utils/deepMerge.js';
     return base;
   }
 
-  function _switchTab(tab) {
-    if (!TABS.includes(tab)) return;
-    _activeTab = tab;
-
-    document.querySelectorAll('[data-pages-tab]').forEach((btn) => {
-      const active = btn.dataset.pagesTab === tab;
-      btn.classList.toggle('bg-accent', active);
-      btn.classList.toggle('text-white', active);
-      btn.classList.toggle('text-muted', !active);
-      btn.classList.toggle('hover:bg-surface', !active);
-    });
-
-    document.querySelectorAll('[data-pages-panel]').forEach((panel) => {
-      panel.classList.toggle('hidden', panel.dataset.pagesPanel !== tab);
-    });
-
-    _renderActivePanel();
-    if (window.lucide) lucide.createIcons();
-  }
-
-  function _renderPageHeaderFields(prefix, page) {
-    return `
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        ${_field(_t('fields.title', 'عنوان'), _input(`${prefix}Title`, page.title))}
-        ${_field(_t('fields.subtitle', 'زیرعنوان'), _input(`${prefix}Subtitle`, page.subtitle))}
-      </div>
-      ${_field(_t('fields.meta', 'سئو'), _textarea(`${prefix}Meta`, page.meta, 2))}`;
-  }
-
-  function _renderContactField(prefix, key, data = {}) {
-    const id = `${prefix}${key.charAt(0).toUpperCase()}${key.slice(1)}`;
-    return `
-      <div class="bg-surface border border-border rounded-2xl p-5 space-y-4">
-        <p class="font-medium text-body text-sm">${_t(`fields.${key === 'phone' ? 'value' : key}`, key)}</p>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          ${_field(_t('fields.label', 'برچسب'), _input(`${id}Label`, data.label))}
-          ${_field(_t('fields.value', 'مقدار'), _input(`${id}Value`, data.value))}
-          ${_field(_t('fields.note', 'توضیح'), _input(`${id}Note`, data.note))}
-        </div>
-      </div>`;
-  }
-
-  function _renderSectionCard(index, section = {}) {
-    return `
-      <div class="bg-surface border border-border rounded-2xl p-5 space-y-4" data-section-index="${index}">
-        <div class="flex items-center justify-between gap-3">
-          <p class="font-medium text-body text-sm">${_t('fields.sectionTitle', 'بخش')} ${index + 1}</p>
-          <button type="button" data-remove-section="${index}"
-            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
-        </div>
-        ${_field(_t('fields.sectionTitle', 'عنوان بخش'), _input(`sectionTitle_${index}`, section.title))}
-        ${_field(_t('fields.paragraphs', 'پاراگراف‌ها'), _textarea(`sectionContent_${index}`, _joinLines(section.content), 4))}
-        ${_field(_t('fields.bullets', 'لیست'), _textarea(`sectionItems_${index}`, _joinLines(section.items), 4))}
-      </div>`;
-  }
-
-  function _renderSectionsEditor(prefix, sections = []) {
-    const cards = sections.map((s, i) => _renderSectionCard(i, s)).join('');
-    return `
-      <div id="${prefix}SectionsList" class="space-y-4">${cards}</div>
-      <button type="button" id="${prefix}AddSection"
-        class="mt-4 px-4 py-2 rounded-xl border border-border text-sm text-body hover:bg-surface transition-all">
-        + ${_t('addSection', 'افزودن بخش')}
-      </button>`;
-  }
-
-  function _renderWhyCard(index, item = {}) {
-    return `
-      <div class="bg-surface border border-border rounded-2xl p-5 space-y-4" data-why-index="${index}">
-        <div class="flex items-center justify-between gap-3">
-          <p class="font-medium text-body text-sm">${index + 1}</p>
-          <button type="button" data-remove-why="${index}"
-            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          ${_field(_t('fields.icon', 'آیکون'), _input(`whyIcon_${index}`, item.icon))}
-          ${_field(_t('fields.title', 'عنوان'), _input(`whyTitle_${index}`, item.title))}
-          ${_field(_t('fields.desc', 'توضیح'), _textarea(`whyDesc_${index}`, item.desc, 2))}
-        </div>
-      </div>`;
-  }
-
-  function _renderStatCard(index, item = {}) {
-    return `
-      <div class="bg-surface border border-border rounded-2xl p-5" data-stat-index="${index}">
-        <div class="flex items-center justify-between gap-3 mb-4">
-          <p class="font-medium text-body text-sm">${index + 1}</p>
-          <button type="button" data-remove-stat="${index}"
-            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          ${_field(_t('fields.value', 'مقدار'), _input(`statValue_${index}`, item.value))}
-          ${_field(_t('fields.label', 'برچسب'), _input(`statLabel_${index}`, item.label))}
-        </div>
-      </div>`;
-  }
-
-  function _renderTeamCard(index, item = {}) {
-    return `
-      <div class="bg-surface border border-border rounded-2xl p-5" data-team-index="${index}">
-        <div class="flex items-center justify-between gap-3 mb-4">
-          <p class="font-medium text-body text-sm">${index + 1}</p>
-          <button type="button" data-remove-team="${index}"
-            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-+2 gap-4">
-          ${_field(_t('fields.name', 'نام'), _input(`teamName_${index}`, item.name))}
-          ${_field(_t('fields.role', 'نقش'), _input(`teamRole_${index}`, item.role))}
-        </div>
-      </div>`;
-  }
-
-  function _renderFaqCard(index, item = {}) {
-    return `
-      <div class="bg-surface border border-border rounded-2xl p-5 space-y-4" data-faq-index="${index}">
-        <div class="flex items-center justify-between gap-3">
-          <p class="font-medium text-body text-sm">${_t('fields.question', 'سوال')} ${index + 1}</p>
-          <button type="button" data-remove-faq="${index}"
-            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
-        </div>
-        ${_field(_t('fields.question', 'سوال'), _input(`faqQuestion_${index}`, item.question))}
-        ${_field(_t('fields.answer', 'پاسخ'), _textarea(`faqAnswer_${index}`, item.answer, 3))}
-      </div>`;
-  }
-
-  function _renderAboutPanel(about) {
-    const st = about.sectionTitles || {};
-    const why = about.whyChooseUs || [];
-    const stats = about.stats || [];
-    const team = about.team || [];
-
-    return `
-      ${_renderPageHeaderFields('about', about)}
-      ${_field(_t('fields.intro', 'معرفی'), _textarea('aboutIntro', about.intro, 5))}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        ${_field(_t('fields.mission', 'مأموریت'), _textarea('aboutMission', about.mission, 3))}
-        ${_field(_t('fields.vision', 'چشم‌انداز'), _textarea('aboutVision', about.vision, 3))}
-      </div>
-      <div class="border-t border-border pt-6 space-y-4">
-        <p class="font-bold text-body">${_t('sectionTitles.intro', 'عناوین بخش‌ها')}</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          ${_field(_t('sectionTitles.intro', 'معرفی'), _input('stIntro', st.intro))}
-          ${_field(_t('sectionTitles.mission', 'مأموریت'), _input('stMission', st.mission))}
-          ${_field(_t('sectionTitles.vision', 'چشم‌انداز'), _input('stVision', st.vision))}
-          ${_field(_t('sectionTitles.whyChooseUs', 'مزایا'), _input('stWhy', st.whyChooseUs))}
-          ${_field(_t('sectionTitles.stats', 'آمار'), _input('stStats', st.stats))}
-          ${_field(_t('sectionTitles.team', 'تیم'), _input('stTeam', st.team))}
-        </div>
-      </div>
-      <div class="border-t border-border pt-6 space-y-4">
-        <p class="font-bold text-body">${_t('tabs.about', 'مزایا')}</p>
-        <div id="whyList" class="space-y-4">${why.map((w, i) => _renderWhyCard(i, w)).join('')}</div>
-        <button type="button" id="addWhy" class="px-4 py-2 rounded-xl border border-border text-sm hover:bg-surface">+ ${_t('addWhy', 'افزودن')}</button>
-      </div>
-      <div class="border-t border-border pt-6 space-y-4">
-        <p class="font-bold text-body">${_t('addStat', 'آمار')}</p>
-        <div id="statsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">${stats.map((s, i) => _renderStatCard(i, s)).join('')}</div>
-        <button type="button" id="addStat" class="px-4 py-2 rounded-xl border border-border text-sm hover:bg-surface">+ ${_t('addStat', 'افزودن آمار')}</button>
-      </div>
-      <div class="border-t border-border pt-6 space-y-4">
-        <p class="font-bold text-body">${_t('addTeam', 'تیم')}</p>
-        <div id="teamList" class="grid grid-cols-1 md:grid-cols-2 gap-4">${team.map((m, i) => _renderTeamCard(i, m)).join('')}</div>
-        <button type="button" id="addTeam" class="px-4 py-2 rounded-xl border border-border text-sm hover:bg-surface">+ ${_t('addTeam', 'افزودن عضو')}</button>
-      </div>`;
-  }
-
-  function _renderContactPanel(contact) {
-    return `
-      ${_renderPageHeaderFields('contact', contact)}
-      ${_renderContactField('contact', 'phone', contact.phone)}
-      ${_renderContactField('contact', 'email', contact.email)}
-      ${_renderContactField('contact', 'address', contact.address)}
-      ${_renderContactField('contact', 'hours', contact.hours)}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        ${_field(_t('fields.formSectionTitle', 'عنوان بخش فرم'), _input('contactFormSectionTitle', contact.formSectionTitle))}
-        ${_field(_t('fields.mapPlaceholder', 'متن نقشه'), _input('contactMapPlaceholder', contact.mapPlaceholder))}
-      </div>
-      ${_field(_t('fields.formUnavailable', 'متن جایگزین فرم'), _textarea('contactFormUnavailable', contact.formUnavailable, 3))}`;
-  }
-
-  function _renderLegalPanel(key, page) {
-    return `
-      ${_renderPageHeaderFields(key, page)}
-      ${_renderSectionsEditor(key, page.sections || [])}`;
-  }
-
-  function _renderFaqPanel(faq) {
-    const items = faq.items || [];
-    return `
-      ${_renderPageHeaderFields('faq', faq)}
-      <div id="faqList" class="space-y-4">${items.map((item, i) => _renderFaqCard(i, item)).join('')}</div>
-      <button type="button" id="addFaq" class="mt-4 px-4 py-2 rounded-xl border border-border text-sm hover:bg-surface">+ ${_t('addFaq', 'افزودن سوال')}</button>`;
-  }
-
-  function _renderActivePanel() {
-    const panel = $(`pagesPanel${_activeTab.charAt(0).toUpperCase()}${_activeTab.slice(1)}`);
-    if (!panel || !_legal) return;
-
-    const data = _legal[_activeTab] || {};
-    let html = '';
-
-    if (_activeTab === 'about') html = _renderAboutPanel(data);
-    else if (_activeTab === 'contact') html = _renderContactPanel(data);
-    else if (_activeTab === 'faq') html = _renderFaqPanel(data);
-    else html = _renderLegalPanel(_activeTab, data);
-
-    panel.innerHTML = html;
-    _bindPanelEvents();
-    if (window.lucide) lucide.createIcons();
-  }
-
-  function _renderAllPanels() {
-    TABS.forEach((tab) => {
-      const wasActive = _activeTab === tab;
-      _activeTab = tab;
-      _renderActivePanel();
-      if (!wasActive) {
-        document.querySelector(`[data-pages-panel="${tab}"]`)?.classList.add('hidden');
-      }
-    });
-    _activeTab = 'about';
-    document.querySelector('[data-pages-panel="about"]')?.classList.remove('hidden');
-  }
-
-  function _countSections(prefix) {
-    return document.querySelectorAll(`#${prefix}SectionsList [data-section-index]`).length;
-  }
-
   function _collectSections(prefix) {
     const sections = [];
     document.querySelectorAll(`#${prefix}SectionsList [data-section-index]`).forEach((el) => {
@@ -384,92 +156,281 @@ import { deepMerge } from '../../utils/deepMerge.js';
     };
   }
 
-  function _collectLegalContent() {
-    const about = {
-      title: _val('aboutTitle'),
-      subtitle: _val('aboutSubtitle'),
-      meta: _val('aboutMeta'),
-      intro: _val('aboutIntro'),
-      mission: _val('aboutMission'),
-      vision: _val('aboutVision'),
-      sectionTitles: {
-        intro: _val('stIntro'),
-        mission: _val('stMission'),
-        vision: _val('stVision'),
-        whyChooseUs: _val('stWhy'),
-        stats: _val('stStats'),
-        team: _val('stTeam'),
-      },
-      whyChooseUs: _collectWhy(),
-      stats: _collectStats(),
-      team: _collectTeam(),
-    };
+  function _syncActiveTabToLegal() {
+    if (!_legal) return;
 
-    const contact = {
-      title: _val('contactTitle'),
-      subtitle: _val('contactSubtitle'),
-      meta: _val('contactMeta'),
-      phone: _collectContactField('phone'),
-      email: _collectContactField('email'),
-      address: _collectContactField('address'),
-      hours: _collectContactField('hours'),
-      formSectionTitle: _val('contactFormSectionTitle'),
-      formUnavailable: _val('contactFormUnavailable'),
-      mapPlaceholder: _val('contactMapPlaceholder'),
-    };
-
-    const terms = {
-      title: _val('termsTitle'),
-      subtitle: _val('termsSubtitle'),
-      meta: _val('termsMeta'),
-      sections: _collectSections('terms'),
-    };
-
-    const privacy = {
-      title: _val('privacyTitle'),
-      subtitle: _val('privacySubtitle'),
-      meta: _val('privacyMeta'),
-      sections: _collectSections('privacy'),
-    };
-
-    const refund = {
-      title: _val('refundTitle'),
-      subtitle: _val('refundSubtitle'),
-      meta: _val('refundMeta'),
-      sections: _collectSections('refund'),
-    };
-
-    const faq = {
-      title: _val('faqTitle'),
-      subtitle: _val('faqSubtitle'),
-      meta: _val('faqMeta'),
-      items: _collectFaq(),
-    };
-
-    return {
-      lastUpdated: _val('pagesLastUpdated'),
-      about,
-      contact,
-      terms,
-      privacy,
-      refund,
-      faq,
-    };
+    if (_activeTab === 'about') {
+      _legal.about = {
+        title: _val('aboutTitle'),
+        subtitle: _val('aboutSubtitle'),
+        meta: _val('aboutMeta'),
+        intro: _val('aboutIntro'),
+        mission: _val('aboutMission'),
+        vision: _val('aboutVision'),
+        sectionTitles: {
+          intro: _val('stIntro'),
+          mission: _val('stMission'),
+          vision: _val('stVision'),
+          whyChooseUs: _val('stWhy'),
+          stats: _val('stStats'),
+          team: _val('stTeam'),
+        },
+        whyChooseUs: _collectWhy(),
+        stats: _collectStats(),
+        team: _collectTeam(),
+      };
+    } else if (_activeTab === 'contact') {
+      _legal.contact = {
+        title: _val('contactTitle'),
+        subtitle: _val('contactSubtitle'),
+        meta: _val('contactMeta'),
+        phone: _collectContactField('phone'),
+        email: _collectContactField('email'),
+        address: _collectContactField('address'),
+        hours: _collectContactField('hours'),
+        formSectionTitle: _val('contactFormSectionTitle'),
+        formUnavailable: _val('contactFormUnavailable'),
+        mapPlaceholder: _val('contactMapPlaceholder'),
+      };
+    } else if (_activeTab === 'faq') {
+      _legal.faq = {
+        title: _val('faqTitle'),
+        subtitle: _val('faqSubtitle'),
+        meta: _val('faqMeta'),
+        items: _collectFaq(),
+      };
+    } else {
+      _legal[_activeTab] = {
+        title: _val(`${_activeTab}Title`),
+        subtitle: _val(`${_activeTab}Subtitle`),
+        meta: _val(`${_activeTab}Meta`),
+        sections: _collectSections(_activeTab),
+      };
+    }
   }
 
-  function _reindexSections(listId, prefix) {
+  function _switchTab(tab) {
+    if (!TABS.includes(tab)) return;
+    _syncActiveTabToLegal();
+    _activeTab = tab;
+
+    document.querySelectorAll('[data-pages-tab]').forEach((btn) => {
+      const active = btn.dataset.pagesTab === tab;
+      btn.classList.toggle('bg-accent', active);
+      btn.classList.toggle('text-white', active);
+      btn.classList.toggle('text-muted', !active);
+      btn.classList.toggle('hover:bg-surface', !active);
+    });
+
+    document.querySelectorAll('[data-pages-panel]').forEach((panel) => {
+      panel.classList.toggle('hidden', panel.dataset.pagesPanel !== tab);
+    });
+
+    const preview = document.querySelector('[data-pages-preview]');
+    if (preview) preview.dataset.pagesPreview = tab;
+
+    _renderActivePanel();
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function _renderPageHeaderFields(prefix, page) {
+    return `
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        ${_field(_t('fields.title', 'عنوان'), _input(`${prefix}Title`, page.title))}
+        ${_field(_t('fields.subtitle', 'زیرعنوان'), _input(`${prefix}Subtitle`, page.subtitle))}
+      </div>
+      ${_field(_t('fields.meta', 'سئو'), _textarea(`${prefix}Meta`, page.meta, 2))}`;
+  }
+
+  function _renderContactField(key, data = {}) {
+    const cap = key.charAt(0).toUpperCase() + key.slice(1);
+    return `
+      <div class="bg-surface border border-border rounded-2xl p-5 space-y-4">
+        <p class="font-medium text-body text-sm">${key}</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          ${_field(_t('fields.label', 'برچسب'), _input(`contact${cap}Label`, data.label))}
+          ${_field(_t('fields.value', 'مقدار'), _input(`contact${cap}Value`, data.value))}
+          ${_field(_t('fields.note', 'توضیح'), _input(`contact${cap}Note`, data.note))}
+        </div>
+      </div>`;
+  }
+
+  function _renderSectionCard(index, section = {}) {
+    return `
+      <div class="bg-surface border border-border rounded-2xl p-5 space-y-4" data-section-index="${index}">
+        <div class="flex items-center justify-between gap-3">
+          <p class="font-medium text-body text-sm">${_t('fields.sectionTitle', 'بخش')} ${index + 1}</p>
+          <button type="button" data-remove-section="${index}"
+            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
+        </div>
+        ${_field(_t('fields.sectionTitle', 'عنوان بخش'), _input(`sectionTitle_${index}`, section.title))}
+        ${_field(_t('fields.paragraphs', 'پاراگراف‌ها'), _textarea(`sectionContent_${index}`, _joinLines(section.content), 4))}
+        ${_field(_t('fields.bullets', 'لیست'), _textarea(`sectionItems_${index}`, _joinLines(section.items), 4))}
+      </div>`;
+  }
+
+  function _renderSectionsEditor(prefix, sections = []) {
+    const cards = sections.map((s, i) => _renderSectionCard(i, s)).join('');
+    return `
+      <div id="${prefix}SectionsList" class="space-y-4">${cards}</div>
+      <button type="button" data-add-section="${prefix}"
+        class="mt-4 px-4 py-2 rounded-xl border border-border text-sm text-body hover:bg-surface transition-all">
+        + ${_t('addSection', 'افزودن بخش')}
+      </button>`;
+  }
+
+  function _renderWhyCard(index, item = {}) {
+    return `
+      <div class="bg-surface border border-border rounded-2xl p-5 space-y-4" data-why-index="${index}">
+        <div class="flex items-center justify-between gap-3">
+          <p class="font-medium text-body text-sm">${index + 1}</p>
+          <button type="button" data-remove-why="${index}"
+            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          ${_field(_t('fields.icon', 'آیکون'), _input(`whyIcon_${index}`, item.icon))}
+          ${_field(_t('fields.title', 'عنوان'), _input(`whyTitle_${index}`, item.title))}
+          ${_field(_t('fields.desc', 'توضیح'), _textarea(`whyDesc_${index}`, item.desc, 2))}
+        </div>
+      </div>`;
+  }
+
+  function _renderStatCard(index, item = {}) {
+    return `
+      <div class="bg-surface border border-border rounded-2xl p-5" data-stat-index="${index}">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <p class="font-medium text-body text-sm">${index + 1}</p>
+          <button type="button" data-remove-stat="${index}"
+            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          ${_field(_t('fields.value', 'مقدار'), _input(`statValue_${index}`, item.value))}
+          ${_field(_t('fields.label', 'برچسب'), _input(`statLabel_${index}`, item.label))}
+        </div>
+      </div>`;
+  }
+
+  function _renderTeamCard(index, item = {}) {
+    return `
+      <div class="bg-surface border border-border rounded-2xl p-5" data-team-index="${index}">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <p class="font-medium text-body text-sm">${index + 1}</p>
+          <button type="button" data-remove-team="${index}"
+            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          ${_field(_t('fields.name', 'نام'), _input(`teamName_${index}`, item.name))}
+          ${_field(_t('fields.role', 'نقش'), _input(`teamRole_${index}`, item.role))}
+        </div>
+      </div>`;
+  }
+
+  function _renderFaqCard(index, item = {}) {
+    return `
+      <div class="bg-surface border border-border rounded-2xl p-5 space-y-4" data-faq-index="${index}">
+        <div class="flex items-center justify-between gap-3">
+          <p class="font-medium text-body text-sm">${_t('fields.question', 'سوال')} ${index + 1}</p>
+          <button type="button" data-remove-faq="${index}"
+            class="text-accent hover:bg-accent/10 px-3 py-1.5 rounded-lg text-sm transition-all">${_t('remove', 'حذف')}</button>
+        </div>
+        ${_field(_t('fields.question', 'سوال'), _input(`faqQuestion_${index}`, item.question))}
+        ${_field(_t('fields.answer', 'پاسخ'), _textarea(`faqAnswer_${index}`, item.answer, 3))}
+      </div>`;
+  }
+
+  function _renderAboutPanel(about) {
+    const st = about.sectionTitles || {};
+    return `
+      ${_renderPageHeaderFields('about', about)}
+      ${_field(_t('fields.intro', 'معرفی'), _textarea('aboutIntro', about.intro, 5))}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        ${_field(_t('fields.mission', 'مأموریت'), _textarea('aboutMission', about.mission, 3))}
+        ${_field(_t('fields.vision', 'چشم‌انداز'), _textarea('aboutVision', about.vision, 3))}
+      </div>
+      <div class="border-t border-border pt-6 space-y-4">
+        <p class="font-bold text-body">${_t('sectionTitles.intro', 'عناوین بخش‌ها')}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          ${_field(_t('sectionTitles.intro', 'معرفی'), _input('stIntro', st.intro))}
+          ${_field(_t('sectionTitles.mission', 'مأموریت'), _input('stMission', st.mission))}
+          ${_field(_t('sectionTitles.vision', 'چشم‌انداز'), _input('stVision', st.vision))}
+          ${_field(_t('sectionTitles.whyChooseUs', 'مزایا'), _input('stWhy', st.whyChooseUs))}
+          ${_field(_t('sectionTitles.stats', 'آمار'), _input('stStats', st.stats))}
+          ${_field(_t('sectionTitles.team', 'تیم'), _input('stTeam', st.team))}
+        </div>
+      </div>
+      <div class="border-t border-border pt-6 space-y-4">
+        <p class="font-bold text-body">${_t('addWhy', 'مزایا')}</p>
+        <div id="whyList" class="space-y-4">${(about.whyChooseUs || []).map((w, i) => _renderWhyCard(i, w)).join('')}</div>
+        <button type="button" id="addWhy" class="px-4 py-2 rounded-xl border border-border text-sm hover:bg-surface">+ ${_t('addWhy', 'افزودن')}</button>
+      </div>
+      <div class="border-t border-border pt-6 space-y-4">
+        <p class="font-bold text-body">${_t('addStat', 'آمار')}</p>
+        <div id="statsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">${(about.stats || []).map((s, i) => _renderStatCard(i, s)).join('')}</div>
+        <button type="button" id="addStat" class="px-4 py-2 rounded-xl border border-border text-sm hover:bg-surface">+ ${_t('addStat', 'افزودن آمار')}</button>
+      </div>
+      <div class="border-t border-border pt-6 space-y-4">
+        <p class="font-bold text-body">${_t('addTeam', 'تیم')}</p>
+        <div id="teamList" class="grid grid-cols-1 md:grid-cols-2 gap-4">${(about.team || []).map((m, i) => _renderTeamCard(i, m)).join('')}</div>
+        <button type="button" id="addTeam" class="px-4 py-2 rounded-xl border border-border text-sm hover:bg-surface">+ ${_t('addTeam', 'افزودن عضو')}</button>
+      </div>`;
+  }
+
+  function _renderContactPanel(contact) {
+    return `
+      ${_renderPageHeaderFields('contact', contact)}
+      ${_renderContactField('phone', contact.phone)}
+      ${_renderContactField('email', contact.email)}
+      ${_renderContactField('address', contact.address)}
+      ${_renderContactField('hours', contact.hours)}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        ${_field(_t('fields.formSectionTitle', 'عنوان بخش فرم'), _input('contactFormSectionTitle', contact.formSectionTitle))}
+        ${_field(_t('fields.mapPlaceholder', 'متن نقشه'), _input('contactMapPlaceholder', contact.mapPlaceholder))}
+      </div>
+      ${_field(_t('fields.formUnavailable', 'متن جایگزین فرم'), _textarea('contactFormUnavailable', contact.formUnavailable, 3))}`;
+  }
+
+  function _renderLegalPanel(key, page) {
+    return `
+      ${_renderPageHeaderFields(key, page)}
+      ${_renderSectionsEditor(key, page.sections || [])}`;
+  }
+
+  function _renderFaqPanel(faq) {
+    return `
+      ${_renderPageHeaderFields('faq', faq)}
+      <div id="faqList" class="space-y-4">${(faq.items || []).map((item, i) => _renderFaqCard(i, item)).join('')}</div>
+      <button type="button" id="addFaq" class="mt-4 px-4 py-2 rounded-xl border border-border text-sm hover:bg-surface">+ ${_t('addFaq', 'افزودن سوال')}</button>`;
+  }
+
+  function _renderActivePanel() {
+    const panel = document.querySelector(`[data-pages-panel="${_activeTab}"]`);
+    if (!panel || !_legal) return;
+
+    const data = _legal[_activeTab] || {};
+    let html = '';
+
+    if (_activeTab === 'about') html = _renderAboutPanel(data);
+    else if (_activeTab === 'contact') html = _renderContactPanel(data);
+    else if (_activeTab === 'faq') html = _renderFaqPanel(data);
+    else html = _renderLegalPanel(_activeTab, data);
+
+    panel.innerHTML = html;
+    _bindPanelEvents();
+  }
+
+  function _reindexSections(listId) {
     const list = $(listId);
     if (!list) return;
     list.querySelectorAll('[data-section-index]').forEach((el, idx) => {
       el.dataset.sectionIndex = idx;
-      const old = el.querySelector('[data-remove-section]')?.dataset.removeSection;
-      if (old !== undefined) {
-        el.querySelector('[data-remove-section]').dataset.removeSection = idx;
-      }
-      ['Title', 'Content', 'Items'].forEach((suffix) => {
-        const field = el.querySelector(`[id^="section${suffix}_"]`);
-        if (field) field.id = `section${suffix}_${idx}`;
-      });
+      const removeBtn = el.querySelector('[data-remove-section]');
+      if (removeBtn) removeBtn.dataset.removeSection = idx;
+      const title = el.querySelector('[id^="sectionTitle_"]');
+      const content = el.querySelector('[id^="sectionContent_"]');
+      const items = el.querySelector('[id^="sectionItems_"]');
+      if (title) title.id = `sectionTitle_${idx}`;
+      if (content) content.id = `sectionContent_${idx}`;
+      if (items) items.id = `sectionItems_${idx}`;
     });
   }
 
@@ -485,16 +446,17 @@ import { deepMerge } from '../../utils/deepMerge.js';
     const panel = document.querySelector(`[data-pages-panel="${_activeTab}"]`);
     if (!panel) return;
 
-    panel.querySelectorAll('[data-remove-section]').forEach((btn) => {
-      btn.onclick = () => {
-        btn.closest('[data-section-index]')?.remove();
-        _reindexSections(`${_activeTab}SectionsList`, _activeTab);
-        _bindPanelEvents();
-      };
+    panel.querySelectorAll('[data-add-section]').forEach((btn) => {
+      btn.onclick = () => _addSection(btn.dataset.addSection);
     });
 
-    ['terms', 'privacy', 'refund'].forEach((key) => {
-      $(`${key}AddSection`)?.addEventListener('click', () => _addSection(key), { once: true });
+    panel.querySelectorAll('[data-remove-section]').forEach((btn) => {
+      btn.onclick = () => {
+        const prefix = _activeTab;
+        btn.closest('[data-section-index]')?.remove();
+        _reindexSections(`${prefix}SectionsList`);
+        _bindPanelEvents();
+      };
     });
 
     $('addWhy')?.addEventListener('click', () => {
@@ -526,16 +488,16 @@ import { deepMerge } from '../../utils/deepMerge.js';
     }, { once: true });
 
     panel.querySelectorAll('[data-remove-why]').forEach((btn) => {
-      btn.onclick = () => { btn.closest('[data-why-index]')?.remove(); _bindPanelEvents(); };
+      btn.onclick = () => { btn.closest('[data-why-index]')?.remove(); };
     });
     panel.querySelectorAll('[data-remove-stat]').forEach((btn) => {
-      btn.onclick = () => { btn.closest('[data-stat-index]')?.remove(); _bindPanelEvents(); };
+      btn.onclick = () => { btn.closest('[data-stat-index]')?.remove(); };
     });
     panel.querySelectorAll('[data-remove-team]').forEach((btn) => {
-      btn.onclick = () => { btn.closest('[data-team-index]')?.remove(); _bindPanelEvents(); };
+      btn.onclick = () => { btn.closest('[data-team-index]')?.remove(); };
     });
     panel.querySelectorAll('[data-remove-faq]').forEach((btn) => {
-      btn.onclick = () => { btn.closest('[data-faq-index]')?.remove(); _bindPanelEvents(); };
+      btn.onclick = () => { btn.closest('[data-faq-index]')?.remove(); };
     });
   }
 
@@ -543,16 +505,22 @@ import { deepMerge } from '../../utils/deepMerge.js';
     const btn = $('pagesSaveBtn');
     if (!btn) return;
 
+    _syncActiveTabToLegal();
+    _legal.lastUpdated = _val('pagesLastUpdated');
+
     const original = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = _t('saving', 'در حال ذخیره...');
 
     try {
-      const legal_content = _collectLegalContent();
-      const data = await API.settings.adminUpdate({ legal_content });
+      const { about, contact, terms, privacy, refund, faq, lastUpdated } = _legal;
+      const data = await API.settings.adminUpdate({
+        legal_content: { about, contact, terms, privacy, refund, faq, lastUpdated },
+      });
       _legal = _mergeLegal(data.legal_content);
+      const el = $('pagesLastUpdated');
+      if (el) el.value = _legal.lastUpdated || '';
       mergeStoreSettings(data);
-      $('pagesLastUpdated') && (_val('pagesLastUpdated') || ($('pagesLastUpdated').value = _legal.lastUpdated || ''));
       toast(_t('saved', 'محتوا ذخیره شد'));
     } catch (e) {
       toast(e.message, 'error');
@@ -577,15 +545,9 @@ import { deepMerge } from '../../utils/deepMerge.js';
       link.addEventListener('click', (e) => {
         e.preventDefault();
         const tab = link.dataset.pagesPreview;
-        const hash = PREVIEW_HASH[tab] || '#/';
-        window.open(`index.html${hash}`, '_blank');
+        window.open(`index.html${PREVIEW_HASH[tab] || '#/'}`, '_blank');
       });
     });
-  }
-
-  function _populateLastUpdated() {
-    const el = $('pagesLastUpdated');
-    if (el && _legal) el.value = _legal.lastUpdated || '';
   }
 
   window.loadPages = async function () {
@@ -593,29 +555,24 @@ import { deepMerge } from '../../utils/deepMerge.js';
     if (!container) return;
 
     _bindEvents();
-    _switchTab(_activeTab);
 
     if (!_legal) {
       container.classList.add('opacity-50', 'pointer-events-none');
       try {
         const data = await API.settings.adminGet();
         _legal = _mergeLegal(data.legal_content);
-        _populateLastUpdated();
-        _renderAllPanels();
-        _switchTab(_activeTab);
       } catch (e) {
         _legal = _getDefaultLegal();
-        _populateLastUpdated();
-        _renderAllPanels();
-        _switchTab(_activeTab);
         if (e.message) toast(e.message, 'error');
       } finally {
         container.classList.remove('opacity-50', 'pointer-events-none');
       }
-    } else {
-      _populateLastUpdated();
-      _renderActivePanel();
     }
+
+    const el = $('pagesLastUpdated');
+    if (el) el.value = _legal.lastUpdated || '';
+
+    _switchTab(_activeTab);
 
     if (window.lucide) lucide.createIcons();
   };

@@ -416,6 +416,8 @@ const orders = {
   },
   adminList: (params = {}) => get('/admin/orders', params),
   updateStatus: (id, status) => patch(`/admin/orders/${id}/status`, { status }),
+  approveReceipt: (id) => patch(`/admin/orders/${id}/status`, { status: 'paid' }),
+  rejectReceipt: (id) => patch(`/admin/orders/${id}/status`, { status: 'pending' }),
 };
 
 const discounts = {

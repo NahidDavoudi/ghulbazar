@@ -98,6 +98,9 @@
                 <a data-page="settings" onclick="switchPage('settings', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-muted hover:bg-surface hover:text-body transition-all duration-200 cursor-pointer">
                     <i data-lucide="settings" class="w-5 h-5"></i><span data-admin-text="nav.settings">تنظیمات</span>
                 </a>
+                <a data-page="pages" onclick="switchPage('pages', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-muted hover:bg-surface hover:text-body transition-all duration-200 cursor-pointer">
+                    <i data-lucide="file-text" class="w-5 h-5"></i><span data-admin-text="nav.pages">محتوای صفحات</span>
+                </a>
             </nav>
 
             <div class="p-4 border-t border-border flex items-center justify-between">
@@ -572,6 +575,64 @@
                                     <textarea id="settingsMetaDescription" rows="4" maxlength="500" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none"></textarea>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ========== PAGES CONTENT ========== -->
+                <section id="page-pages" class="page-section hidden animate-fadeIn">
+                    <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-body" data-admin-text="pages.title">محتوای صفحات</h1>
+                            <p class="text-muted mt-1" data-admin-text="pages.subtitle">ویرایش صفحات درباره ما، تماس، قوانین و...</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <a href="#" data-pages-preview="about" class="text-sm text-muted hover:text-body flex items-center gap-1 transition-colors">
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                                <span data-admin-text="pages.preview">مشاهده در سایت</span>
+                            </a>
+                            <button id="pagesSaveBtn" type="button"
+                                class="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 shadow-lg shadow-black/10">
+                                <i data-lucide="save" class="w-5 h-5"></i>
+                                <span data-admin-text="pages.save">ذخیره محتوا</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="pagesContainer" class="bg-body border border-border rounded-2xl overflow-hidden">
+                        <div class="flex flex-wrap gap-2 p-4 border-b border-border bg-surface/50">
+                            <button type="button" data-pages-tab="about"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all bg-accent text-white"
+                                data-admin-text="pages.tabs.about">درباره ما</button>
+                            <button type="button" data-pages-tab="contact"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="pages.tabs.contact">تماس با ما</button>
+                            <button type="button" data-pages-tab="terms"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="pages.tabs.terms">قوانین و مقررات</button>
+                            <button type="button" data-pages-tab="privacy"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="pages.tabs.privacy">حریم خصوصی</button>
+                            <button type="button" data-pages-tab="refund"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="pages.tabs.refund">بازگشت وجه</button>
+                            <button type="button" data-pages-tab="faq"
+                                class="px-4 py-2 rounded-xl text-sm font-medium transition-all text-muted hover:bg-surface"
+                                data-admin-text="pages.tabs.faq">سوالات متداول</button>
+                        </div>
+
+                        <div class="p-6 md:p-8 space-y-6">
+                            <div>
+                                <label class="block text-muted mb-2 text-sm" data-admin-text="pages.lastUpdated">تاریخ آخرین بروزرسانی</label>
+                                <input type="text" id="pagesLastUpdated" class="w-full max-w-xs bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                            </div>
+
+                            <div data-pages-panel="about" class="space-y-6"></div>
+                            <div data-pages-panel="contact" class="hidden space-y-6"></div>
+                            <div data-pages-panel="terms" class="hidden space-y-6"></div>
+                            <div data-pages-panel="privacy" class="hidden space-y-6"></div>
+                            <div data-pages-panel="refund" class="hidden space-y-6"></div>
+                            <div data-pages-panel="faq" class="hidden space-y-6"></div>
                         </div>
                     </div>
                 </section>

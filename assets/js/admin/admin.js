@@ -40,6 +40,7 @@ await Promise.all([
   import('./pages/users.js'),
   import('./pages/discounts.js'),
   import('./pages/settings.js'),
+  import('./pages/pages.js'),
 ]);
 
 const _user = api.auth.currentUser();
@@ -54,6 +55,7 @@ const PAGE_LOADERS = {
   users: window.loadUsers,
   discounts: window.loadDiscounts,
   settings: window.loadSettings,
+  pages: window.loadPages,
 };
 
 window.switchPage = function (name, linkEl) {

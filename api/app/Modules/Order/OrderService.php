@@ -182,7 +182,13 @@ class OrderService
 
     public function paginateForAdmin(int $page = 1, int $limit = 20, ?string $status = null): array
     {
-        return $this->orderModel->paginateForAdmin($page, $limit, $status);
+        $result = $this->orderModel->paginateForAdmin($page, $limit, $status);
+        $result['data'] = array_map(function (array $order) {
+            $order['receipt'] = $this->orderModel->getReceipt($order['id']);
+            return $order;
+        }, $result['data']);
+
+        return $result;
     }
 
     public function getFullOrder(int $orderId, ?int $userId = null): array
