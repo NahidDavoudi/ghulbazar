@@ -114,43 +114,90 @@ class MelipayamakSmsProvider implements SmsProviderInterface
         $decoded = json_decode($body, true);
 
         if (!is_array($decoded)) {
-            if (is_numeric(trim($body)) && (int) trim($body) > 0) {
-                return true;
+            $raw = trim($body);
+            if ($raw === '') {
+                throw new \RuntimeException('پاسخ خالی از ملی‌پیامک دریافت شد.', 502);
             }
 
+            if (is_numeric($raw)) {
+                return $this->assertLegacyValue((int) $raw, '');
+            }
+
+            throw new \RuntimeException('پاسخ نامعتبر از ملی‌پیامک: ' . $raw, 502);
+        }
+
+        if (isset($decoded['recId'])) {
+            $recId = is_string($decoded['recId']) ? $decoded['recId'] : (string) $decoded['recId'];
+            if ($recId !== '' && $recId !== '0' && (!ctype_digit($recId) || (int) $recId !== 0)) {
+                if (!empty($decoded['status']) && is_string($decoded['status'])) {
+                    $this->throwIfConsoleError($decoded['status']);
+                }
+                return true;
+            }
+        }
+
+        if (isset($decoded['status']) && is_string($decoded['status'])) {
+            $statusText = trim($decoded['status']);
+            if (strtolower($statusText) === 'success') {
+                return true;
+            }
+            $this->throwIfConsoleError($statusText);
+        }
+
+        if (array_key_exists('Value', $decoded) && is_numeric($decoded['Value'])) {
+            $hint = is_string($decoded['StrRetStatus'] ?? null) ? $decoded['StrRetStatus'] : '';
+            return $this->assertLegacyValue((int) $decoded['Value'], $hint);
+        }
+
+        throw new \RuntimeException('پاسخ نامعتبر از ملی‌پیامک.', 502);
+    }
+
+    private function assertLegacyValue(int $value, string $hint): bool
+    {
+        // RecId موفق معمولاً عدد بزرگ است؛ کدهای خطا اعداد کوچک (۰ تا ۱۱۰)
+        if ($value >= 1000) {
             return true;
         }
 
-        if (isset($decoded['status']) && is_string($decoded['status']) && strtolower($decoded['status']) === 'success') {
-            return true;
+        throw new \RuntimeException($this->legacyErrorMessage($value, $hint), 502);
+    }
+
+    private function throwIfConsoleError(string $status): void
+    {
+        if ($status === '' || strtolower($status) === 'success' || strtolower($status) === 'ok') {
+            return;
         }
 
-        if (isset($decoded['Value']) && is_numeric($decoded['Value']) && (int) $decoded['Value'] > 0) {
-            return true;
+        throw new \RuntimeException('ارسال پیامک ملی‌پیامک ناموفق بود: ' . $status, 502);
+    }
+
+    private function legacyErrorMessage(int $code, string $hint): string
+    {
+        $map = [
+            0   => 'نام کاربری یا رمز/API نامعتبر است.',
+            2   => 'اعتبار پنل پیامک کافی نیست.',
+            3   => 'محدودیت ارسال روزانه فعال است.',
+            4   => 'محدودیت حجم ارسال.',
+            5   => 'شماره خط ارسال (فرستنده) معتبر نیست.',
+            6   => 'سامانه در حال بروزرسانی است.',
+            7   => 'متن پیامک شامل کلمه فیلترشده است.',
+            9   => 'ارسال از خط عمومی از طریق وب‌سرویس مجاز نیست.',
+            10  => 'پنل پیامکی غیرفعال است.',
+            11  => 'ارسال نشد؛ شماره گیرنده در لیست سیاه مخابرات است یا خط تبلیغاتی برای OTP کافی نیست. از خط خدماتی یا پترن OTP استفاده کنید.',
+            12  => 'مدارک احراز هویت پنل کامل نیست.',
+            14  => 'خط ارسال مجاز به ارسال لینک نیست.',
+            16  => 'شماره گیرنده یافت نشد.',
+            17  => 'متن پیامک خالی است.',
+            18  => 'شماره گیرنده نامعتبر است.',
+            35  => 'شماره گیرنده در لیست سیاه مخابرات است.',
+        ];
+
+        $message = $map[$code] ?? ('ارسال پیامک ناموفق بود (کد ' . $code . ').');
+        if ($hint !== '' && $hint !== 'Ok') {
+            $message .= ' (' . $hint . ')';
         }
 
-        if (isset($decoded['recId']) && (int) $decoded['recId'] > 0) {
-            return true;
-        }
-
-        if (isset($decoded['recId']) && is_string($decoded['recId']) && ctype_digit($decoded['recId']) && (int) $decoded['recId'] > 0) {
-            return true;
-        }
-
-        if (!empty($decoded['status']) && is_string($decoded['status']) && $decoded['status'] !== '') {
-            throw new \RuntimeException('ارسال پیامک ملی‌پیامک ناموفق بود: ' . $decoded['status'], 502);
-        }
-
-        if (isset($decoded['RetStatus']) && (int) $decoded['RetStatus'] === 1) {
-            return true;
-        }
-
-        $code = $decoded['Value'] ?? $decoded['code'] ?? $decoded['status'] ?? null;
-        if (is_numeric($code) && (int) $code <= 0) {
-            throw new \RuntimeException('ارسال پیامک ملی‌پیامک ناموفق بود (کد: ' . $code . ').', 502);
-        }
-
-        return true;
+        return $message;
     }
 
     private function apiKey(): string
