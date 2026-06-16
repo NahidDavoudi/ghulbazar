@@ -186,6 +186,14 @@ export default {
 
 
 
+  auth: {
+
+    smsOtpEnabled: false,
+
+  },
+
+
+
   texts: {
 
     nav: [
@@ -317,6 +325,8 @@ export default {
     },
 
     auth: {
+
+      registerSubmit: 'ثبت‌نام',
 
       loginWithSms: 'ورود با پیامک',
 

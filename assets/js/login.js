@@ -21,6 +21,10 @@ function t(path, fallback) {
   return storeConfig.texts?.auth?.[path] ?? fallback;
 }
 
+function isSmsOtpEnabled() {
+  return storeConfig.auth?.smsOtpEnabled === true;
+}
+
 function applyLoginBranding() {
   document.querySelectorAll('[data-store-logo]').forEach((el) => {
     if (storeConfig.logo) {
@@ -41,6 +45,18 @@ function applyLoginBranding() {
   if (copyrightEl) {
     copyrightEl.textContent = storeConfig.texts?.footer?.copyright || `© ${storeConfig.name}`;
   }
+  applyAuthMode();
+}
+
+function applyAuthMode() {
+  if (isSmsOtpEnabled()) return;
+
+  document.getElementById('switch-login-sms')?.classList.add('hidden');
+  document.getElementById('login-sms-panel')?.classList.add('hidden');
+  document.getElementById('register-otp-panel')?.classList.add('hidden');
+
+  const regBtnText = document.getElementById('register-btn-text');
+  if (regBtnText) regBtnText.textContent = t('registerSubmit', 'ثبت‌نام');
 }
 
 async function boot() {
@@ -168,7 +184,12 @@ function resetRegisterOtpPanel() {
   document.getElementById('register-otp-timer')?.classList.add('hidden');
   document.getElementById('reg-otp').value = '';
   clearTimer('register');
-  setLoading('register-btn', 'register-btn-text', t('sendCode', 'ارسال کد تایید'), false);
+  setLoading(
+    'register-btn',
+    'register-btn-text',
+    isSmsOtpEnabled() ? t('sendCode', 'ارسال کد تایید') : t('registerSubmit', 'ثبت‌نام'),
+    false,
+  );
 }
 
 function collectRegisterDraft() {
@@ -270,6 +291,21 @@ async function verifyLoginOtp() {
   }
 }
 
+async function doRegister() {
+  hideError('register-error');
+  const draft = collectRegisterDraft();
+  if (!draft) return;
+
+  setLoading('register-btn', 'register-btn-text', 'در حال ثبت‌نام...', true);
+  try {
+    const data = await api.auth.register(draft);
+    redirectAfterAuth(data);
+  } catch (e) {
+    showError('register-error', e.message);
+    setLoading('register-btn', 'register-btn-text', t('registerSubmit', 'ثبت‌نام'), false);
+  }
+}
+
 async function requestRegisterOtp() {
   hideError('register-error');
   const draft = collectRegisterDraft();
@@ -351,31 +387,36 @@ function bindEvents() {
   document.getElementById('toggle-reg-password')?.addEventListener('click', function () { togglePass('reg-password', this); });
 
   document.getElementById('login-btn')?.addEventListener('click', doLogin);
-  document.getElementById('switch-login-sms')?.addEventListener('click', showLoginSmsPanel);
-  document.getElementById('switch-login-password')?.addEventListener('click', resetLoginSmsPanel);
-  document.getElementById('login-sms-send-btn')?.addEventListener('click', sendLoginOtp);
-  document.getElementById('login-sms-verify-btn')?.addEventListener('click', verifyLoginOtp);
+  if (isSmsOtpEnabled()) {
+    document.getElementById('switch-login-sms')?.addEventListener('click', showLoginSmsPanel);
+    document.getElementById('switch-login-password')?.addEventListener('click', resetLoginSmsPanel);
+    document.getElementById('login-sms-send-btn')?.addEventListener('click', sendLoginOtp);
+    document.getElementById('login-sms-verify-btn')?.addEventListener('click', verifyLoginOtp);
+    ['login-sms-phone', 'login-otp'].forEach((id) => {
+      document.getElementById(id)?.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        if (_state.loginSmsSent) verifyLoginOtp();
+        else sendLoginOtp();
+      });
+    });
+  }
 
-  document.getElementById('register-btn')?.addEventListener('click', requestRegisterOtp);
-  document.getElementById('register-verify-btn')?.addEventListener('click', verifyRegisterOtp);
-  document.getElementById('register-resend-btn')?.addEventListener('click', resendRegisterOtp);
-  document.getElementById('register-back-btn')?.addEventListener('click', resetRegisterOtpPanel);
+  const onRegisterSubmit = isSmsOtpEnabled() ? requestRegisterOtp : doRegister;
+  document.getElementById('register-btn')?.addEventListener('click', onRegisterSubmit);
+  if (isSmsOtpEnabled()) {
+    document.getElementById('register-verify-btn')?.addEventListener('click', verifyRegisterOtp);
+    document.getElementById('register-resend-btn')?.addEventListener('click', resendRegisterOtp);
+    document.getElementById('register-back-btn')?.addEventListener('click', resetRegisterOtpPanel);
+    document.getElementById('reg-otp')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') verifyRegisterOtp();
+    });
+  }
 
   ['login-phone', 'login-password'].forEach((id) => {
     document.getElementById(id)?.addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
   });
-  ['login-sms-phone', 'login-otp'].forEach((id) => {
-    document.getElementById(id)?.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter') return;
-      if (_state.loginSmsSent) verifyLoginOtp();
-      else sendLoginOtp();
-    });
-  });
   ['reg-fname', 'reg-lname', 'reg-phone', 'reg-password', 'reg-confirm'].forEach((id) => {
-    document.getElementById(id)?.addEventListener('keydown', (e) => { if (e.key === 'Enter') requestRegisterOtp(); });
-  });
-  document.getElementById('reg-otp')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') verifyRegisterOtp();
+    document.getElementById(id)?.addEventListener('keydown', (e) => { if (e.key === 'Enter') onRegisterSubmit(); });
   });
 }
 
