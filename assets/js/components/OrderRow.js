@@ -9,7 +9,7 @@ const ORDER_STATUS = {
 };
 
 const OrderRow = {
-  render(o, { hashHref }) {
+  render(o) {
     const s = ORDER_STATUS[o.status] || { label: o.status, cls: 'border-border text-muted bg-surface' };
     const dim = ['delivered', 'cancelled'].includes(o.status) ? 'opacity-60' : '';
     const imgs = (o.items || []).slice(0, 3).map((i) =>

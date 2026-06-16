@@ -6,6 +6,7 @@ use App\Core\Env;
 use App\Core\Sms\Contracts\SmsProviderInterface;
 use App\Core\Sms\Providers\HttpSmsProvider;
 use App\Core\Sms\Providers\LogSmsProvider;
+use App\Core\Sms\Providers\MelipayamakSmsProvider;
 
 class SmsManager
 {
@@ -20,8 +21,9 @@ class SmsManager
         $driver = strtolower((string) Env::get('SMS_DRIVER', 'log'));
 
         self::$provider = match ($driver) {
-            'http' => new HttpSmsProvider(),
-            default => new LogSmsProvider(),
+            'http'        => new HttpSmsProvider(),
+            'melipayamak' => new MelipayamakSmsProvider(),
+            default       => new LogSmsProvider(),
         };
 
         return self::$provider;

@@ -6,6 +6,7 @@
 2. `product_catalog_migration.sql` — ساختار محصولات و variants
 3. `shop_settings_migration.sql` — تنظیمات فروشگاه
 4. `login_attempts.sql` — rate limit ورود (جدید)
+5. `orders_cancel_reason.sql` — ستون دلیل لغو سفارش (جدید)
 
 ## نکات
 
