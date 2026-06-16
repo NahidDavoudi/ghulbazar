@@ -1,5 +1,6 @@
 import { formatPrice } from '../utils/priceFormatter.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
+import { escapeHtml } from '../utils/htmlEscape.js';
 import DOM from '../utils/dom.js';
 
 const RelatedProductCard = {
@@ -11,7 +12,8 @@ const RelatedProductCard = {
       || '';
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
-    const category = p.category_name || '';
+    const category = escapeHtml(p.category_name || '');
+    const name = escapeHtml(p.name);
 
     return `
       <a href="${href}" data-link class="group block">
@@ -24,7 +26,7 @@ const RelatedProductCard = {
           })}
           ${category ? `<span class="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm text-[10px] font-medium px-2 py-0.5 rounded-md text-body">${category}</span>` : ''}
         </div>
-        <h3 class="text-sm font-medium text-body mb-1 line-clamp-1">${p.name}</h3>
+        <h3 class="text-sm font-medium text-body mb-1 line-clamp-1">${name}</h3>
         <p class="text-xs text-muted">${price}</p>
       </a>`;
   },

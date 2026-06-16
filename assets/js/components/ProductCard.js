@@ -1,6 +1,7 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { formatPrice } from '../utils/priceFormatter.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
+import { escapeHtml } from '../utils/htmlEscape.js';
 import DOM from '../utils/dom.js';
 import Button from './Button.js';
 
@@ -14,6 +15,8 @@ const ProductCard = {
       || '';
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
+    const name = escapeHtml(p.name);
+    const categoryName = escapeHtml(p.category_name || '');
 
     const lowStock = p.stock <= 2 && p.stock > 0
       ? `<span class="absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full z-10">آخرین موجودی</span>`
@@ -43,8 +46,8 @@ const ProductCard = {
           })}
         </div>
         <div class="p-4 md:p-5 text-right">
-          <p class="text-[10px] text-muted mb-1.5 tracking-wide uppercase">${p.category_name || ''}</p>
-          <h3 class="text-sm font-semibold text-body mb-3 line-clamp-2 leading-snug">${p.name}</h3>
+          <p class="text-[10px] text-muted mb-1.5 tracking-wide uppercase">${categoryName}</p>
+          <h3 class="text-sm font-semibold text-body mb-3 line-clamp-2 leading-snug">${name}</h3>
           <div class="flex items-center justify-between gap-2">
             ${addBtn}
             <span class="text-sm font-bold text-body">${price}</span>

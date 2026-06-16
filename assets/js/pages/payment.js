@@ -76,8 +76,15 @@ Router.onEnter('payment', function () {
 
   const cardEl = document.getElementById('payment-card-number');
   const ownerEl = document.getElementById('payment-card-owner');
-  if (cardEl) cardEl.textContent = storeConfig.payment.cardNumber;
-  if (ownerEl) ownerEl.textContent = storeConfig.payment.cardOwner;
+  const cardNumber = storeConfig.payment.cardNumber?.trim();
+  const cardOwner = storeConfig.payment.cardOwner?.trim();
+
+  if (cardEl) {
+    cardEl.textContent = cardNumber || storeConfig.payment.unavailableMessage || '—';
+  }
+  if (ownerEl) {
+    ownerEl.textContent = cardOwner || '—';
+  }
 
   try {
     const orderData = JSON.parse(sessionStorage.getItem('gb_checkout') || '{}');

@@ -40,12 +40,21 @@ class UploadHelper
             throw new \RuntimeException('فرمت فایل مجاز نیست.', 422);
         }
 
+        $detectedMime = self::detectMimeType($file['tmp_name']);
+        if (!$detectedMime || !in_array($detectedMime, $allowed, true)) {
+            throw new \RuntimeException('نوع واقعی فایل مجاز نیست.', 422);
+        }
+
         if ($file['size'] > $maxSize) {
             $mb = (int) ($maxSize / (1024 * 1024));
             throw new \RuntimeException("حجم فایل بیشتر از {$mb} مگابایت است.", 422);
         }
 
-        $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!self::extensionMatchesMime($ext, $detectedMime)) {
+            throw new \RuntimeException('پسوند فایل با نوع آن سازگار نیست.', 422);
+        }
+
         $filename = uniqid($prefix, true) . '.' . $ext;
         $dir      = self::uploadDir($folder);
 
@@ -80,5 +89,35 @@ class UploadHelper
         $path = "/uploads/{$folder}/{$filename}";
 
         return $base ? "{$base}{$path}" : $path;
+    }
+
+    private static function detectMimeType(string $path): ?string
+    {
+        if (!is_file($path)) {
+            return null;
+        }
+
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        if (!$finfo) {
+            return null;
+        }
+
+        $mime = finfo_file($finfo, $path);
+        finfo_close($finfo);
+
+        return is_string($mime) ? $mime : null;
+    }
+
+    private static function extensionMatchesMime(string $ext, string $mime): bool
+    {
+        $map = [
+            'jpg'  => ['image/jpeg'],
+            'jpeg' => ['image/jpeg'],
+            'png'  => ['image/png'],
+            'webp' => ['image/webp'],
+            'pdf'  => ['application/pdf'],
+        ];
+
+        return isset($map[$ext]) && in_array($mime, $map[$ext], true);
     }
 }

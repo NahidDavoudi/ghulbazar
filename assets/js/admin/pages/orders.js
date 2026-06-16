@@ -65,8 +65,8 @@
           ${receiptHtml}
         </td>
         <td class="px-4 py-3">
-          <p class="text-sm font-medium text-body">${o.customer_name || '—'}</p>
-          <p class="text-xs text-dim" dir="ltr">${o.customer_phone || ''}</p>
+          <p class="text-sm font-medium text-body">${window.escapeHtml(o.customer_name || '—')}</p>
+          <p class="text-xs text-dim" dir="ltr">${window.escapeHtml(o.customer_phone || '')}</p>
         </td>
         <td class="px-4 py-3 text-sm font-medium">${API.utils.formatPrice(o.total_amount || 0)}</td>
         <td class="px-4 py-3 text-xs text-dim">${date}</td>

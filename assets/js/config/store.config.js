@@ -124,11 +124,13 @@ export default {
 
   payment: {
 
-    cardNumber: '6219-1234-5678-9012',
+    cardNumber: '',
 
-    cardOwner: 'آیریس',
+    cardOwner: '',
 
     method: 'card_to_card',
+
+    unavailableMessage: 'اطلاعات کارت از پنل مدیریت تنظیم نشده است. لطفاً با پشتیبانی تماس بگیرید.',
 
   },
 
@@ -397,6 +399,8 @@ export default {
         subtitle: 'تیم پشتیبانی آیریس آماده پاسخگویی به سوالات شما درباره محصولات، سفارشات و همکاری است.',
 
         icon: 'message-circle',
+
+        formUnavailable: 'فرم تماس به‌زودی فعال می‌شود. لطفاً از اطلاعات تماس بالا استفاده کنید.',
 
         phone: { label: 'تلفن تماس', value: '۰۲۱-۹۱۰۰۱۲۳۴', note: 'شنبه تا پنج‌شنبه، ۹ تا ۱۸' },
 

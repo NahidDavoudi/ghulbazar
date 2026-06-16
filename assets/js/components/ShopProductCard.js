@@ -1,5 +1,6 @@
 import { formatPrice } from '../utils/priceFormatter.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
+import { escapeHtml } from '../utils/htmlEscape.js';
 import DOM from '../utils/dom.js';
 
 const ShopProductCard = {
@@ -11,6 +12,7 @@ const ShopProductCard = {
       || '';
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
+    const name = escapeHtml(p.name);
 
     return `
       <a href="${href}" data-link class="group block text-center">
@@ -21,7 +23,7 @@ const ShopProductCard = {
             imgClass: 'w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500',
           })}
         </div>
-        <h3 class="text-sm font-medium text-body mb-1.5 line-clamp-2 leading-snug">${p.name}</h3>
+        <h3 class="text-sm font-medium text-body mb-1.5 line-clamp-2 leading-snug">${name}</h3>
         <p class="text-sm text-body/80">${price}</p>
       </a>`;
   },

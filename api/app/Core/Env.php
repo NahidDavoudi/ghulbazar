@@ -30,4 +30,24 @@ class Env
     {
         return $_ENV[$key] ?? getenv($key) ?? $default;
     }
+
+    /** @throws \RuntimeException در محیط production اگر تنظیمات حیاتی ناامن باشد */
+    public static function assertProductionReady(): void
+    {
+        if (self::get('APP_ENV', 'production') !== 'production') {
+            return;
+        }
+
+        $weakSecrets = ['change-me-access-token-secret', 'change-me-refresh-token-secret', ''];
+        $jwt = (string) self::get('JWT_SECRET', '');
+        $refresh = (string) self::get('REFRESH_SECRET', '');
+
+        if (in_array($jwt, $weakSecrets, true) || strlen($jwt) < 32) {
+            throw new \RuntimeException('JWT_SECRET در محیط production باید حداقل ۳۲ کاراکتر و غیر پیش‌فرض باشد.');
+        }
+
+        if (in_array($refresh, $weakSecrets, true) || strlen($refresh) < 32) {
+            throw new \RuntimeException('REFRESH_SECRET در محیط production باید حداقل ۳۲ کاراکتر و غیر پیش‌فرض باشد.');
+        }
+    }
 }

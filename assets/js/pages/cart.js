@@ -5,6 +5,7 @@ import api from '../core/api.js';
 import Router from '../core/router.js';
 import { storeConfig } from '../config/bootstrap.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
+import { escapeHtml } from '../utils/htmlEscape.js';
 import DOM from '../utils/dom.js';
 
 const { show, hide, text, hashHref, reclone } = DOM;
@@ -27,14 +28,16 @@ function _renderCart(data) {
 
   const cartItemsEl = document.getElementById('cart-items');
   if (cartItemsEl) {
-    cartItemsEl.innerHTML = data.items.map((item) => `
+    cartItemsEl.innerHTML = data.items.map((item) => {
+      const itemName = escapeHtml(item.name);
+      return `
       <div class="bg-card border border-border rounded-xl p-4 flex gap-4 items-center" id="ci-${item.variant_id || item.product_id}">
         <div class="w-20 h-20 rounded-lg shrink-0 overflow-hidden bg-[#f5f5f7] relative">
           ${renderImageWithFallback({ src: item.image || '', alt: item.name, iconSize: 'w-8 h-8' })}
         </div>
         <div class="flex-1 text-right min-w-0">
           <h3 class="font-medium mb-1 truncate">
-            <a href="${hashHref('product', { id: item.product_id })}" data-link class="hover:text-accent">${item.name}</a>
+            <a href="${hashHref('product', { id: item.product_id })}" data-link class="hover:text-accent">${itemName}</a>
           </h3>
           <p class="text-accent font-bold mt-1">${api.utils.formatPrice(item.price)}</p>
         </div>
@@ -44,7 +47,8 @@ function _renderCart(data) {
                  data-update="${item.product_id}" data-variant="${item.variant_id || ''}"
                  class="w-14 bg-body border border-border rounded px-2 py-1 text-center text-sm">
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     cartItemsEl.querySelectorAll('[data-remove]').forEach((btn) =>
       btn.addEventListener('click', () => _cartRemove(btn.dataset.remove, btn.dataset.variant || null)));

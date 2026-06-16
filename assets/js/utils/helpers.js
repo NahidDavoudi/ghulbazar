@@ -1,6 +1,7 @@
 /**
  * utils/helpers.js — shared UI helpers (toast, DOM shortcuts)
  */
+import { escapeHtml, escapeAttr } from './htmlEscape.js';
 
 export function toast(msg, type = 'success', duration = 3000) {
   const colors = {
@@ -62,6 +63,8 @@ export function installAdminHelpers() {
     .replace(/[٠-٩]/g, (d) => d.charCodeAt(0) - 1632);
   window.setLoading = (on) => (on ? window.show('loadingOverlay') : window.hide('loadingOverlay'));
   window.toast = toast;
+  window.escapeHtml = escapeHtml;
+  window.escapeAttr = escapeAttr;
   window.showModal = (id) => window.$(id)?.classList.remove('hidden');
   window.hideModal = (id) => window.$(id)?.classList.add('hidden');
 

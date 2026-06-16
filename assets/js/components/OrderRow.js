@@ -1,3 +1,5 @@
+import { escapeHtml, escapeAttr } from '../utils/htmlEscape.js';
+
 const ORDER_STATUS = {
   pending:   { label: 'در انتظار تأیید', cls: 'border-yellow-600/50 text-yellow-700 bg-yellow-100/80' },
   paid:      { label: 'تأیید پرداخت',    cls: 'border-blue-600/50 text-blue-700 bg-blue-100/80' },
@@ -11,13 +13,14 @@ const OrderRow = {
     const s = ORDER_STATUS[o.status] || { label: o.status, cls: 'border-border text-muted bg-surface' };
     const dim = ['delivered', 'cancelled'].includes(o.status) ? 'opacity-60' : '';
     const imgs = (o.items || []).slice(0, 3).map((i) =>
-      `<img src="${i.image || ''}" alt="${i.name || ''}" class="inline-block w-8 h-8 rounded-lg object-cover ring-2 ring-card ${dim}" onerror="this.src=''">`,
+      `<img src="${escapeAttr(i.image || '')}" alt="${escapeAttr(i.name || '')}" class="inline-block w-8 h-8 rounded-lg object-cover ring-2 ring-card ${dim}" onerror="this.src=''">`,
     ).join('');
     const date = o.created_at ? new Date(o.created_at).toLocaleDateString('fa-IR') : '—';
+    const orderNumber = escapeHtml(o.order_number);
 
     return `
       <tr class="hover:bg-surface/50 transition-colors">
-        <td class="py-4 px-5 font-mono text-sm ${dim || 'text-body'} whitespace-nowrap">#${o.order_number}</td>
+        <td class="py-4 px-5 font-mono text-sm ${dim || 'text-body'} whitespace-nowrap">#${orderNumber}</td>
         <td class="py-4 px-5 text-sm text-muted whitespace-nowrap">${date}</td>
         <td class="py-4 px-5 hidden sm:table-cell"><div class="flex -space-x-2 space-x-reverse">${imgs || '—'}</div></td>
         <td class="py-4 px-5 font-bold text-sm ${dim || 'text-body'} whitespace-nowrap">${Number(o.total_amount || 0).toLocaleString('fa-IR')} تومان</td>

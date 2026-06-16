@@ -2,7 +2,7 @@
 RewriteEngine on
 RewriteCond %{HTTP_HOST} ^ghulbazar\.ir$ [OR]
 RewriteCond %{HTTP_HOST} ^www\.ghulbazar\.ir$
-RewriteRule ^index\.html\/?(.*)$ "http\:\/\/ghulbazar\.ir\/app\.html$1" [R=301,L]
+RewriteRule ^index\.html\/?(.*)$ "http\:\/\/ghulbazar\.ir\/index\.html$1" [R=301,L]
 RewriteCond %{HTTP_HOST} ^ghulbazar\.ir$ [OR]
 RewriteCond %{HTTP_HOST} ^www\.ghulbazar\.ir$
 RewriteRule ^admin$ "http\:\/\/ghulbazar\.ir\/admin\.html" [R=301,L]

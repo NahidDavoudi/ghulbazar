@@ -1,5 +1,6 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { formatPrice } from '../utils/priceFormatter.js';
+import { escapeHtml, escapeAttr } from '../utils/htmlEscape.js';
 import Button from './Button.js';
 
 function renderAxis(axis, variants, selectedValues) {
@@ -13,11 +14,11 @@ function renderAxis(axis, variants, selectedValues) {
         (v.attribute_values || []).some((av) => Number(av.id) === Number(val.id)),
       );
       const active = Number(selected) === Number(val.id);
-      const style = val.swatch_hex ? `background:${val.swatch_hex}` : '';
-      return `<button type="button" data-axis="${axis.type_slug}" data-value-id="${val.id}"
+      const style = val.swatch_hex ? `background:${escapeAttr(val.swatch_hex)}` : '';
+      return `<button type="button" data-axis="${escapeAttr(axis.type_slug)}" data-value-id="${val.id}"
         ${hasStock ? '' : 'disabled'}
         class="product-variant-btn w-9 h-9 rounded-full border-2 transition-all ${active ? 'border-body ring-2 ring-body/30' : 'border-black/10'} ${hasStock ? '' : 'opacity-30 cursor-not-allowed'}"
-        title="${val.value}" style="${style}"></button>`;
+        title="${escapeAttr(val.value)}" style="${style}"></button>`;
     }).join('');
   }
 
@@ -28,10 +29,10 @@ function renderAxis(axis, variants, selectedValues) {
       (v.attribute_values || []).some((av) => Number(av.id) === Number(val.id)),
     );
     const active = Number(selected) === Number(val.id);
-    return `<button type="button" data-axis="${axis.type_slug}" data-value-id="${val.id}"
+    return `<button type="button" data-axis="${escapeAttr(axis.type_slug)}" data-value-id="${val.id}"
       ${hasStock ? '' : 'disabled'}
       class="product-variant-btn min-w-[2.75rem] h-11 px-3 rounded-lg border text-sm font-medium transition-colors
-        ${active ? 'bg-body text-white border-body' : hasStock ? 'border-black/10 hover:border-black/30 text-body' : 'border-black/10 text-muted/50 cursor-not-allowed'}">${val.value}</button>`;
+        ${active ? 'bg-body text-white border-body' : hasStock ? 'border-black/10 hover:border-black/30 text-body' : 'border-black/10 text-muted/50 cursor-not-allowed'}">${escapeHtml(val.value)}</button>`;
   }).join('');
 }
 
@@ -50,22 +51,24 @@ const ProductInfo = {
     const t = storeConfig.texts.product;
     const priceStr = formatPrice(price);
     const outOfStock = stock === 0;
-    const desc = shortDescription || description;
+    const desc = escapeHtml(shortDescription || description);
+    const safeName = escapeHtml(name);
+    const safeShipping = escapeHtml(shippingText || t.shippingText);
 
     const axesHtml = variantAxes.length
       ? variantAxes.map((axis) => `
-          <div class="mb-6" data-variant-axis="${axis.type_slug}">
-            <p class="text-sm font-medium text-body mb-3">${axis.type_name}</p>
+          <div class="mb-6" data-variant-axis="${escapeAttr(axis.type_slug)}">
+            <p class="text-sm font-medium text-body mb-3">${escapeHtml(axis.type_name)}</p>
             <div class="flex flex-wrap gap-2 justify-end">${renderAxis(axis, variants, {})}</div>
           </div>`).join('')
       : '';
 
     const bullets = detailBullets.map((item) =>
-      `<li class="text-sm text-muted leading-relaxed">${item}</li>`).join('');
+      `<li class="text-sm text-muted leading-relaxed">${escapeHtml(item)}</li>`).join('');
 
     return `
       <div class="product-info text-right">
-        <h1 class="text-2xl md:text-4xl font-bold text-body leading-tight mb-3">${name}</h1>
+        <h1 class="text-2xl md:text-4xl font-bold text-body leading-tight mb-3">${safeName}</h1>
         <p id="product-live-price" class="text-lg md:text-xl font-medium text-body mb-6">${priceStr}</p>
         ${desc ? `<p class="text-sm md:text-base text-muted leading-relaxed mb-8 max-w-lg">${desc}</p>` : ''}
 
@@ -114,7 +117,7 @@ const ProductInfo = {
             <span class="font-medium text-sm">${t.shippingTitle}</span>
           </button>
           <div id="acc-shipping" class="product-acc-panel overflow-hidden" style="max-height:0">
-            <p class="pb-5 text-sm text-muted leading-relaxed">${shippingText || t.shippingText}</p>
+            <p class="pb-5 text-sm text-muted leading-relaxed">${safeShipping}</p>
           </div>
         </div>
       </div>`;

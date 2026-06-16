@@ -51,7 +51,7 @@ function handleRoute(route, match) {
   const path = route.path === '/' ? '/' : route.path;
 
   if (AUTH_ROUTES.has(path) && !auth.isLoggedIn()) {
-    window.location.href = 'login.html?redirect=' + encodeURIComponent('app.html' + location.hash);
+    window.location.href = 'login.html?redirect=' + encodeURIComponent('index.html' + location.hash);
     return;
   }
 

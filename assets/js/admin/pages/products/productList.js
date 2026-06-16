@@ -3,6 +3,7 @@
  */
 import { openProductEditor, initProductEditor } from './productEditor.js';
 import { renderImageWithFallback } from '../../../utils/imagePlaceholder.js';
+import { escapeHtml } from '../../../utils/htmlEscape.js';
 
 let _products = [];
 let _categories = [];
@@ -25,7 +26,7 @@ function _fillCatFilter() {
   ['productCategoryFilter', 'productCategory'].forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
-    const opts = _categories.map((c) => `<option value="${c.id}">${c.name}</option>`).join('');
+    const opts = _categories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
     el.innerHTML = id === 'productCategoryFilter'
       ? `<option value="">${_t('products.allCategories', 'همه دسته‌بندی‌ها')}</option>` + opts
       : `<option value="">${_t('products.selectCategory', 'انتخاب دسته‌بندی')}</option>` + opts;
@@ -55,13 +56,13 @@ function _renderProducts(list) {
         </div>
       </td>
       <td class="px-4 py-3">
-        <p class="font-medium text-body text-sm">${p.name}</p>
-        <p class="text-xs text-dim">${p.slug || ''}</p>
+        <p class="font-medium text-body text-sm">${escapeHtml(p.name)}</p>
+        <p class="text-xs text-dim">${escapeHtml(p.slug || '')}</p>
       </td>
       <td class="px-4 py-3 text-sm">${priceLabel}</td>
       <td class="px-4 py-3 text-sm font-bold ${stockCls}">${p.stock ?? 0}</td>
       <td class="px-4 py-3 text-sm text-muted">${p.variant_count ?? 1}</td>
-      <td class="px-4 py-3 text-sm text-muted">${p.category_name || '—'}</td>
+      <td class="px-4 py-3 text-sm text-muted">${escapeHtml(p.category_name || '—')}</td>
       <td class="px-4 py-3">${_statusBadge(p.status || (p.is_active ? 'active' : 'archived'))}</td>
       <td class="px-4 py-3">
         <div class="flex gap-1">
@@ -72,7 +73,7 @@ function _renderProducts(list) {
                     d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a4 4 0 01-1.414.914l-3 1 1-3a4 4 0 01.914-1.414z"/>
             </svg>
           </button>
-          <button onclick="deleteProduct(${p.id},'${p.name.replace(/'/g, "\\'")}')" title="${_t('common.delete', 'حذف')}"
+          <button onclick="deleteProduct(${p.id},'${escapeHtml(p.name).replace(/'/g, "\\'")}')" title="${_t('common.delete', 'حذف')}"
                   class="p-2 rounded-lg hover:bg-accent/10 text-accent transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

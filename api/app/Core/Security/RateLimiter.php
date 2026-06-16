@@ -2,7 +2,7 @@
 namespace App\Core\Security;
 
 use Predis\Client;
-use App\Core\RedisConnector;
+use App\Core\Cache\RedisConnector;
 
 class RateLimiter
 {

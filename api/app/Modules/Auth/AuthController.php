@@ -9,6 +9,8 @@ use App\Modules\Users\UsersModel;
 
 class AuthController extends Controller
 {
+    private LoginRateLimiter $loginRateLimiter;
+
     public function __construct()
     {
         $this->service = new AuthService();
@@ -18,6 +20,7 @@ class AuthController extends Controller
             new SmsService(),
             new UsersModel(),
         );
+        $this->loginRateLimiter = new LoginRateLimiter();
     }
 
     private AuthService $service;
@@ -88,10 +91,16 @@ class AuthController extends Controller
             $this->error('شماره تلفن و رمز عبور الزامی است', 422);
         }
 
+        if ($this->loginRateLimiter->tooManyAttempts('login', $phone)) {
+            $this->tooManyRequests('تعداد تلاش‌های ورود بیش از حد مجاز است. ۱۵ دقیقه دیگر تلاش کنید.');
+        }
+
         try {
             $result = $this->service->login($phone, $password);
+            $this->loginRateLimiter->clear('login', $phone);
             $this->success($result, 'ورود موفق');
         } catch (\Exception $e) {
+            $this->loginRateLimiter->hit('login', $phone);
             $this->error($e->getMessage(), $e->getCode() ?: 401);
         }
     }
@@ -106,10 +115,16 @@ class AuthController extends Controller
             $this->error('شماره تلفن و رمز عبور الزامی است', 422);
         }
 
+        if ($this->loginRateLimiter->tooManyAttempts('admin-login', $phone)) {
+            $this->tooManyRequests('تعداد تلاش‌های ورود بیش از حد مجاز است. ۱۵ دقیقه دیگر تلاش کنید.');
+        }
+
         try {
             $result = $this->service->adminLogin($phone, $password);
+            $this->loginRateLimiter->clear('admin-login', $phone);
             $this->success($result, 'ورود ادمین موفق');
         } catch (\Exception $e) {
+            $this->loginRateLimiter->hit('admin-login', $phone);
             $this->error($e->getMessage(), $e->getCode() ?: 401);
         }
     }

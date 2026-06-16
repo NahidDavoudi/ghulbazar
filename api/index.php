@@ -8,6 +8,7 @@ use App\Core\Http\ExceptionHandler;
 
 // ─── Load environment ────────────────────────
 Env::load('.env');
+Env::assertProductionReady();
 
 // ─── Exception Handler ───────────────────────
 // باید قبل از هر چیز دیگه‌ای ست بشه

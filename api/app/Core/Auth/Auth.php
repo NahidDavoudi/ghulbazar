@@ -39,10 +39,9 @@ class Auth {
 
     public static function verifyToken(?string $token, bool $isRefresh = false): ?object {
         if (empty($token)) {
-            die('❌ Token is empty');
+            throw new \InvalidArgumentException('توکن احراز هویت ارسال نشده است');
         }
         $secret = $isRefresh ? self::getRefreshSecretKey() : self::getSecretKey();
-        // var_dump($secret); exit;
         return JWT::decode($token, new Key($secret, self::$algorithm));
     }
 
@@ -75,7 +74,11 @@ class Auth {
 
     // چرخش رفرش توکن: توکن قدیمی را باطل و یک جفت جدید صادر کن
     public static function rotateRefreshToken(string $refreshToken): ?array {
-        $decoded = self::verifyToken($refreshToken, true);
+        try {
+            $decoded = self::verifyToken($refreshToken, true);
+        } catch (\Throwable) {
+            return null;
+        }
         if (!$decoded) return null;
     
         $userId = $decoded->sub ?? null;
@@ -143,7 +146,11 @@ class Auth {
     }
     // خروج از دستگاه فعلی (با دادن refresh token)
     public static function revokeRefreshToken(string $refreshToken): void {
-        $decoded = self::verifyToken($refreshToken, true);
+        try {
+            $decoded = self::verifyToken($refreshToken, true);
+        } catch (\Throwable) {
+            return;
+        }
         if ($decoded && isset($decoded->jti)) {
             $db = \App\Core\Database\Database::getInstance()->getConnection();
             $stmt = $db->prepare("DELETE FROM refresh_tokens WHERE token_hash = ?");
