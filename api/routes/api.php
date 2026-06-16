@@ -41,7 +41,7 @@ $router->group([
     $router->get('/api/v1/categories/slug/{slug}', [CategoryController::class, 'slug']);
 
     // Discounts
-    $router->get('/api/v1/discounts/validate', [DiscountController::class, 'validate']);
+    $router->get('/api/v1/discounts/validate', [DiscountController::class, 'validateCode']);
 
     // Settings
     $router->get('/api/v1/settings', [SettingsController::class, 'index']);

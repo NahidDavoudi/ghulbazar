@@ -137,7 +137,13 @@ const ProductInfo = {
 
     function findMatchingVariant() {
       const axisSlugs = variantAxes.map((a) => a.type_slug);
-      if (!axisSlugs.length) return resolveVariant(selected);
+      if (!axisSlugs.length) {
+        if (resolveVariant) return resolveVariant(selected);
+        return variants.find((v) => v.is_default)
+          || variants.find((v) => v.is_active)
+          || variants[0]
+          || null;
+      }
 
       const allSelected = axisSlugs.every((slug) => selected[slug]);
       if (!allSelected) return null;
@@ -170,7 +176,7 @@ const ProductInfo = {
       const addBtn = container.querySelector('.product-add-btn');
       const quickBtn = container.querySelector('#quick-buy-btn');
       const stockHint = container.querySelector('#product-stock-hint');
-      const out = !variant || stock === 0;
+      const out = stock === 0 || (variantAxes.length > 0 && !variant);
 
       if (addBtn) addBtn.disabled = out;
       if (quickBtn) {

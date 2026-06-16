@@ -15,7 +15,7 @@ class DiscountController extends Controller
     }
 
     // GET /api/v1/discounts/validate?code=X&total=500000
-    public function validate(Request $request): void
+    public function validateCode(Request $request): void
     {
         $code  = trim($request->query('code', ''));
         $total = (int) $request->query('total', 0);
