@@ -12,8 +12,8 @@ const ShopSidebar = {
       return `<button type="button" data-size="${s}"
         class="shop-size-btn w-10 h-10 rounded-lg text-sm font-medium border transition-colors
                ${active
-                 ? 'bg-body text-white border-body'
-                 : 'bg-white text-body border-black/10 hover:border-black/30'}">${s}</button>`;
+                 ? 'bg-accent text-white border-accent'
+                 : 'bg-card text-body border-border hover:border-accent/40'}">${s}</button>`;
     }).join('');
 
     const colorChecks = t.colors.map((c) => {
@@ -21,7 +21,7 @@ const ShopSidebar = {
       return `
         <label class="flex items-center gap-3 flex-row-reverse cursor-pointer group">
           <input type="checkbox" data-color="${c.id}" ${checked ? 'checked' : ''}
-                 class="shop-color-check w-4 h-4 rounded border-black/20 text-body focus:ring-0 focus:ring-offset-0">
+                 class="shop-color-check w-4 h-4 rounded border-border text-accent focus:ring-0 focus:ring-offset-0">
           <span class="text-sm text-body/80 group-hover:text-body transition-colors">${c.label}</span>
         </label>`;
     }).join('');
@@ -80,7 +80,7 @@ const ShopSidebar = {
   },
 
   bind(container, callbacks = {}) {
-    let selectedSize = container.querySelector('.shop-size-btn.bg-body')?.dataset.size || '';
+    let selectedSize = container.querySelector('.shop-size-btn.bg-accent')?.dataset.size || '';
 
     container.querySelectorAll('.shop-size-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -88,12 +88,12 @@ const ShopSidebar = {
         selectedSize = selectedSize === size ? '' : size;
         container.querySelectorAll('.shop-size-btn').forEach((b) => {
           const active = b.dataset.size === selectedSize;
-          b.classList.toggle('bg-body', active);
+          b.classList.toggle('bg-accent', active);
           b.classList.toggle('text-white', active);
-          b.classList.toggle('border-body', active);
-          b.classList.toggle('bg-white', !active);
+          b.classList.toggle('border-accent', active);
+          b.classList.toggle('bg-card', !active);
           b.classList.toggle('text-body', !active);
-          b.classList.toggle('border-black/10', !active);
+          b.classList.toggle('border-border', !active);
         });
       });
     });

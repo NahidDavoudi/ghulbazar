@@ -10,6 +10,7 @@ import state from './core/state.js';
 import events from './core/events.js';
 import DOM from './utils/dom.js';
 import Header from './components/Header.js';
+import MobileBottomNav from './components/MobileBottomNav.js';
 import Footer from './components/Footer.js';
 import ProductCard from './components/ProductCard.js';
 
@@ -85,6 +86,12 @@ function mountShell() {
     footerEl.innerHTML = Footer.render();
     Footer.bind(footerEl);
   }
+
+  const mobileNavEl = document.getElementById('app-mobile-nav');
+  if (mobileNavEl) {
+    mobileNavEl.innerHTML = MobileBottomNav.render();
+    MobileBottomNav.bind(mobileNavEl);
+  }
 }
 
 document.addEventListener('click', async (e) => {
@@ -119,6 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadStoreSettings(api);
   initTheme();
   mountShell();
+  if (window.lucide) lucide.createIcons();
   if (api.auth.isLoggedIn()) {
     try {
       await api.cart.mergeGuestIfNeeded();

@@ -6,7 +6,7 @@ const HeroSection = {
     const { hero } = storeConfig;
 
     return `
-      <section class="hero-fullbleed relative w-full overflow-hidden bg-white">
+      <section class="hero-fullbleed relative w-full overflow-hidden bg-body">
         <div class="relative w-full aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9] min-h-[320px] sm:min-h-[420px] md:min-h-[560px]">
           <img src="${hero.image}" alt="${storeConfig.name}"
                class="w-full h-full object-cover">

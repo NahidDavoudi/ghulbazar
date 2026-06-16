@@ -1,7 +1,7 @@
 import { escapeAttr, escapeHtml } from './htmlEscape.js';
 
 export function renderImagePlaceholder(iconSize = 'w-10 h-10') {
-  return `<div class="image-fallback w-full h-full flex items-center justify-center text-muted/40">
+  return `<div class="image-fallback w-full h-full flex items-center justify-center text-muted/50 bg-surface">
     <i data-lucide="image" class="${iconSize}" aria-hidden="true"></i>
   </div>`;
 }
@@ -18,7 +18,7 @@ export function renderImageWithFallback({
 
   return `<img src="${safeSrc}" alt="${safeAlt}" class="${imgClass}"
     onerror="this.classList.add('hidden');this.parentElement.querySelector('.image-fallback')?.classList.remove('hidden')">
-  <div class="image-fallback hidden absolute inset-0 flex items-center justify-center text-muted/40 bg-[#f5f5f7]">
+  <div class="image-fallback hidden absolute inset-0 flex items-center justify-center text-muted/40 bg-surface">
     <i data-lucide="image" class="${iconSize}" aria-hidden="true"></i>
   </div>`;
 }

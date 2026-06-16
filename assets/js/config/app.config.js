@@ -3,7 +3,7 @@
  */
 export default {
   app: {
-    name: 'IRIS',
+    name: 'RAR shop',
     locale: 'fa-IR',
   },
 

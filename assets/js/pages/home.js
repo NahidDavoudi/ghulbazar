@@ -64,7 +64,7 @@ Router.onEnter('home', async function () {
 
       if (arr.length) {
         featuredEl.innerHTML = FeaturedCarousel.render({ products: arr });
-        FeaturedCarousel.bind(featuredEl);
+        FeaturedCarousel.bind(featuredEl, { products: arr });
       } else {
         featuredEl.innerHTML = '';
       }

@@ -16,7 +16,7 @@ const CategoryCard = {
     return `
       <a href="${DOM.hashHref('shop', { category: slug })}" data-link
          class="relative ${ui.cardRadius} overflow-hidden group block" style="height:180px">
-        <div class="absolute inset-0 bg-[#f5f5f7] relative overflow-hidden">
+        <div class="absolute inset-0 bg-surface relative overflow-hidden">
           ${renderImageWithFallback({
             src: img,
             alt: c.name,

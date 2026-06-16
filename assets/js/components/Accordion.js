@@ -3,7 +3,7 @@ const Accordion = {
     return `
       <div class="space-y-3 faq-accordion">
         ${items.map((item) => `
-          <div class="bg-white border border-black/5 rounded-2xl overflow-hidden" data-accordion-item>
+          <div class="bg-card border border-border rounded-2xl overflow-hidden" data-accordion-item>
             <button type="button"
                     class="w-full flex items-center justify-between gap-4 px-5 py-4 text-right hover:bg-surface/40 transition-colors"
                     data-accordion-trigger

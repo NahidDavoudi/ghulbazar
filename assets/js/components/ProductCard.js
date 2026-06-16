@@ -36,8 +36,8 @@ const ProductCard = {
 
     return `
       <a href="${href}" data-link
-         class="group block iris-card ${ui.cardRadius} ${ui.cardHover}">
-        <div class="relative aspect-square overflow-hidden bg-[#f5f5f7]">
+         class="group block iris-card ${ui.cardBase} ${ui.cardRadius} ${ui.cardHover}">
+        <div class="relative aspect-square overflow-hidden bg-surface">
           ${lowStock}${outOfStock}
           ${renderImageWithFallback({
             src: img,
@@ -45,12 +45,12 @@ const ProductCard = {
             imgClass: 'w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out',
           })}
         </div>
-        <div class="p-4 md:p-5 text-right">
+        <div class="p-4 md:p-5 text-right bg-card">
           <p class="text-[10px] text-muted mb-1.5 tracking-wide uppercase">${categoryName}</p>
           <h3 class="text-sm font-semibold text-body mb-3 line-clamp-2 leading-snug">${name}</h3>
           <div class="flex items-center justify-between gap-2">
             ${addBtn}
-            <span class="text-sm font-bold text-body">${price}</span>
+            <span class="text-sm font-bold text-accent">${price}</span>
           </div>
         </div>
       </a>`;

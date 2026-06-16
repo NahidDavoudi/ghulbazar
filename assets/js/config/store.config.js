@@ -8,7 +8,7 @@
 
 export default {
 
-  name: 'IRIS',
+  name: 'RAR shop',
 
   logo: 'assets/images/logo.png',
 
@@ -20,7 +20,7 @@ export default {
 
     image: 'assets/images/hero.png',
 
-    title: 'IRIS',
+    title: 'RAR shop',
 
     subtitle: 'لباس‌های Y2K و لانگ‌اسلیوهای خاص',
 
@@ -70,23 +70,23 @@ export default {
 
   theme: {
 
-    primary: '#000000',
+    primary: '#DC2626',
 
-    primaryHover: '#333333',
+    primaryHover: '#B91C1C',
 
-    background: '#ffffff',
+    background: '#0a0a0a',
 
-    surface: '#f5f5f7',
+    surface: '#141414',
 
-    card: '#f0f0f2',
+    card: '#1c1c1c',
 
-    border: '#d2d2d7',
+    border: '#2e2e2e',
 
-    muted: '#86868b',
+    muted: '#737373',
 
-    textDim: 'rgba(0, 0, 0, 0.55)',
+    textDim: 'rgba(255, 255, 255, 0.55)',
 
-    bodyText: '#1d1d1f',
+    bodyText: '#f5f5f5',
 
   },
 
@@ -142,15 +142,15 @@ export default {
 
     btnRadius: 'rounded-full',
 
-    btnAluminum: 'btn-aluminum',
+    btnAluminum: 'btn-accent',
 
     btnGlass: 'btn-glass',
 
-    btnPrimary: 'btn-aluminum',
+    btnPrimary: 'btn-accent',
 
-    cardBase: 'bg-white border border-black/5',
+    cardBase: 'bg-card border border-border',
 
-    cardHover: 'hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:border-black/10 transition-all duration-500',
+    cardHover: 'hover:shadow-[0_12px_40px_rgba(220,38,38,0.12)] hover:border-accent/30 transition-all duration-500',
 
   },
 
@@ -160,25 +160,45 @@ export default {
 
       viewAllHref: '#/shop?featured=1',
 
-      speed: 1.5,
+      backgroundColor: '#0a0a0a',
 
-      gap: 16,
+      curve: {
 
-      direction: 'left',
+        cardWidth: 300,
 
-      cardRadius: 12,
+        cardHeight: 440,
 
-      backgroundColor: '#ffffff',
+        cardRadius: 16,
 
-      height: 420,
+        mobileCardWidth: 240,
 
-      heightMd: 480,
+        mobileCardHeight: 360,
 
-      mobileBreakpoint: 600,
+        radius: 1100,
 
-      tabletBreakpoint: 1024,
+        mobileRadius: 720,
 
-      pauseOnHover: true,
+        angleStep: 16,
+
+        dragThreshold: 60,
+
+        autoplay: true,
+
+        autoplayMs: 3500,
+
+        arrowSize: 44,
+
+        arrowInset: 32,
+
+        arrowGap: 12,
+
+        sizeDecrease: 0.06,
+
+        bottomFade: true,
+
+        pauseOnHover: true,
+
+      },
 
     },
 
@@ -205,6 +225,18 @@ export default {
       { href: '#/categories', label: 'دسته‌بندی‌ها' },
 
       { href: '#/orders', label: 'سفارشات' },
+
+    ],
+
+    mobileBottomNav: [
+
+      { href: '#/', label: 'صفحه اصلی', icon: 'home', routes: ['/', ''] },
+
+      { href: '#/shop', label: 'فروشگاه', icon: 'store', routes: ['/shop', '/product'] },
+
+      { href: '#/categories', label: 'دسته‌بندی‌ها', icon: 'layout-grid', routes: ['/categories'] },
+
+      { id: 'profile', label: 'پروفایل', icon: 'user', routes: ['/orders'] },
 
     ],
 
@@ -314,13 +346,13 @@ export default {
 
     footer: {
 
-      tagline: 'آیریس — فروشگاه لباس‌های Y2K و لانگ‌اسلیوهای خاص.',
+      tagline: 'RAR shop — فروشگاه آنلاین با استایل مشکی و قرمز.',
 
       support: 'پشتیبانی ۷ روز هفته',
 
-      social: '@iris',
+      social: '@rar.shop',
 
-      copyright: '© ۱۴۰۴ آیریس — تمام حقوق محفوظ است',
+      copyright: '© ۱۴۰۴ RAR shop — تمام حقوق محفوظ است',
 
     },
 

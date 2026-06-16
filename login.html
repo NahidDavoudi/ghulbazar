@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
   <style>
-    body { font-family: var(--font-vazir); background-color: var(--color-dark); color: #1e293b; }
-    .tab-active   { border-bottom: 2px solid var(--color-accent); color: #1e293b; }
+    body { font-family: var(--font-vazir); background-color: var(--color-dark); color: var(--color-body-text); }
+    .tab-active   { border-bottom: 2px solid var(--color-accent); color: var(--color-body-text); }
     .tab-inactive { border-bottom: 2px solid transparent; color: var(--color-muted); }
     input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
       -webkit-box-shadow: 0 0 0 30px var(--color-dark-3) inset !important;
-      -webkit-text-fill-color: #1e293b !important;
+      -webkit-text-fill-color: var(--color-body-text) !important;
     }
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #e2e8f0; }
+    ::-webkit-scrollbar-track { background: var(--color-dark-2); }
     ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
     .btn-accent-glow {
       box-shadow: 0 6px 20px color-mix(in srgb, var(--color-accent) 35%, transparent);
