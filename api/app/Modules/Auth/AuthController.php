@@ -51,17 +51,18 @@ class AuthController extends Controller
     // POST /api/v1/auth/otp/verify
     public function otpVerify(Request $request): void
     {
-        $phone   = $request->input('phone');
-        $code    = $request->input('code');
-        $purpose = $request->input('purpose', 'login');
-        $name    = $request->input('name');
+        $phone    = $request->input('phone');
+        $code     = $request->input('code');
+        $purpose  = $request->input('purpose', 'login');
+        $name     = $request->input('name');
+        $password = $request->input('password');
 
         if (!$phone || !$code) {
             $this->error('شماره موبایل و کد تایید الزامی است', 422);
         }
 
         try {
-            $result = $this->otpService->verify($phone, $code, $purpose, $name);
+            $result = $this->otpService->verify($phone, $code, $purpose, $name, $password);
             $this->success($result, 'ورود موفق');
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 422);

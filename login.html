@@ -69,7 +69,8 @@
 
         <!-- ── Login ── -->
         <div id="form-login" class="p-6 md:p-8">
-          <div class="space-y-4">
+          <!-- Password login -->
+          <div id="login-password-panel" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-dim mb-1.5" for="login-phone">شماره همراه</label>
               <input type="text" id="login-phone" dir="rtl" autocomplete="phone"
@@ -101,8 +102,51 @@
                            transition-all btn-accent-glow hover:-translate-y-0.5 active:translate-y-0">
               <span id="login-btn-text">ورود به حساب</span>
             </button>
+            <button id="switch-login-sms" type="button"
+                    class="w-full py-3 border border-border rounded-xl text-sm text-dim
+                           hover:border-accent/40 hover:text-body transition-all"
+                    data-auth-text="loginWithSms">
+              ورود با پیامک
+            </button>
           </div>
-          <div class="relative flex items-center gap-3 my-5">
+
+          <!-- SMS login -->
+          <div id="login-sms-panel" class="hidden space-y-4">
+            <p class="text-sm text-muted text-center" data-auth-text="otpSent">کد تایید به شماره شما ارسال می‌شود</p>
+            <div>
+              <label class="block text-sm font-medium text-dim mb-1.5" for="login-sms-phone">شماره همراه</label>
+              <input type="text" id="login-sms-phone" dir="rtl" autocomplete="phone"
+                     placeholder="09123456789"
+                     class="w-full bg-surface border border-border rounded-xl px-4 py-3 text-body text-sm
+                            placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors">
+            </div>
+            <div id="login-sms-otp-wrap" class="hidden space-y-3">
+              <div>
+                <label class="block text-sm font-medium text-dim mb-1.5" for="login-otp">کد تایید</label>
+                <input type="text" id="login-otp" dir="ltr" inputmode="numeric" maxlength="5" autocomplete="one-time-code"
+                       placeholder="12345"
+                       class="w-full bg-surface border border-border rounded-xl px-4 py-3 text-body text-sm text-center tracking-[0.4em]
+                              placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors">
+              </div>
+              <p id="login-otp-timer" class="text-xs text-muted text-center hidden"></p>
+            </div>
+            <div id="login-sms-error" class="hidden text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-right"></div>
+            <button id="login-sms-send-btn" type="button"
+                    class="w-full py-3.5 bg-accent hover:bg-accent-hover text-white text-sm font-bold rounded-xl transition-all btn-accent-glow">
+              <span id="login-sms-send-text" data-auth-text="sendCode">ارسال کد تایید</span>
+            </button>
+            <button id="login-sms-verify-btn" type="button"
+                    class="hidden w-full py-3.5 bg-accent hover:bg-accent-hover text-white text-sm font-bold rounded-xl transition-all btn-accent-glow">
+              <span id="login-sms-verify-text" data-auth-text="verifyCode">تایید و ورود</span>
+            </button>
+            <button id="switch-login-password" type="button"
+                    class="w-full py-3 text-sm text-muted hover:text-body transition-colors"
+                    data-auth-text="back">
+              بازگشت به ورود با رمز
+            </button>
+          </div>
+
+          <div id="login-footer-links" class="relative flex items-center gap-3 my-5">
             <div class="flex-1 h-px bg-border"></div>
             <span class="text-dim text-xs shrink-0">یا</span>
             <div class="flex-1 h-px bg-border"></div>
@@ -116,7 +160,7 @@
 
         <!-- ─ـ Register ـ─ -->
         <div id="form-register" class="hidden p-6 md:p-8">
-          <div class="space-y-4">
+          <div id="register-form-panel" class="space-y-4">
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-sm font-medium text-dim mb-1.5">نام</label>
@@ -163,9 +207,37 @@
             <button id="register-btn"
                     class="w-full py-3.5 bg-accent hover:bg-accent-hover text-white text-sm font-bold rounded-xl
                            transition-all btn-accent-glow hover:-translate-y-0.5">
-              <span id="register-btn-text">ساخت حساب</span>
+              <span id="register-btn-text">ارسال کد تایید</span>
             </button>
           </div>
+
+          <div id="register-otp-panel" class="hidden space-y-4">
+            <p id="register-otp-hint" class="text-sm text-muted text-center"></p>
+            <div>
+              <label class="block text-sm font-medium text-dim mb-1.5" for="reg-otp">کد تایید</label>
+              <input type="text" id="reg-otp" dir="ltr" inputmode="numeric" maxlength="5" autocomplete="one-time-code"
+                     placeholder="12345"
+                     class="w-full bg-surface border border-border rounded-xl px-4 py-3 text-body text-sm text-center tracking-[0.4em]
+                            placeholder:text-muted/35 focus:outline-none focus:border-accent transition-colors">
+            </div>
+            <p id="register-otp-timer" class="text-xs text-muted text-center hidden"></p>
+            <div id="register-otp-error" class="hidden text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-right"></div>
+            <button id="register-verify-btn" type="button"
+                    class="w-full py-3.5 bg-accent hover:bg-accent-hover text-white text-sm font-bold rounded-xl transition-all btn-accent-glow">
+              <span id="register-verify-text" data-auth-text="verifyAndRegister">تایید و ساخت حساب</span>
+            </button>
+            <button id="register-resend-btn" type="button"
+                    class="hidden w-full py-3 border border-border rounded-xl text-sm text-dim hover:border-accent/40 transition-all"
+                    data-auth-text="resendCode">
+              ارسال مجدد کد
+            </button>
+            <button id="register-back-btn" type="button"
+                    class="w-full py-3 text-sm text-muted hover:text-body transition-colors"
+                    data-auth-text="back">
+              بازگشت
+            </button>
+          </div>
+
           <button id="goto-login"
                   class="w-full mt-4 py-3 rounded-xl text-sm text-dim
                          hover:border-accent/40 hover:text-body transition-all">

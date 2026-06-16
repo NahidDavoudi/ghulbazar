@@ -26,6 +26,14 @@ class OtpService
         $phone   = $this->normalizePhone($phone);
         $purpose = $this->normalizePurpose($purpose);
 
+        if ($purpose === 'register' && $this->usersModel->exists('phone', $phone)) {
+            throw new \RuntimeException('این شماره قبلاً ثبت شده است.', 409);
+        }
+
+        if ($purpose === 'login' && !$this->usersModel->findBy('phone', $phone)) {
+            throw new \RuntimeException('حسابی با این شماره یافت نشد. ابتدا ثبت‌نام کنید.', 404);
+        }
+
         if ($this->otpModel->countRecentRequests($phone, self::REQUEST_WINDOW_MINUTES) >= self::MAX_REQUESTS_PER_WINDOW) {
             throw new \RuntimeException('تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً ۱۰ دقیقه دیگر تلاش کنید.', 429);
         }
@@ -51,7 +59,7 @@ class OtpService
         return $response;
     }
 
-    public function verify(string $phone, string $code, string $purpose = 'login', ?string $name = null): array
+    public function verify(string $phone, string $code, string $purpose = 'login', ?string $name = null, ?string $password = null): array
     {
         $phone   = $this->normalizePhone($phone);
         $purpose = $this->normalizePurpose($purpose);
@@ -77,28 +85,32 @@ class OtpService
 
         $this->otpModel->markVerified((int) $otp['id']);
 
-        $user = $this->resolveUser($phone, $name);
+        $user = $purpose === 'register'
+            ? $this->createRegisteredUser($phone, $name, $password)
+            : $this->resolveLoginUser($phone);
 
         return $this->authService->issueTokenPair($user);
     }
 
-    private function resolveUser(string $phone, ?string $name): array
+    private function createRegisteredUser(string $phone, ?string $name, ?string $password): array
     {
-        $user = $this->usersModel->findByPhone($phone);
+        if ($this->usersModel->exists('phone', $phone)) {
+            throw new \RuntimeException('این شماره قبلاً ثبت شده است.', 409);
+        }
 
-        if ($user) {
-            if (!(int) $user['is_active']) {
-                throw new \RuntimeException('حساب کاربری شما غیرفعال شده است.', 403);
-            }
+        $name = $name ? trim($name) : '';
+        if ($name === '') {
+            throw new \RuntimeException('نام الزامی است.', 422);
+        }
 
-            unset($user['password_hash']);
-            return $user;
+        if ($password === null || strlen($password) < 8) {
+            throw new \RuntimeException('رمز عبور باید حداقل ۸ کاراکتر باشد.', 422);
         }
 
         $userId = $this->usersModel->create([
-            'name'      => $name ? trim($name) : $this->defaultName($phone),
+            'name'      => $name,
             'phone'     => $phone,
-            'password'  => bin2hex(random_bytes(16)),
+            'password'  => $password,
             'role'      => 'user',
             'is_active' => 1,
         ]);
@@ -106,6 +118,22 @@ class OtpService
         $user = $this->usersModel->find($userId);
         unset($user['password_hash']);
 
+        return $user;
+    }
+
+    private function resolveLoginUser(string $phone): array
+    {
+        $user = $this->usersModel->findBy('phone', $phone);
+
+        if (!$user) {
+            throw new \RuntimeException('حسابی با این شماره یافت نشد.', 404);
+        }
+
+        if (!(int) $user['is_active']) {
+            throw new \RuntimeException('حساب کاربری شما غیرفعال شده است.', 403);
+        }
+
+        unset($user['password_hash']);
         return $user;
     }
 
@@ -147,14 +175,8 @@ class OtpService
         return substr($phone, 0, 4) . '***' . substr($phone, -4);
     }
 
-    private function defaultName(string $phone): string
-    {
-        return 'کاربر ' . substr($phone, -4);
-    }
-
     private function shouldExposeDebugCode(): bool
     {
-        return Env::get('APP_ENV', 'production') === 'development'
-            && $this->smsService->driverName() === 'log';
+        return Env::get('APP_ENV', 'production') === 'development';
     }
 }

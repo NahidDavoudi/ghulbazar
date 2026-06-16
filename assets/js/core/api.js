@@ -281,9 +281,8 @@ const authApi = {
     return data;
   },
   otpRequest: (phone, purpose = 'login') => post('/auth/otp/request', { phone, purpose }),
-  otpVerify: async (phone, code, purpose = 'login', name = null) => {
-    const body = { phone, code, purpose };
-    if (name) body.name = name;
+  otpVerify: async (phone, code, purpose = 'login', extras = {}) => {
+    const body = { phone, code, purpose, ...extras };
     return afterAuthSession(await post('/auth/otp/verify', body));
   },
   me: () => get('/auth/me'),

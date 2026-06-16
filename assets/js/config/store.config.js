@@ -316,6 +316,36 @@ export default {
 
     },
 
+    auth: {
+
+      loginWithSms: 'ورود با پیامک',
+
+      loginWithPassword: 'ورود با رمز عبور',
+
+      sendCode: 'ارسال کد تایید',
+
+      resendCode: 'ارسال مجدد کد',
+
+      verifyCode: 'تایید و ورود',
+
+      verifyAndRegister: 'تایید و ساخت حساب',
+
+      otpSent: 'کد تایید به شماره شما ارسال شد',
+
+      otpPlaceholder: 'کد ۵ رقمی',
+
+      otpExpires: 'اعتبار کد',
+
+      seconds: 'ثانیه',
+
+      back: 'بازگشت',
+
+      sending: 'در حال ارسال...',
+
+      verifying: 'در حال تایید...',
+
+    },
+
     legal: {
 
       footerLinks: [
