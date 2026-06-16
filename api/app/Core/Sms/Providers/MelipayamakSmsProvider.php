@@ -53,18 +53,20 @@ class MelipayamakSmsProvider implements SmsProviderInterface
 
     private function sendConsole(string $phone, string $message, string $apiKey, string $sender): bool
     {
-        $url = trim((string) Env::get('MELIPAYAMAK_CONSOLE_URL', self::CONSOLE_URL));
-        if ($url === '') {
-            $url = self::CONSOLE_URL;
+        $base = trim((string) Env::get('MELIPAYAMAK_CONSOLE_URL', 'https://console.melipayamak.com/api/send/simple'));
+        if ($base === '') {
+            $base = 'https://console.melipayamak.com/api/send/simple';
         }
+
+        $url = rtrim($base, '/') . '/' . rawurlencode($apiKey);
 
         try {
             $response = $this->client->post($url, [
                 'headers' => [
-                    'Authorization' => 'Bearer ' . $apiKey,
-                    'Accept'        => 'application/json',
+                    'Accept'       => 'application/json',
+                    'Content-Type' => 'application/json',
                 ],
-                'form_params' => [
+                'json' => [
                     'from' => $sender,
                     'to'   => $this->normalizePhone($phone),
                     'text' => $message,
@@ -129,6 +131,14 @@ class MelipayamakSmsProvider implements SmsProviderInterface
 
         if (isset($decoded['recId']) && (int) $decoded['recId'] > 0) {
             return true;
+        }
+
+        if (isset($decoded['recId']) && is_string($decoded['recId']) && ctype_digit($decoded['recId']) && (int) $decoded['recId'] > 0) {
+            return true;
+        }
+
+        if (!empty($decoded['status']) && is_string($decoded['status']) && $decoded['status'] !== '') {
+            throw new \RuntimeException('ارسال پیامک ملی‌پیامک ناموفق بود: ' . $decoded['status'], 502);
         }
 
         if (isset($decoded['RetStatus']) && (int) $decoded['RetStatus'] === 1) {
