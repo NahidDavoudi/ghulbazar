@@ -34,7 +34,7 @@ function renderContactPage() {
           ${renderContactInfoCard({ icon: 'clock', ...contact.hours })}
         </div>
         <div class="${storeConfig.ui.cardBase} ${storeConfig.ui.cardRadius} p-6 md:p-8 text-right">
-          <h2 class="text-lg font-bold text-body mb-3">راه‌های ارتباطی</h2>
+          <h2 class="text-lg font-bold text-body mb-3">${escapeHtml(contact.formSectionTitle || 'راه‌های ارتباطی')}</h2>
           <p class="text-sm text-muted leading-relaxed">${escapeHtml(contact.formUnavailable || 'فرم تماس به‌زودی فعال می‌شود. لطفاً از اطلاعات تماس بالا استفاده کنید.')}</p>
         </div>
       </div>

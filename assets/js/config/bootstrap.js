@@ -1,5 +1,6 @@
 import appConfig from './app.config.js';
 import defaultStoreConfig from './store.config.js';
+import { deepMerge } from '../utils/deepMerge.js';
 
 /** Runtime config — mutated after /settings fetch */
 export const storeConfig = typeof structuredClone === 'function'
@@ -37,6 +38,10 @@ export function mergeStoreSettings(remote) {
   if (remote.shop_slogan) {
     storeConfig.hero.subtitle = remote.shop_slogan;
     storeConfig.texts.footer.tagline = remote.shop_slogan;
+  }
+
+  if (remote.legal_content && typeof remote.legal_content === 'object') {
+    deepMerge(storeConfig.texts.legal, remote.legal_content);
   }
 
   if (remote.shop_description) {

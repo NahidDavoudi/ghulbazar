@@ -7,6 +7,8 @@ class SettingsService
     private const PAYMENT_METHODS = ['card_to_card', 'zarinpal', 'both'];
     private const SMS_PROVIDERS = ['kavenegar', 'melipayamak', 'smsir'];
 
+    private const LEGAL_PAGE_KEYS = ['about', 'contact', 'terms', 'privacy', 'refund', 'faq'];
+
     private const UPLOAD_FIELD_MAP = [
         'logo'    => 'shop_logo',
         'hero'    => 'shop_hero_image',
@@ -72,7 +74,7 @@ class SettingsService
             throw new \RuntimeException('تنظیمات فروشگاه یافت نشد.', 404);
         }
 
-        return $settings;
+        return $this->formatSettings($settings);
     }
 
     public function getPublicSettings(): array
@@ -90,6 +92,14 @@ class SettingsService
     {
         $current = $this->getSettings();
         $payload = [];
+
+        if (array_key_exists('legal_content', $data)) {
+            $validated = $this->validateLegalContent($data['legal_content']);
+            $payload['legal_content'] = json_encode(
+                $validated,
+                JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+            );
+        }
 
         foreach (self::ALLOWED_FIELDS as $field) {
             if (!array_key_exists($field, $data)) {
@@ -185,5 +195,228 @@ class SettingsService
     public static function allowedUploadTypes(): array
     {
         return array_keys(self::UPLOAD_FIELD_MAP);
+    }
+
+    private function formatSettings(array $settings): array
+    {
+        if (!isset($settings['legal_content'])) {
+            return $settings;
+        }
+
+        if (is_string($settings['legal_content'])) {
+            $decoded = json_decode($settings['legal_content'], true);
+            $settings['legal_content'] = is_array($decoded) ? $decoded : null;
+        }
+
+        return $settings;
+    }
+
+    private function validateLegalContent(mixed $content): array
+    {
+        if (!is_array($content)) {
+            throw new \RuntimeException('فرمت محتوای صفحات معتبر نیست.', 422);
+        }
+
+        $validated = [];
+
+        if (array_key_exists('lastUpdated', $content)) {
+            $validated['lastUpdated'] = trim((string) $content['lastUpdated']);
+        }
+
+        foreach (self::LEGAL_PAGE_KEYS as $key) {
+            if (!isset($content[$key]) || !is_array($content[$key])) {
+                continue;
+            }
+            $validated[$key] = $this->validateLegalPage($key, $content[$key]);
+        }
+
+        if (empty($validated)) {
+            throw new \RuntimeException('حداقل یک صفحه باید در محتوا وجود داشته باشد.', 422);
+        }
+
+        return $validated;
+    }
+
+    private function validateLegalPage(string $key, array $page): array
+    {
+        return match ($key) {
+            'about'    => $this->validateAboutPage($page),
+            'contact'  => $this->validateContactPage($page),
+            'faq'      => $this->validateFaqPage($page),
+            default    => $this->validateSectionPage($page),
+        };
+    }
+
+    private function validateSectionPage(array $page): array
+    {
+        $result = [];
+
+        foreach (['title', 'subtitle', 'meta'] as $field) {
+            if (isset($page[$field])) {
+                $result[$field] = trim((string) $page[$field]);
+            }
+        }
+
+        if (!isset($page['sections']) || !is_array($page['sections'])) {
+            throw new \RuntimeException('بخش‌های صفحه باید آرایه باشند.', 422);
+        }
+
+        $result['sections'] = [];
+        foreach ($page['sections'] as $section) {
+            if (!is_array($section) || empty(trim((string) ($section['title'] ?? '')))) {
+                continue;
+            }
+
+            $entry = ['title' => trim((string) $section['title'])];
+
+            if (!empty($section['content']) && is_array($section['content'])) {
+                $entry['content'] = array_values(array_filter(
+                    array_map(fn ($p) => trim((string) $p), $section['content']),
+                    fn ($p) => $p !== ''
+                ));
+            }
+
+            if (!empty($section['items']) && is_array($section['items'])) {
+                $entry['items'] = array_values(array_filter(
+                    array_map(fn ($i) => trim((string) $i), $section['items']),
+                    fn ($i) => $i !== ''
+                ));
+            }
+
+            if (empty($entry['content']) && empty($entry['items'])) {
+                continue;
+            }
+
+            $result['sections'][] = $entry;
+        }
+
+        return $result;
+    }
+
+    private function validateFaqPage(array $page): array
+    {
+        $result = [];
+
+        foreach (['title', 'subtitle', 'meta'] as $field) {
+            if (isset($page[$field])) {
+                $result[$field] = trim((string) $page[$field]);
+            }
+        }
+
+        if (!isset($page['items']) || !is_array($page['items'])) {
+            throw new \RuntimeException('سوالات متداول باید آرایه باشند.', 422);
+        }
+
+        $result['items'] = [];
+        foreach ($page['items'] as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $question = trim((string) ($item['question'] ?? ''));
+            $answer = trim((string) ($item['answer'] ?? ''));
+            if ($question === '' || $answer === '') {
+                continue;
+            }
+            $result['items'][] = ['question' => $question, 'answer' => $answer];
+        }
+
+        return $result;
+    }
+
+    private function validateContactPage(array $page): array
+    {
+        $result = [];
+
+        foreach (['title', 'subtitle', 'meta', 'formUnavailable', 'mapPlaceholder'] as $field) {
+            if (isset($page[$field])) {
+                $result[$field] = trim((string) $page[$field]);
+            }
+        }
+
+        foreach (['phone', 'email', 'address', 'hours'] as $field) {
+            if (!isset($page[$field]) || !is_array($page[$field])) {
+                continue;
+            }
+            $result[$field] = [
+                'label' => trim((string) ($page[$field]['label'] ?? '')),
+                'value' => trim((string) ($page[$field]['value'] ?? '')),
+                'note'  => trim((string) ($page[$field]['note'] ?? '')),
+            ];
+        }
+
+        return $result;
+    }
+
+    private function validateAboutPage(array $page): array
+    {
+        $result = [];
+
+        foreach (['title', 'subtitle', 'meta', 'intro', 'mission', 'vision'] as $field) {
+            if (isset($page[$field])) {
+                $result[$field] = trim((string) $page[$field]);
+            }
+        }
+
+        if (isset($page['sectionTitles']) && is_array($page['sectionTitles'])) {
+            $result['sectionTitles'] = [];
+            foreach ($page['sectionTitles'] as $k => $v) {
+                $result['sectionTitles'][$k] = trim((string) $v);
+            }
+        }
+
+        if (isset($page['whyChooseUs']) && is_array($page['whyChooseUs'])) {
+            $result['whyChooseUs'] = [];
+            foreach ($page['whyChooseUs'] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $title = trim((string) ($item['title'] ?? ''));
+                if ($title === '') {
+                    continue;
+                }
+                $result['whyChooseUs'][] = [
+                    'icon'  => trim((string) ($item['icon'] ?? 'check')),
+                    'title' => $title,
+                    'desc'  => trim((string) ($item['desc'] ?? '')),
+                ];
+            }
+        }
+
+        if (isset($page['stats']) && is_array($page['stats'])) {
+            $result['stats'] = [];
+            foreach ($page['stats'] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $value = trim((string) ($item['value'] ?? ''));
+                if ($value === '') {
+                    continue;
+                }
+                $result['stats'][] = [
+                    'value' => $value,
+                    'label' => trim((string) ($item['label'] ?? '')),
+                ];
+            }
+        }
+
+        if (isset($page['team']) && is_array($page['team'])) {
+            $result['team'] = [];
+            foreach ($page['team'] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $name = trim((string) ($item['name'] ?? ''));
+                if ($name === '') {
+                    continue;
+                }
+                $result['team'][] = [
+                    'name'   => $name,
+                    'role'   => trim((string) ($item['role'] ?? '')),
+                    'avatar' => trim((string) ($item['avatar'] ?? '')),
+                ];
+            }
+        }
+
+        return $result;
     }
 }

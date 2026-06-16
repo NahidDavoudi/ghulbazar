@@ -64,6 +64,7 @@ class SettingsController extends Controller
             'sms_api_key',
             'meta_title',
             'meta_description',
+            'legal_content',
         ]);
 
         try {

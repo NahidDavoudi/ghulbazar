@@ -33,6 +33,7 @@ class SettingsModel extends Model
         'sms_api_key',
         'meta_title',
         'meta_description',
+        'legal_content',
     ];
     protected bool $timestamps = true;
 
