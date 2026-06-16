@@ -19,6 +19,7 @@ class OrderModel extends Model
         'payment_method',
         'status',
         'notes',
+        'cancel_reason',
     ];
     protected bool $timestamps = true;
 
@@ -45,7 +46,8 @@ class OrderModel extends Model
     public function getItems(int $orderId): array
     {
         $stmt = $this->pdo->prepare("
-            SELECT oi.*, 
+            SELECT oi.*,
+                   p.title AS product_name,
                    (SELECT pi.image_url FROM product_images pi
                     WHERE pi.product_id = oi.product_id AND pi.is_main = 1
                     LIMIT 1) AS product_image
@@ -78,10 +80,16 @@ class OrderModel extends Model
         return $stmt->fetchAll();
     }
 
-    public function updateStatus(int $id, string $status): bool
+    public function updateStatus(int $id, string $status, ?string $cancelReason = null): bool
     {
         if (!in_array($status, self::STATUSES)) return false;
-        return parent::update($id, ['status' => $status]);
+
+        $data = ['status' => $status];
+        if ($status === 'cancelled' && $cancelReason !== null) {
+            $data['cancel_reason'] = trim($cancelReason);
+        }
+
+        return parent::update($id, $data);
     }
 
     public function paginateForAdmin(int $page = 1, int $limit = 20, ?string $status = null): array

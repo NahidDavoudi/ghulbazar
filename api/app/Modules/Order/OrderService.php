@@ -203,14 +203,14 @@ class OrderService
         return $order;
     }
 
-    public function updateStatus(int $orderId, string $status): array
+    public function updateStatus(int $orderId, string $status, ?string $cancelReason = null): array
     {
         $order = $this->orderModel->find($orderId);
         if (!$order) {
             throw new \RuntimeException('سفارش یافت نشد.', 404);
         }
 
-        $ok = $this->orderModel->updateStatus($orderId, $status);
+        $ok = $this->orderModel->updateStatus($orderId, $status, $cancelReason);
         if (!$ok) {
             throw new \RuntimeException('وضعیت ارسالی معتبر نیست.', 422);
         }
@@ -228,6 +228,57 @@ class OrderService
         }
 
         return $this->getFullOrder($orderId);
+    }
+
+    /**
+     * تایید رسید — وضعیت به paid (رسید حذف نمی‌شود)
+     */
+    public function approveReceipt(int $orderId): array
+    {
+        $order = $this->orderModel->find($orderId);
+        if (!$order) {
+            throw new \RuntimeException('سفارش یافت نشد.', 404);
+        }
+
+        if ($order['status'] !== 'pending') {
+            throw new \RuntimeException('فقط سفارش‌های در انتظار پرداخت قابل تایید رسید هستند.', 422);
+        }
+
+        if (!$this->receiptModel->hasReceipt($orderId)) {
+            throw new \RuntimeException('رسیدی برای این سفارش ثبت نشده است.', 422);
+        }
+
+        return $this->updateStatus($orderId, 'paid');
+    }
+
+    /**
+     * رد رسید — وضعیت به cancelled + ذخیره دلیل (رسید حذف نمی‌شود)
+     */
+    public function rejectReceipt(int $orderId, string $reason): array
+    {
+        $order = $this->orderModel->find($orderId);
+        if (!$order) {
+            throw new \RuntimeException('سفارش یافت نشد.', 404);
+        }
+
+        if ($order['status'] !== 'pending') {
+            throw new \RuntimeException('فقط سفارش‌های در انتظار پرداخت قابل رد رسید هستند.', 422);
+        }
+
+        if (!$this->receiptModel->hasReceipt($orderId)) {
+            throw new \RuntimeException('رسیدی برای این سفارش ثبت نشده است.', 422);
+        }
+
+        $reason = trim($reason);
+        if ($reason === '') {
+            throw new \RuntimeException('دلیل رد رسید الزامی است.', 422);
+        }
+
+        if (mb_strlen($reason) > 500) {
+            throw new \RuntimeException('دلیل رد رسید حداکثر ۵۰۰ کاراکتر باشد.', 422);
+        }
+
+        return $this->updateStatus($orderId, 'cancelled', $reason);
     }
 
     public function cancelOrder(int $orderId, int $userId): array

@@ -146,8 +146,11 @@ $router->group([
         $router->delete('/categories/{id}/images/{imageId}', [CategoryController::class, 'destroyImage']);
 
         // Orders
-        $router->get('/orders',               [OrderController::class, 'adminIndex']);
-        $router->patch('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        $router->get('/orders',                          [OrderController::class, 'adminIndex']);
+        $router->get('/orders/{id}',                     [OrderController::class, 'adminShow']);
+        $router->patch('/orders/{id}/status',            [OrderController::class, 'updateStatus']);
+        $router->patch('/orders/{id}/approve-receipt',   [OrderController::class, 'approveReceipt']);
+        $router->patch('/orders/{id}/reject-receipt',    [OrderController::class, 'rejectReceipt']);
 
         // Settings
         $router->get('/settings',                    [SettingsController::class, 'show']);

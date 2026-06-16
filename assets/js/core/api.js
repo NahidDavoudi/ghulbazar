@@ -415,9 +415,13 @@ const orders = {
     return upload(`/orders/${id}/receipt`, form);
   },
   adminList: (params = {}) => get('/admin/orders', params),
-  updateStatus: (id, status) => patch(`/admin/orders/${id}/status`, { status }),
-  approveReceipt: (id) => patch(`/admin/orders/${id}/status`, { status: 'paid' }),
-  rejectReceipt: (id) => patch(`/admin/orders/${id}/status`, { status: 'pending' }),
+  adminGet: (id) => get(`/admin/orders/${id}`),
+  updateStatus: (id, status, cancelReason) => patch(`/admin/orders/${id}/status`, {
+    status,
+    ...(cancelReason ? { cancel_reason: cancelReason } : {}),
+  }),
+  approveReceipt: (id) => patch(`/admin/orders/${id}/approve-receipt`),
+  rejectReceipt: (id, reason) => patch(`/admin/orders/${id}/reject-receipt`, { reason }),
 };
 
 const discounts = {

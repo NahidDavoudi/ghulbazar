@@ -328,6 +328,45 @@
                     </div>
                 </section>
 
+                <!-- Order detail modal -->
+                <div id="orderDetailModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-body border border-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+                            <h3 class="text-xl font-bold text-body" data-admin-text="orders.detailTitle">جزئیات سفارش</h3>
+                            <button type="button" onclick="hideModal('orderDetailModal')" class="text-dim hover:text-accent hover:bg-accent/10 p-2 rounded-xl transition-all">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <div id="orderDetailBody" class="px-6 py-5 overflow-y-auto custom-scroll flex-1"></div>
+                    </div>
+                </div>
+
+                <!-- Reject receipt modal -->
+                <div id="rejectReceiptModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                    <div class="bg-body border border-border rounded-2xl w-full max-w-md shadow-2xl">
+                        <div class="flex items-center justify-between px-6 py-4 border-b border-border">
+                            <h3 class="text-lg font-bold text-body">رد رسید پرداخت</h3>
+                            <button type="button" onclick="window.closeRejectReceiptModal()" class="text-dim hover:text-accent hover:bg-accent/10 p-2 rounded-xl transition-all">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <form id="rejectReceiptForm" class="p-6 space-y-4">
+                            <p class="text-sm text-muted leading-relaxed">سفارش لغو می‌شود و رسید حذف نخواهد شد. لطفاً دلیل را برای مشتری بنویسید.</p>
+                            <div>
+                                <label for="rejectReasonInput" class="block text-sm font-medium text-body mb-2">دلیل رد</label>
+                                <textarea id="rejectReasonInput" rows="4" maxlength="500" required
+                                    placeholder="مثلاً: مبلغ واریزی با سفارش مطابقت ندارد"
+                                    class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body placeholder:text-dim focus:border-accent outline-none resize-none"></textarea>
+                                <p id="rejectReasonError" class="hidden text-xs text-red-600 mt-2"></p>
+                            </div>
+                            <div class="flex gap-3 justify-end pt-2">
+                                <button type="button" onclick="window.closeRejectReceiptModal()" class="bg-body hover:bg-surface border border-border text-muted px-6 py-2.5 rounded-xl font-medium transition-all">انصراف</button>
+                                <button type="submit" class="bg-accent hover:bg-accent-hover text-white px-6 py-2.5 rounded-xl font-medium transition-all">رد رسید و لغو سفارش</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <!-- ========== USERS PAGE ========== -->
                 <section id="page-users" class="page-section hidden animate-fadeIn">
                     <div class="mb-8">
