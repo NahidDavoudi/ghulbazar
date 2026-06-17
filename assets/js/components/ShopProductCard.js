@@ -31,7 +31,7 @@ const ShopProductCard = {
 
     return `
       <a href="${href}" data-link class="group block iris-card ${ui.cardBase} ${ui.cardRadius} ${ui.cardHover}">
-        <div class="relative aspect-square overflow-hidden bg-surface">
+        <div class="relative ${ui.productCardAspect} overflow-hidden bg-surface">
           ${outOfStock}
           ${renderImageWithFallback({
             src: img,

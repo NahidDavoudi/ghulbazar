@@ -17,11 +17,11 @@ const DEFAULTS = {
   bottomFade: true,
   pauseOnHover: true,
   cardWidth: 300,
-  cardHeight: 520,
+  cardHeight: 440,
   mobileCardWidth: 240,
-  mobileCardHeight: 420,
+  mobileCardHeight: 360,
   cardRadius: 16,
-  transitionMs: 1200,
+  transitionMs: 2400,
 };
 
 function mergeConfig(cfg = {}) {
@@ -129,7 +129,7 @@ const CurveCarousel = {
       const { radius, angleStep, sizeDecrease, cardWidth, cardHeight, cardRadius } = resolved;
       const height = computeHeight(resolved);
 
-      const transitionMs = Math.max(200, resolved.transitionMs ?? 1200);
+      const transitionMs = Math.max(200, resolved.transitionMs ?? 2400);
 
       root.style.setProperty('--curve-card-w', `${cardWidth}px`);
       root.style.setProperty('--curve-card-h', `${cardHeight}px`);

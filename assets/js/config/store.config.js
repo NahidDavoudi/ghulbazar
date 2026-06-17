@@ -152,6 +152,8 @@ export default {
 
     cardHover: 'hover:shadow-[0_12px_40px_rgba(220,38,38,0.12)] hover:border-accent/30 transition-all duration-500',
 
+    productCardAspect: 'aspect-[4/5]',
+
     toast: {
 
       success: { bg: '#16a34a', text: '#ffffff', border: '#15803d' },
@@ -178,15 +180,15 @@ export default {
 
         cardWidth: 300,
 
-        cardHeight: 520,
+        cardHeight: 440,
 
         cardRadius: 16,
 
         mobileCardWidth: 240,
 
-        mobileCardHeight: 420,
+        mobileCardHeight: 360,
 
-        transitionMs: 1200,
+        transitionMs: 2400,
 
         radius: 1100,
 
