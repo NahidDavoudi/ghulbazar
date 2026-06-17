@@ -17,10 +17,11 @@ const DEFAULTS = {
   bottomFade: true,
   pauseOnHover: true,
   cardWidth: 300,
-  cardHeight: 440,
+  cardHeight: 520,
   mobileCardWidth: 240,
-  mobileCardHeight: 360,
+  mobileCardHeight: 420,
   cardRadius: 16,
+  transitionMs: 1200,
 };
 
 function mergeConfig(cfg = {}) {
@@ -55,17 +56,17 @@ const CurveCarousel = {
           <div class="curve-carousel__stage" role="region" aria-label="کاروسل محصولات">
             <div class="curve-carousel__track"></div>
           </div>
-          <div class="curve-carousel__arrows">
+          <div class="curve-carousel__arrows" dir="rtl">
             <button type="button" class="curve-carousel__arrow" data-curve-prev aria-label="قبلی">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="m15 18-6-6 6-6"/>
+                <path d="m9 18 6-6-6-6"/>
               </svg>
             </button>
             <button type="button" class="curve-carousel__arrow" data-curve-next aria-label="بعدی">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="m9 18 6-6-6-6"/>
+                <path d="m15 18-6-6 6-6"/>
               </svg>
             </button>
           </div>
@@ -128,12 +129,15 @@ const CurveCarousel = {
       const { radius, angleStep, sizeDecrease, cardWidth, cardHeight, cardRadius } = resolved;
       const height = computeHeight(resolved);
 
+      const transitionMs = Math.max(200, resolved.transitionMs ?? 1200);
+
       root.style.setProperty('--curve-card-w', `${cardWidth}px`);
       root.style.setProperty('--curve-card-h', `${cardHeight}px`);
       root.style.setProperty('--curve-card-radius', `${cardRadius}px`);
       root.style.setProperty('--curve-arrow-size', `${resolved.arrowSize}px`);
       root.style.setProperty('--curve-arrow-inset', `${resolved.arrowInset}px`);
       root.style.setProperty('--curve-arrow-gap', `${resolved.arrowGap}px`);
+      root.style.setProperty('--curve-transition-ms', `${transitionMs}ms`);
       root.style.height = `${height}px`;
 
       const wrap = root.querySelector('.curve-carousel__wrap');

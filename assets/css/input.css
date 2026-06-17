@@ -298,13 +298,16 @@ div[data-page].active { display: block; }
   width: fit-content;
   height: fit-content;
   transform-origin: center;
-  transition: transform 1000ms cubic-bezier(0.32, 0.72, 0, 1),
-              opacity 1000ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform var(--curve-transition-ms, 1200ms) cubic-bezier(0.22, 1, 0.36, 1),
+              opacity var(--curve-transition-ms, 1200ms) cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform, opacity;
+}
+.curve-carousel__stage.is-dragging .curve-carousel__card {
+  transition-duration: calc(var(--curve-transition-ms, 1200ms) * 0.85);
 }
 .curve-carousel__card-inner {
   display: inline-flex;
-  transition: filter 1000ms;
+  transition: filter var(--curve-transition-ms, 1200ms) cubic-bezier(0.22, 1, 0.36, 1);
   will-change: filter;
 }
 .featured-poster-curve {

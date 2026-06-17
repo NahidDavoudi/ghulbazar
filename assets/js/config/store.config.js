@@ -178,13 +178,15 @@ export default {
 
         cardWidth: 300,
 
-        cardHeight: 440,
+        cardHeight: 520,
 
         cardRadius: 16,
 
         mobileCardWidth: 240,
 
-        mobileCardHeight: 360,
+        mobileCardHeight: 420,
+
+        transitionMs: 1200,
 
         radius: 1100,
 
