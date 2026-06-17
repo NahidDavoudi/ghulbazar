@@ -25,7 +25,7 @@ export function initConfig() {
 
 /**
  * Merge remote /settings into runtime storeConfig (backend wins when value present)
- * @param {Object|null} remote — API data: shop_name, shop_logo, shop_poster, ...
+ * @param {Object|null} remote — API data: shop_name, shop_logo, shop_hero_image, ...
  */
 export function mergeStoreSettings(remote) {
   if (!remote || typeof remote !== 'object') return storeConfig;
@@ -60,10 +60,6 @@ export function mergeStoreSettings(remote) {
 
   if (remote.shop_hero_image) {
     storeConfig.hero.image = remote.shop_hero_image;
-  }
-
-  if (remote.shop_poster) {
-    storeConfig.feature.image = remote.shop_poster;
   }
 
   if (remote.contact_phone) {

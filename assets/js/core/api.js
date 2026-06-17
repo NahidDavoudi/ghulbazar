@@ -433,6 +433,20 @@ const discounts = {
   delete: (id) => del(`/admin/discounts/${id}`),
 };
 
+const promoBanners = {
+  list: () => withFallback(get('/promo-banners'), null),
+  adminList: () => get('/admin/promo-banners'),
+  create: (file, title = '') => {
+    const form = new FormData();
+    form.append('image', file);
+    if (title) form.append('title', title);
+    return upload('/admin/promo-banners', form);
+  },
+  update: (id, data) => put(`/admin/promo-banners/${id}`, data),
+  reorder: (ids) => patch('/admin/promo-banners/reorder', { ids }),
+  delete: (id) => del(`/admin/promo-banners/${id}`),
+};
+
 const dashboard = {
   overview: () => get('/admin/dashboard'),
   stats: () => get('/admin/dashboard/stats'),
@@ -458,6 +472,7 @@ const api = {
   cart,
   orders,
   discounts,
+  promoBanners,
   dashboard,
   utils,
   token: auth.token,

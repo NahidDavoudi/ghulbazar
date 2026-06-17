@@ -14,6 +14,7 @@ use App\Modules\Admin\AdminController;
 use App\Modules\Settings\SettingsController;
 use App\Modules\Attribute\AttributeController;
 use App\Modules\Variant\VariantController;
+use App\Modules\PromoBanner\PromoBannerController;
 
 $router->group([
     'middleware' => [LogMiddleware::class],
@@ -42,6 +43,9 @@ $router->group([
 
     // Discounts
     $router->get('/api/v1/discounts/validate', [DiscountController::class, 'validateCode']);
+
+    // Promo banners
+    $router->get('/api/v1/promo-banners', [PromoBannerController::class, 'index']);
 
     // Settings
     $router->get('/api/v1/settings', [SettingsController::class, 'index']);
@@ -156,6 +160,13 @@ $router->group([
         $router->get('/settings',                    [SettingsController::class, 'show']);
         $router->patch('/settings',                  [SettingsController::class, 'update']);
         $router->post('/settings/upload/{type}',     [SettingsController::class, 'uploadImage']);
+
+        // Promo banners
+        $router->get('/promo-banners',              [PromoBannerController::class, 'adminIndex']);
+        $router->post('/promo-banners',             [PromoBannerController::class, 'store']);
+        $router->patch('/promo-banners/reorder',    [PromoBannerController::class, 'reorder']);
+        $router->put('/promo-banners/{id}',         [PromoBannerController::class, 'update']);
+        $router->delete('/promo-banners/{id}',      [PromoBannerController::class, 'destroy']);
 
         // Discounts
         $router->get('/discounts',                   [DiscountController::class, 'index']);

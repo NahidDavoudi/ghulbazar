@@ -39,6 +39,7 @@ await Promise.all([
   import('./pages/orders.js'),
   import('./pages/users.js'),
   import('./pages/discounts.js'),
+  import('./pages/promoBanners.js'),
   import('./pages/settings.js'),
   import('./pages/pages.js'),
 ]);
@@ -54,6 +55,7 @@ const PAGE_LOADERS = {
   orders: window.loadOrders,
   users: window.loadUsers,
   discounts: window.loadDiscounts,
+  promoBanners: window.loadPromoBanners,
   settings: window.loadSettings,
   pages: window.loadPages,
 };

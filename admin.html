@@ -95,6 +95,9 @@
                 <a data-page="discounts" onclick="switchPage('discounts', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-muted hover:bg-surface hover:text-body transition-all duration-200 cursor-pointer">
                     <i data-lucide="percent" class="w-5 h-5"></i><span data-admin-text="nav.discounts">کدهای تخفیف</span>
                 </a>
+                <a data-page="promoBanners" onclick="switchPage('promoBanners', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-muted hover:bg-surface hover:text-body transition-all duration-200 cursor-pointer">
+                    <i data-lucide="images" class="w-5 h-5"></i><span data-admin-text="nav.promoBanners">پوسترهای تبلیغاتی</span>
+                </a>
                 <a data-page="settings" onclick="switchPage('settings', this)" class="nav-link flex items-center gap-3 px-4 py-3 rounded-xl text-muted hover:bg-surface hover:text-body transition-all duration-200 cursor-pointer">
                     <i data-lucide="settings" class="w-5 h-5"></i><span data-admin-text="nav.settings">تنظیمات</span>
                 </a>
@@ -407,6 +410,31 @@
                     <div id="discountsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                 </section>
 
+                <!-- ========== PROMO BANNERS PAGE ========== -->
+                <section id="page-promoBanners" class="page-section hidden animate-fadeIn">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div>
+                            <h1 class="text-2xl md:text-3xl font-bold text-body" data-admin-text="promoBanners.title">پوسترهای تبلیغاتی</h1>
+                            <p class="text-muted mt-1" data-admin-text="promoBanners.subtitle">اسلایدر پوستر زیر کاروسل صفحه اصلی</p>
+                        </div>
+                    </div>
+                    <div class="bg-body border border-border rounded-2xl p-5 md:p-6 mb-6 space-y-4">
+                        <p class="text-sm text-muted" data-admin-text="promoBanners.uploadHint">پوستر جدید را آپلود کنید. نسبت تصویر افقی (۲۱:۹) توصیه می‌شود.</p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input type="text" id="promoBannerTitleInput" placeholder="عنوان (alt) — اختیاری"
+                                class="flex-1 bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
+                            <input type="file" id="promoBannerFileInput" accept="image/*" class="hidden"
+                                onchange="handlePromoBannerUpload(this)">
+                            <button type="button" onclick="triggerPromoBannerUpload()"
+                                class="bg-accent hover:bg-accent-hover text-white px-5 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 shrink-0">
+                                <i data-lucide="upload" class="w-5 h-5"></i>
+                                <span data-admin-text="promoBanners.add">افزودن پوستر</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="promoBannersContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+                </section>
+
                 <!-- ========== SETTINGS PAGE ========== -->
                 <section id="page-settings" class="page-section hidden animate-fadeIn">
                     <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -461,7 +489,7 @@
                                     <textarea id="settingsShopDescription" rows="4" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none"></textarea>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                                     <div class="bg-surface border border-border rounded-2xl p-4 space-y-3">
                                         <p class="text-sm font-medium text-body" data-admin-text="settings.identity.logo">لوگو</p>
                                         <div class="aspect-square rounded-xl bg-card border border-border overflow-hidden flex items-center justify-center">
@@ -479,16 +507,6 @@
                                         </div>
                                         <input type="file" id="settingsHeroInput" accept="image/*" class="hidden">
                                         <button type="button" onclick="triggerSettingsUpload('settingsHeroInput')"
-                                            class="w-full py-2 text-sm bg-card hover:bg-surface border border-border rounded-xl transition-all"
-                                            data-admin-text="settings.identity.change">تغییر تصویر</button>
-                                    </div>
-                                    <div class="bg-surface border border-border rounded-2xl p-4 space-y-3">
-                                        <p class="text-sm font-medium text-body" data-admin-text="settings.identity.poster">پوستر بخش ویژگی</p>
-                                        <div class="aspect-video rounded-xl bg-card border border-border overflow-hidden flex items-center justify-center">
-                                            <img id="settingsPosterPreview" alt="" class="w-full h-full object-cover hidden">
-                                        </div>
-                                        <input type="file" id="settingsPosterInput" accept="image/*" class="hidden">
-                                        <button type="button" onclick="triggerSettingsUpload('settingsPosterInput')"
                                             class="w-full py-2 text-sm bg-card hover:bg-surface border border-border rounded-xl transition-all"
                                             data-admin-text="settings.identity.change">تغییر تصویر</button>
                                     </div>

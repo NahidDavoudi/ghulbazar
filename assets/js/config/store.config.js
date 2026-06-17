@@ -32,42 +32,6 @@ export default {
 
 
 
-  feature: {
-
-    image: 'assets/images/poster.png',
-
-    title: 'MACHINED PERFECTION',
-
-    description: 'هر قطعه با دقت صنعتی ساخته شده — از پارچه‌های سنگین تا چاپ کروم با فیت آناتومیک. طراحی شده برای کسانی که جزئیات را می‌بینند.',
-
-    cta: 'مشاهده آرشیو',
-
-    ctaHref: '#/shop',
-
-    items: [
-
-      { icon: 'layers', label: 'HEAVYWEIGHT COTTONS' },
-
-      { icon: 'sparkles', label: 'SCREEN PRINTED CHROME' },
-
-      { icon: 'scan', label: 'ANATOMICAL FIT' },
-
-    ],
-
-    card: {
-
-      tag: 'ARCHIVE',
-
-      title: 'Skull Tank — SS24',
-
-      subtitle: 'Limited drop · ۴۸ عدد',
-
-    },
-
-  },
-
-
-
   theme: {
 
     primary: '#DC2626',
@@ -165,6 +129,22 @@ export default {
       info: { bg: '#2563eb', text: '#ffffff', border: '#1d4ed8' },
 
     },
+
+  },
+
+  promoSlider: {
+
+    autoplayMs: 5000,
+
+    speed: 800,
+
+    aspect: 'aspect-[21/9]',
+
+    fallbackBanners: [
+
+      { id: 0, title: 'پوستر تبلیغاتی', image_url: 'assets/images/poster.png' },
+
+    ],
 
   },
 
@@ -984,6 +964,8 @@ export default {
 
         discounts: 'کدهای تخفیف',
 
+        promoBanners: 'پوسترهای تبلیغاتی',
+
         settings: 'تنظیمات',
 
         pages: 'محتوای صفحات',
@@ -1208,6 +1190,46 @@ export default {
 
       },
 
+      promoBanners: {
+
+        title: 'پوسترهای تبلیغاتی',
+
+        subtitle: 'اسلایدر پوستر زیر کاروسل صفحه اصلی',
+
+        add: 'افزودن پوستر',
+
+        uploadHint: 'پوستر جدید را آپلود کنید. نسبت تصویر افقی (۲۱:۹) توصیه می‌شود.',
+
+        titlePlaceholder: 'عنوان (alt) — اختیاری',
+
+        empty: 'پوستری ثبت نشده',
+
+        loading: 'در حال بارگذاری...',
+
+        active: 'فعال',
+
+        inactive: 'غیرفعال',
+
+        activate: 'فعال',
+
+        deactivate: 'غیرفعال',
+
+        delete: 'حذف',
+
+        moveUp: 'بالا',
+
+        moveDown: 'پایین',
+
+        uploadSuccess: 'پوستر اضافه شد',
+
+        saved: 'ذخیره شد',
+
+        deleted: 'پوستر حذف شد',
+
+        confirmDelete: 'حذف شود؟',
+
+      },
+
       settings: {
 
         title: 'تنظیمات',
@@ -1229,7 +1251,6 @@ export default {
           shopDescription: 'توضیحات فروشگاه',
           logo: 'لوگو',
           heroImage: 'تصویر هیرو (صفحه اصلی)',
-          poster: 'پوستر بخش ویژگی',
           favicon: 'فاویکون',
           upload: 'آپلود تصویر',
           change: 'تغییر تصویر',

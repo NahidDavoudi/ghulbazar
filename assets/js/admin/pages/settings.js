@@ -18,7 +18,6 @@ import { applyAdminBranding } from '../branding.js';
   const UPLOAD_TYPES = [
     { type: 'logo', previewId: 'settingsLogoPreview', inputId: 'settingsLogoInput' },
     { type: 'hero', previewId: 'settingsHeroPreview', inputId: 'settingsHeroInput' },
-    { type: 'poster', previewId: 'settingsPosterPreview', inputId: 'settingsPosterInput' },
     { type: 'favicon', previewId: 'settingsFaviconPreview', inputId: 'settingsFaviconInput' },
   ];
 
@@ -102,7 +101,6 @@ import { applyAdminBranding } from '../branding.js';
 
     _setPreview('settingsLogoPreview', data.shop_logo);
     _setPreview('settingsHeroPreview', data.shop_hero_image);
-    _setPreview('settingsPosterPreview', data.shop_poster);
     _setPreview('settingsFaviconPreview', data.shop_favicon);
 
     _togglePaymentFields();
