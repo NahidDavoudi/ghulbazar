@@ -1,27 +1,31 @@
 # راه‌اندازی دیتابیس
 
-## ترتیب اجرای migrationها
+## نصب تازه (پیشنهادی)
+
+```bash
+mysql -u root -p your_database < api/database/schema.sql
+```
+
+فایل `schema.sql` شامل تمام جداول و seedهای اولیه است (ادغام همه migrationها).
+
+## migrationهای جداگانه (برای دیتابیس موجود)
 
 1. `otp_codes.sql` — جدول OTP و refresh tokens
 2. `product_catalog_migration.sql` — ساختار محصولات و variants
 3. `shop_settings_migration.sql` — تنظیمات فروشگاه
-4. `login_attempts.sql` — rate limit ورود (جدید)
-5. `orders_cancel_reason.sql` — ستون دلیل لغو سفارش (جدید)
+4. `legal_content_migration.sql` — محتوای قانونی JSON
+5. `login_attempts.sql` — rate limit ورود
+6. `orders_cancel_reason.sql` — ستون دلیل لغو سفارش
+7. `promo_banners.sql` — بنرهای تبلیغاتی
+
+اسکریپت‌های PHP:
+- `migrate_product_catalog.php` — افزودن ستون‌ها + seed attributes
+- `migrate_product_cleanup.php` — مهاجرت فیلدهای legacy
 
 ## نکات
 
-- فایل `schema.sql` کامل در gitignore است؛ برای onboarding از migrationهای موجود استفاده کنید.
 - قبل از production، یک dump از schema نهایی بگیرید و در محل امن نگه دارید.
 - پس از migration، یک کاربر admin دستی یا از seed موجود ایجاد کنید.
-
-## دستور نمونه (MySQL)
-
-```sql
-SOURCE otp_codes.sql;
-SOURCE product_catalog_migration.sql;
-SOURCE shop_settings_migration.sql;
-SOURCE login_attempts.sql;
-```
 
 ## بررسی سلامت
 
