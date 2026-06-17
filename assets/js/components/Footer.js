@@ -45,10 +45,6 @@ const Footer = {
           </div>
           <div class="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted/60">
             <p>${footer.copyright}</p>
-            <div class="flex flex-wrap gap-4 justify-center">
-              ${legalLinks.slice(2, 4).map((l) => `
-                <a href="${l.href}" data-link class="hover:text-body transition-colors">${l.label}</a>`).join('')}
-            </div>
           </div>
         </div>
       </footer>`;

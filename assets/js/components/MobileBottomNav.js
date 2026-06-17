@@ -31,7 +31,7 @@ const MobileBottomNav = {
       const linkAttrs = external ? '' : 'data-link';
       return `
         <a href="${href}" ${linkAttrs}
-           class="mobile-bottom-nav__item flex flex-col items-center justify-center gap-1 flex-1 min-w-0 py-2 text-muted transition-colors"
+           class="mobile-bottom-nav__item flex flex-col items-center justify-center gap-0.5 flex-1 min-w-0 py-1.5 text-muted transition-all duration-200"
            data-nav-id="${item.id || ''}">
           <i data-lucide="${item.icon}" class="w-5 h-5 shrink-0"></i>
           <span class="text-[10px] font-medium truncate max-w-full px-1">${item.label}</span>
