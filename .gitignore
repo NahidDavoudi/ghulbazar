@@ -3,3 +3,4 @@
 api/.env
 uploads/*
 !uploads/.gitkeep
+universal.zip
