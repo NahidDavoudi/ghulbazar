@@ -1,21 +1,29 @@
 /**
  * utils/helpers.js — shared UI helpers (toast, DOM shortcuts)
  */
+import defaultStoreConfig from '../config/store.config.js';
 import { escapeHtml, escapeAttr } from './htmlEscape.js';
 
+const TOAST_TYPES = new Set(['success', 'error', 'warning', 'info']);
+
 export function toast(msg, type = 'success', duration = 3000) {
-  const colors = {
-    success: 'var(--color-accent, #4b6b8a)',
-    error: '#dc2626',
-    info: '#2563eb',
-  };
+  const resolvedType = TOAST_TYPES.has(type) ? type : 'success';
+  const palette = defaultStoreConfig.ui?.toast?.[resolvedType]
+    || defaultStoreConfig.ui?.toast?.success
+    || { bg: '#16a34a', text: '#ffffff', border: '#15803d' };
+
   const el = document.createElement('div');
+  el.className = `app-toast app-toast--${resolvedType}`;
+  el.setAttribute('role', 'status');
+  el.setAttribute('aria-live', 'polite');
   el.style.cssText = [
     'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);',
-    `background:${colors[type] || colors.success};color:#fff;`,
+    `background:${palette.bg};color:${palette.text};`,
+    `border:1px solid ${palette.border};`,
     'padding:12px 24px;border-radius:12px;font-size:14px;',
-    'box-shadow:0 4px 20px rgba(0,0,0,.2);z-index:9999;',
-    'transition:opacity .3s;white-space:nowrap;',
+    'box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999;',
+    'transition:opacity .3s;max-width:min(90vw,420px);',
+    'text-align:center;white-space:normal;line-height:1.5;',
     'font-family:var(--font-vazir, Vazirmatn, sans-serif);',
   ].join('');
   el.textContent = msg;

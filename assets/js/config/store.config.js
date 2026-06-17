@@ -152,6 +152,18 @@ export default {
 
     cardHover: 'hover:shadow-[0_12px_40px_rgba(220,38,38,0.12)] hover:border-accent/30 transition-all duration-500',
 
+    toast: {
+
+      success: { bg: '#16a34a', text: '#ffffff', border: '#15803d' },
+
+      error: { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' },
+
+      warning: { bg: '#eab308', text: '#422006', border: '#ca8a04' },
+
+      info: { bg: '#2563eb', text: '#ffffff', border: '#1d4ed8' },
+
+    },
+
   },
 
   carousel: {
