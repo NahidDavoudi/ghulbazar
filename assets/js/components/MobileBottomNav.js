@@ -8,7 +8,7 @@ function currentPath() {
 
 function resolveHref(item) {
   if (item.id === 'profile') {
-    return auth.isLoggedIn() ? '#/orders' : 'login.html';
+    return auth.isLoggedIn() ? '#/profile' : 'login.html';
   }
   return item.href;
 }
@@ -16,7 +16,7 @@ function resolveHref(item) {
 function isActive(item) {
   const path = currentPath();
   if (item.id === 'profile') {
-    return auth.isLoggedIn() && path === '/orders';
+    return auth.isLoggedIn() && (path === '/profile' || path === '/orders');
   }
   return (item.routes || []).some((r) => r === path || (path === '/' && r === ''));
 }

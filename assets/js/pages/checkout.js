@@ -6,14 +6,20 @@ import Router from '../core/router.js';
 import { storeConfig } from '../config/bootstrap.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
 import { loadIranLocations, fillSelect } from '../utils/iranLocations.js';
+import { escapeHtml, escapeAttr } from '../utils/htmlEscape.js';
 import DOM from '../utils/dom.js';
 
 const { show, hide, text, reclone } = DOM;
+
+const checkoutTexts = () => storeConfig.texts.checkout || {};
+const maxAddresses = () => storeConfig.addresses?.maxCount || 3;
 
 let _checkoutCart = null;
 let _checkoutDiscount = null;
 let _locations = null;
 let _locationsBound = false;
+let _savedAddresses = [];
+let _selectedAddressId = 'new';
 
 function _shipping(total) {
   return total >= storeConfig.shipping.freeFrom ? 0 : storeConfig.shipping.standardCost;
@@ -61,6 +67,12 @@ function _resetCitySelect(cityEl) {
   cityEl.disabled = true;
 }
 
+function _findProvinceId(provinceName) {
+  if (!_locations || !provinceName) return '';
+  const match = _locations.provinces.find((p) => p.name === provinceName);
+  return match?.id || '';
+}
+
 function _bindLocationSelects(provinceEl, cityEl) {
   if (_locationsBound) return;
   _locationsBound = true;
@@ -103,8 +115,169 @@ async function _initLocationSelects() {
   _bindLocationSelects(provinceEl, cityEl);
 }
 
+async function _fillFormFromAddress(address) {
+  const provinceEl = document.getElementById('province-select');
+  const cityEl = document.getElementById('city-select');
+  if (!provinceEl || !cityEl || !address) return;
+
+  if (!_locations) {
+    _locations = await loadIranLocations(storeConfig.data.iranLocations);
+  }
+
+  const provinceId = _findProvinceId(address.province);
+  if (provinceId) {
+    provinceEl.value = provinceId;
+    const cities = _locations.getCities(provinceId).map((name) => ({ value: name, label: name }));
+    fillSelect(cityEl, cities, 'انتخاب شهر...');
+    cityEl.disabled = false;
+    if (address.city) cityEl.value = address.city;
+  }
+
+  const nameEl = document.getElementById('customer-name');
+  const phoneEl = document.getElementById('customer-phone');
+  const postalEl = document.getElementById('postal-code');
+  const addressEl = document.getElementById('shipping-address');
+
+  if (nameEl && address.receiver) nameEl.value = address.receiver;
+  if (phoneEl && address.phone) phoneEl.value = address.phone;
+  if (postalEl) postalEl.value = address.postal_code || '';
+  if (addressEl) addressEl.value = address.address || '';
+}
+
+function _toggleAddressFields(enabled) {
+  const fields = document.getElementById('checkout-address-fields');
+  if (!fields) return;
+  fields.querySelectorAll('input, select, textarea').forEach((el) => {
+    el.disabled = !enabled;
+  });
+  fields.classList.toggle('opacity-60', !enabled);
+}
+
+function _updateSaveAddressOption() {
+  const saveSection = document.getElementById('save-address-option');
+  const saveCheckbox = document.getElementById('save-address-checkbox');
+  const saveLabel = document.getElementById('save-address-label');
+  if (!saveSection || !saveCheckbox) return;
+
+  const canSave = _selectedAddressId === 'new' && _savedAddresses.length < maxAddresses();
+  saveSection.classList.toggle('hidden', !canSave);
+  if (saveLabel) saveLabel.textContent = checkoutTexts().saveAddress || '';
+  if (!canSave) saveCheckbox.checked = false;
+}
+
+function _renderSavedAddresses() {
+  const section = document.getElementById('saved-addresses-section');
+  const listEl = document.getElementById('saved-addresses-list');
+  const labelEl = document.getElementById('saved-addresses-label');
+  if (!section || !listEl) return;
+
+  if (!api.auth.isLoggedIn() || !_savedAddresses.length) {
+    hide('saved-addresses-section');
+    _selectedAddressId = 'new';
+    _toggleAddressFields(true);
+    _updateSaveAddressOption();
+    return;
+  }
+
+  show('saved-addresses-section');
+  if (labelEl) labelEl.textContent = checkoutTexts().savedAddresses || '';
+
+  const defaultAddress = _savedAddresses.find((a) => Number(a.is_default) === 1);
+  if (!_selectedAddressId || (_selectedAddressId !== 'new' && !_savedAddresses.some((a) => String(a.id) === String(_selectedAddressId)))) {
+    _selectedAddressId = defaultAddress ? String(defaultAddress.id) : String(_savedAddresses[0].id);
+  }
+
+  const items = _savedAddresses.map((addr) => {
+    const title = addr.title || `${addr.province}، ${addr.city}`;
+    const summary = [addr.address, addr.postal_code ? `کد پستی: ${addr.postal_code}` : ''].filter(Boolean).join(' — ');
+    const checked = String(addr.id) === String(_selectedAddressId) ? ' checked' : '';
+    return `
+      <label class="flex items-start gap-3 flex-row-reverse p-3 rounded-xl border cursor-pointer transition-colors ${checked ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/40'}">
+        <input type="radio" name="saved-address" value="${escapeAttr(addr.id)}" class="mt-1"${checked}>
+        <span class="text-right min-w-0 flex-1">
+          <span class="block text-sm font-bold text-body">${escapeHtml(title)}</span>
+          <span class="block text-xs text-muted mt-1 leading-relaxed">${escapeHtml(summary)}</span>
+        </span>
+      </label>`;
+  }).join('');
+
+  const newChecked = _selectedAddressId === 'new' ? ' checked' : '';
+  listEl.innerHTML = `
+    ${items}
+    <label class="flex items-center gap-3 flex-row-reverse p-3 rounded-xl border cursor-pointer transition-colors ${newChecked ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/40'}">
+      <input type="radio" name="saved-address" value="new" class="shrink-0"${newChecked}>
+      <span class="text-sm font-medium text-body">${escapeHtml(checkoutTexts().newAddress || 'آدرس جدید')}</span>
+    </label>`;
+
+  listEl.querySelectorAll('input[name="saved-address"]').forEach((input) => {
+    input.addEventListener('change', async () => {
+      _selectedAddressId = input.value;
+      if (_selectedAddressId === 'new') {
+        _toggleAddressFields(true);
+      } else {
+        const address = _savedAddresses.find((a) => String(a.id) === String(_selectedAddressId));
+        await _fillFormFromAddress(address);
+        _toggleAddressFields(false);
+      }
+      _renderSavedAddresses();
+      _updateSaveAddressOption();
+    });
+  });
+
+  if (_selectedAddressId !== 'new') {
+    const address = _savedAddresses.find((a) => String(a.id) === String(_selectedAddressId));
+    _fillFormFromAddress(address).then(() => _toggleAddressFields(false));
+  } else {
+    _toggleAddressFields(true);
+  }
+
+  _updateSaveAddressOption();
+}
+
+async function _loadSavedAddresses() {
+  _savedAddresses = [];
+  _selectedAddressId = 'new';
+
+  if (!api.auth.isLoggedIn()) {
+    _renderSavedAddresses();
+    return;
+  }
+
+  try {
+    const data = await api.users.getAddresses();
+    _savedAddresses = Array.isArray(data) ? data : (data?.data || data?.addresses || []);
+    const defaultAddress = _savedAddresses.find((a) => Number(a.is_default) === 1);
+    _selectedAddressId = defaultAddress ? String(defaultAddress.id) : (_savedAddresses[0] ? String(_savedAddresses[0].id) : 'new');
+  } catch {
+    _savedAddresses = [];
+    _selectedAddressId = 'new';
+  }
+
+  _renderSavedAddresses();
+}
+
 function _buildShippingAddress(provinceName, city, address, postalCode) {
   return `${provinceName}، ${city}، ${address} — کد پستی: ${postalCode}`;
+}
+
+async function _maybeSaveAddress(name, phone, provinceName, city, postalCode, address) {
+  const saveCheckbox = document.getElementById('save-address-checkbox');
+  if (!saveCheckbox?.checked || _selectedAddressId !== 'new') return;
+  if (_savedAddresses.length >= maxAddresses()) {
+    api.utils.toast(storeConfig.texts.profile?.maxReached || checkoutTexts().maxReached || 'حداکثر ۳ آدرس', 'warning');
+    return;
+  }
+
+  await api.users.addAddress({
+    title: checkoutTexts().defaultAddressTitle || 'آدرس checkout',
+    province: provinceName,
+    city,
+    address,
+    postal_code: postalCode,
+    receiver: name,
+    phone,
+    is_default: _savedAddresses.length === 0 ? 1 : 0,
+  });
 }
 
 async function _submitOrder() {
@@ -129,6 +302,14 @@ async function _submitOrder() {
   if (btn) { btn.disabled = true; btn.textContent = 'در حال ثبت سفارش...'; }
 
   try {
+    if (api.auth.isLoggedIn()) {
+      try {
+        await _maybeSaveAddress(name, phone, provinceName, city, postalCode, address);
+      } catch (e) {
+        api.utils.toast(e.message, 'warning');
+      }
+    }
+
     const discountCode = _checkoutDiscount
       ? document.getElementById('checkout-discount-input')?.value.trim()
       : undefined;
@@ -162,6 +343,8 @@ async function _submitOrder() {
 
 Router.onEnter('checkout', async function () {
   _checkoutDiscount = null;
+  _locationsBound = false;
+  _selectedAddressId = 'new';
   show('checkout-loading');
   hide('checkout-empty-msg');
   hide('checkout-form');
@@ -182,6 +365,7 @@ Router.onEnter('checkout', async function () {
     show('checkout-form');
     _renderCheckoutSummary();
     await _initLocationSelects();
+    await _loadSavedAddresses();
   } catch (e) {
     const el = document.getElementById('checkout-loading');
     if (el) el.innerHTML = `<p class="text-accent text-center">${e.message}</p>`;

@@ -11,10 +11,7 @@ class UsersController extends Controller
 
     public function __construct()
     {
-        $this->service = new UsersService(
-            new UsersModel(),
-            new UsersAddressModel(),
-        );
+        $this->service = new UsersService();
     }
 
     // ─── Profile ─────────────────────────────────────────────────
@@ -32,7 +29,7 @@ class UsersController extends Controller
     // PUT /user/update
     public function update(Request $request): void
     {
-        $data = $request->only(['name', 'email']);
+        $data = $request->only(['name', 'phone']);
 
         try {
             $user = $this->service->updateProfile($this->userId(), $data);
@@ -42,8 +39,8 @@ class UsersController extends Controller
         }
     }
 
-    // PUT /user/changePassword
-    public function Password(Request $request): void
+    // PUT /users/me/password
+    public function changePassword(Request $request): void
     {
         $current = $request->input('current_password');
         $new     = $request->input('new_password');
@@ -68,10 +65,13 @@ class UsersController extends Controller
         $this->success($this->service->getAddresses($this->userId()));
     }
 
-    // POST /user/addAddress
+    // POST /users/me/addresses
     public function addAddress(Request $request): void
     {
-        $data = $request->only(['address', 'city', 'state', 'zip_code']);
+        $data = $this->normalizeAddressInput($request->only([
+            'title', 'province', 'city', 'address', 'postal_code',
+            'receiver', 'phone', 'is_default', 'state', 'zip_code',
+        ]));
 
         try {
             $address = $this->service->addAddress($this->userId(), $data);
@@ -81,10 +81,13 @@ class UsersController extends Controller
         }
     }
 
-    // PUT /user/updateAddress/123
+    // PATCH /users/me/addresses/{id}
     public function updateAddress(Request $request, int $addressId): void
     {
-        $data = $request->only(['address', 'city', 'state', 'zip_code']);
+        $data = $this->normalizeAddressInput($request->only([
+            'title', 'province', 'city', 'address', 'postal_code',
+            'receiver', 'phone', 'is_default', 'state', 'zip_code',
+        ]));
 
         try {
             $address = $this->service->updateAddress($this->userId(), $addressId, $data);
@@ -133,6 +136,20 @@ class UsersController extends Controller
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
+    }
+
+    private function normalizeAddressInput(array $data): array
+    {
+        if (empty($data['province']) && !empty($data['state'])) {
+            $data['province'] = $data['state'];
+        }
+        if (empty($data['postal_code']) && !empty($data['zip_code'])) {
+            $data['postal_code'] = $data['zip_code'];
+        }
+
+        unset($data['state'], $data['zip_code']);
+
+        return $data;
     }
 
     // PATCH /admin/users/{id}/role  (ادمین)

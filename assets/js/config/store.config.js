@@ -78,6 +78,12 @@ export default {
 
   },
 
+  addresses: {
+
+    maxCount: 3,
+
+  },
+
   data: {
 
     iranLocations: 'assets/data/provinces_cities_counties.json',
@@ -232,9 +238,85 @@ export default {
 
       { href: '#/categories', label: 'دسته‌بندی‌ها', icon: 'layout-grid', routes: ['/categories'] },
 
-      { id: 'profile', label: 'پروفایل', icon: 'user', routes: ['/orders'] },
+      { id: 'profile', label: 'پروفایل', icon: 'user', routes: ['/profile', '/orders'] },
 
     ],
+
+    profile: {
+
+      title: 'پروفایل من',
+
+      subtitle: 'مدیریت آدرس‌های ارسال',
+
+      addressesTitle: 'آدرس‌های من',
+
+      addAddress: 'افزودن آدرس',
+
+      editAddress: 'ویرایش آدرس',
+
+      deleteAddress: 'حذف',
+
+      setDefault: 'انتخاب به‌عنوان پیش‌فرض',
+
+      defaultBadge: 'پیش‌فرض',
+
+      empty: 'هنوز آدرسی ذخیره نشده',
+
+      maxReached: 'حداکثر ۳ آدرس می‌توانید ذخیره کنید',
+
+      saved: 'آدرس ذخیره شد',
+
+      updated: 'آدرس بروزرسانی شد',
+
+      deleted: 'آدرس حذف شد',
+
+      confirmDelete: 'این آدرس حذف شود؟',
+
+      ordersLink: 'سفارشات من',
+
+      needLogin: 'برای مدیریت آدرس‌ها وارد شوید',
+
+      loginBtn: 'ورود به حساب',
+
+      save: 'ذخیره آدرس',
+
+      cancel: 'انصراف',
+
+      titleLabel: 'عنوان آدرس',
+
+      titlePlaceholder: 'مثلاً: منزل، محل کار',
+
+      receiverLabel: 'نام گیرنده',
+
+      phoneLabel: 'شماره تماس',
+
+      provinceLabel: 'استان',
+
+      cityLabel: 'شهر',
+
+      postalLabel: 'کد پستی',
+
+      addressLabel: 'آدرس دقیق',
+
+      addressPlaceholder: 'خیابان، کوچه، پلاک، واحد',
+
+      defaultLabel: 'آدرس پیش‌فرض',
+
+      slotInfo: 'می‌توانید تا ۳ آدرس ذخیره کنید',
+
+    },
+
+    checkout: {
+
+      savedAddresses: 'آدرس‌های ذخیره‌شده',
+
+      newAddress: 'آدرس جدید',
+
+      saveAddress: 'ذخیره این آدرس برای خریدهای بعد',
+
+      defaultAddressTitle: 'آدرس checkout',
+
+    },
 
     home: {
 

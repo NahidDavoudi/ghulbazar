@@ -37,4 +37,30 @@ class UsersAddressModel extends Model
         $stmt->execute([$addressId, $userId]);
         return (bool) $stmt->fetchColumn();
     }
+
+    public function countByUserId(int $userId): int
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*) FROM {$this->table} WHERE user_id = ?
+        ");
+        $stmt->execute([$userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function clearDefaultForUser(int $userId, ?int $exceptId = null): void
+    {
+        if ($exceptId !== null) {
+            $stmt = $this->pdo->prepare("
+                UPDATE {$this->table} SET is_default = 0
+                WHERE user_id = ? AND id != ?
+            ");
+            $stmt->execute([$userId, $exceptId]);
+            return;
+        }
+
+        $stmt = $this->pdo->prepare("
+            UPDATE {$this->table} SET is_default = 0 WHERE user_id = ?
+        ");
+        $stmt->execute([$userId]);
+    }
 }

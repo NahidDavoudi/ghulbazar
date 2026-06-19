@@ -5,6 +5,8 @@ use App\Core\Logger;
 
 class UsersService
 {
+    public const MAX_ADDRESSES = 3;
+
     protected UsersModel $usersModel;
     protected UsersAddressModel $usersAddressModel;
 
@@ -86,16 +88,34 @@ class UsersService
 
     public function addAddress(int $userId, array $data): array
     {
+        $count = $this->usersAddressModel->countByUserId($userId);
+        if ($count >= self::MAX_ADDRESSES) {
+            throw new \RuntimeException('حداکثر ۳ آدرس می‌توانید ذخیره کنید.', 422);
+        }
+
+        $province = trim($data['province'] ?? $data['state'] ?? '');
+        $city = trim($data['city'] ?? '');
+        $address = trim($data['address'] ?? '');
+
+        if ($province === '' || $city === '' || $address === '') {
+            throw new \RuntimeException('استان، شهر و آدرس الزامی است.', 422);
+        }
+
+        $isDefault = !empty($data['is_default']) ? 1 : ($count === 0 ? 1 : 0);
+        if ($isDefault) {
+            $this->usersAddressModel->clearDefaultForUser($userId);
+        }
+
         $id = $this->usersAddressModel->create([
             'user_id'     => $userId,
             'title'       => trim($data['title']       ?? ''),
-            'province'    => trim($data['province']),
-            'city'        => trim($data['city']),
-            'address'     => trim($data['address']),
-            'postal_code' => trim($data['postal_code'] ?? ''),
+            'province'    => $province,
+            'city'        => $city,
+            'address'     => $address,
+            'postal_code' => trim($data['postal_code'] ?? $data['zip_code'] ?? ''),
             'receiver'    => trim($data['receiver']    ?? ''),
             'phone'       => trim($data['phone']       ?? ''),
-            'is_default'  => $data['is_default']       ?? 0,
+            'is_default'  => $isDefault,
         ]);
 
         return $this->usersAddressModel->find($id);
@@ -113,8 +133,25 @@ class UsersService
             fn($v) => $v !== null && $v !== ''
         );
 
+        if (isset($payload['province']) && $payload['province'] === '') {
+            unset($payload['province']);
+        }
+        if (isset($payload['city']) && $payload['city'] === '') {
+            unset($payload['city']);
+        }
+        if (isset($payload['address']) && $payload['address'] === '') {
+            unset($payload['address']);
+        }
+
         if (empty($payload)) {
             throw new \RuntimeException('هیچ فیلد معتبری ارسال نشد.', 422);
+        }
+
+        if (!empty($payload['is_default'])) {
+            $this->usersAddressModel->clearDefaultForUser($userId, $addressId);
+            $payload['is_default'] = 1;
+        } elseif (array_key_exists('is_default', $payload)) {
+            $payload['is_default'] = 0;
         }
 
         $this->usersAddressModel->update($addressId, $payload);
