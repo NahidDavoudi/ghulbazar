@@ -28,7 +28,8 @@ window.closeSidebar = () => {
   document.getElementById('mobileOverlay')?.classList.add('hidden');
 };
 
-if (!api.auth.isLoggedIn() || !api.auth.isAdmin()) {
+const sessionOk = await api.auth.validateSession();
+if (!sessionOk || !api.auth.isAdmin()) {
   location.replace('login.html');
 }
 

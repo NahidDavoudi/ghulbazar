@@ -1,6 +1,6 @@
 /**
- * Ghul Bazar — Customer API Client
- * @version 2.0.0 (SPA Edition)
+ * Ghul Bazar — Customer API Client (cookie-based auth)
+ * @version 2.1.0
  */
 
 class CustomerError extends Error {
@@ -14,16 +14,21 @@ class CustomerError extends Error {
 
 class CustomerApiClient {
   constructor(options = {}) {
-    this.baseURL    = options.baseURL || 'api.php?endpoint=';
-    this.debug      = options.debug   || false;
-    this.accessToken  = localStorage.getItem('gb_token')   || null;
-    this.refreshToken = localStorage.getItem('gb_refresh')  || null;
-    this.user         = JSON.parse(localStorage.getItem('gb_user') || 'null');
+    this.baseURL = options.baseURL || 'api.php?endpoint=';
+    this.debug   = options.debug   || false;
+    this.user    = JSON.parse(localStorage.getItem('gb_user') || 'null');
   }
 
-  /* ─── internals ─── */
-
   _log(...a) { if (this.debug) console.log('[API]', ...a); }
+
+  _headers(method = 'GET', extra = {}) {
+    const h = { Accept: 'application/json', ...extra };
+    if (['POST','PUT','PATCH','DELETE'].includes(method.toUpperCase())) {
+      const csrf = this._csrf();
+      if (csrf) h['X-CSRF-TOKEN'] = csrf;
+    }
+    return h;
+  }
 
   _csrf() {
     const match = document.cookie.split(';')
@@ -32,37 +37,25 @@ class CustomerApiClient {
     return match ? decodeURIComponent(match.split('=')[1]) : '';
   }
 
-  _headers(method = 'GET', extra = {}) {
-    const h = { 'Accept': 'application/json', ...extra };
-    if (['POST','PUT','PATCH','DELETE'].includes(method.toUpperCase())) {
-      const csrf = this._csrf();
-      if (csrf) h['X-CSRF-TOKEN'] = csrf;
-    }
-    if (this.accessToken) h['Authorization'] = `Bearer ${this.accessToken}`;
-    return h;
-  }
-
   async _req(method, endpoint, body = null, isForm = false) {
     const url  = this.baseURL + endpoint;
     const hdrs = this._headers(method);
-    const opts = { method, headers: hdrs };
+    const opts = { method, headers: hdrs, credentials: 'include' };
 
     if (body && !isForm) {
       hdrs['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(body);
     } else if (body && isForm) {
-      opts.body = body; // FormData — no Content-Type header
+      opts.body = body;
     }
 
     this._log(method, url, body);
 
     let res = await fetch(url, opts);
 
-    /* auto-refresh on 401 */
-    if (res.status === 401 && this.refreshToken) {
+    if (res.status === 401) {
       const ok = await this._refresh();
       if (ok) {
-        opts.headers['Authorization'] = `Bearer ${this.accessToken}`;
         res = await fetch(url, opts);
       } else {
         this._clearSession();
@@ -84,27 +77,19 @@ class CustomerApiClient {
   }
 
   async _refresh() {
-    if (!this.refreshToken) return false;
     try {
-      const res  = await fetch(this.baseURL + 'auth/refresh', {
+      const res = await fetch(this.baseURL + 'auth/refresh', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refresh_token: this.refreshToken }),
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
       });
       if (res.ok) {
         const d = await res.json();
-        this._saveTokens(d.access_token, d.refresh_token);
+        if (d.user || d.data?.user) this._saveUser(d.user || d.data.user);
         return true;
       }
     } catch {}
     return false;
-  }
-
-  _saveTokens(access, refresh) {
-    this.accessToken  = access;
-    this.refreshToken = refresh;
-    localStorage.setItem('gb_token',   access);
-    if (refresh) localStorage.setItem('gb_refresh', refresh);
   }
 
   _saveUser(user) {
@@ -113,47 +98,41 @@ class CustomerApiClient {
   }
 
   _clearSession() {
-    this.accessToken  = null;
-    this.refreshToken = null;
-    this.user         = null;
+    this.user = null;
+    localStorage.removeItem('gb_user');
     localStorage.removeItem('gb_token');
     localStorage.removeItem('gb_refresh');
-    localStorage.removeItem('gb_user');
   }
 
-  isAuth() { return !!this.accessToken; }
+  isAuth() { return !!this.user; }
   getUser() { return this.user; }
 
-  /* ─── Auth ─── */
   auth = {
     login: async (phone, password) => {
       const d = await this._req('POST', 'auth/login', { phone, password });
-      this._saveTokens(d.access_token || d.token, d.refresh_token);
-      if (d.user) this._saveUser(d.user);
+      if (d.user || d.data?.user) this._saveUser(d.user || d.data.user);
       return d;
     },
     register: async (data) => {
       const d = await this._req('POST', 'auth/register', data);
-      this._saveTokens(d.access_token || d.token, d.refresh_token);
-      if (d.user) this._saveUser(d.user);
+      if (d.user || d.data?.user) this._saveUser(d.user || d.data.user);
       return d;
     },
     sendOtp:   (phone)        => this._req('POST', 'auth/sendLoginOtp',   { phone }),
     verifyOtp: (phone, code)  => this._req('POST', 'auth/verifyLoginOtp', { phone, code })
       .then(d => {
-        if (d.access_token) { this._saveTokens(d.access_token, d.refresh_token); this._saveUser(d.user); }
+        if (d.user || d.data?.user) this._saveUser(d.user || d.data.user);
         return d;
       }),
     forgotPassword: (phone) => this._req('POST', 'password/forgot', { phone }),
     resetPassword:  (token, password) => this._req('POST', 'password/reset', { token, password }),
     logout: async () => {
-      try { await this._req('POST', 'auth/logout', { refresh_token: this.refreshToken }); } finally {
+      try { await this._req('POST', 'auth/logout', {}); } finally {
         this._clearSession();
       }
     },
   };
 
-  /* ─── Products ─── */
   products = {
     list:       (params = {}) => this._req('GET', 'products&' + new URLSearchParams(params)),
     show:       (id)          => this._req('GET', `products&id=${id}`),
@@ -164,7 +143,6 @@ class CustomerApiClient {
     search:     (q)           => this._req('GET', `products&q=${encodeURIComponent(q)}`),
   };
 
-  /* ─── Categories & Eras ─── */
   categories = {
     list: () => this._req('GET', 'categories'),
     show: (id) => this._req('GET', `categories&id=${id}`),
@@ -173,7 +151,6 @@ class CustomerApiClient {
     list: () => this._req('GET', 'eras'),
   };
 
-  /* ─── Cart ─── */
   cart = {
     get:    ()                   => this._req('GET',    'cart'),
     add:    (productId, qty = 1) => this._req('POST',   'cart', { product_id: productId, qty }),
@@ -182,12 +159,10 @@ class CustomerApiClient {
     clear:  ()                   => this._req('DELETE', 'cart'),
   };
 
-  /* ─── Discounts ─── */
   discounts = {
     validate: (code) => this._req('GET', `discounts&action=validate&code=${encodeURIComponent(code)}`),
   };
 
-  /* ─── Orders ─── */
   orders = {
     place:   (data)  => this._req('POST', 'orders', data),
     list:    ()      => this._req('GET',  'orders'),
@@ -195,7 +170,6 @@ class CustomerApiClient {
     cancel:  (id)    => this._req('PUT',  `orders&id=${id}&action=cancel`),
   };
 
-  /* ─── Payment (Card-to-Card) ─── */
   payment = {
     uploadReceipt: (orderNumber, file) => {
       const fd = new FormData();
@@ -206,14 +180,12 @@ class CustomerApiClient {
     status: (orderId) => this._req('GET', `payment-receipts&order_id=${orderId}`),
   };
 
-  /* ─── Profile ─── */
   profile = {
     get:            ()          => this._req('GET', 'user/profile'),
     update:         (data)      => this._req('PUT', 'user/profile', data),
     changePassword: (old_, new_)=> this._req('PUT', 'user/password', { old_password: old_, new_password: new_ }),
   };
 
-  /* ─── Addresses ─── */
   addresses = {
     list:   ()         => this._req('GET',    'user/addresses'),
     add:    (addr)     => this._req('POST',   'user/addresses', addr),
@@ -222,6 +194,5 @@ class CustomerApiClient {
   };
 }
 
-/* singleton */
 const api = new CustomerApiClient({ debug: false });
 export default api;

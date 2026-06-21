@@ -15,34 +15,24 @@ class ExceptionHandler
         $this->isDevMode = Env::get('APP_ENV', 'production') === 'development';
     }
 
-    // ─────────────────────────────────────────
-    //  نقطه ورود اصلی — همه exception ها اینجا میان
-    // ─────────────────────────────────────────
-
     public function handle(Throwable $e): void
-{
-    $statusCode = $this->resolveStatusCode($e);
+    {
+        $statusCode = $this->resolveStatusCode($e);
 
-    // ← این رو اضافه کن
-    if ($statusCode >= 500) {
-        Logger::error($e->getMessage(), [
-            'exception' => get_class($e),
-            'file'      => $e->getFile(),
-            'line'      => $e->getLine(),
-        ]);
+        if ($statusCode >= 500) {
+            Logger::error($e->getMessage(), array_merge(RequestContext::toArray(), [
+                'exception' => get_class($e),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+            ]));
+        }
+
+        if ($this->expectsJson()) {
+            $this->respondJson($e, $statusCode);
+        } else {
+            $this->respondHtml($e, $statusCode);
+        }
     }
-
-    if ($this->expectsJson()) {
-        $this->respondJson($e, $statusCode);
-    } else {
-        $this->respondHtml($e, $statusCode);
-    }
-}
-
-    // ─────────────────────────────────────────
-    //  تبدیل PHP errors به Exception
-    //  (set_error_handler این رو صدا می‌زنه)
-    // ─────────────────────────────────────────
 
     public function handleError(
         int    $severity,
@@ -57,12 +47,9 @@ class ExceptionHandler
         throw new \ErrorException($message, 0, $severity, $file, $line);
     }
 
-    // ─────────────────────────────────────────
-    //  پاسخ JSON
-    // ─────────────────────────────────────────
-
     private function respondJson(Throwable $e, int $code): void
     {
+        SecurityHeaders::apply();
         http_response_code($code);
         header('Content-Type: application/json; charset=utf-8');
 
@@ -71,7 +58,6 @@ class ExceptionHandler
             'message' => $this->resolveMessage($e, $code),
         ];
 
-        // در dev mode اطلاعات کامل‌تر نشون بده
         if ($this->isDevMode) {
             $body['debug'] = [
                 'exception' => get_class($e),
@@ -86,51 +72,38 @@ class ExceptionHandler
         exit;
     }
 
-    // ─────────────────────────────────────────
-    //  پاسخ HTML
-    // ─────────────────────────────────────────
-
     private function respondHtml(Throwable $e, int $code): void
     {
+        SecurityHeaders::apply();
         http_response_code($code);
         header('Content-Type: text/html; charset=utf-8');
 
-        // اگه dev mode بود و view وجود نداشت، خطای خام نشون بده
         if ($this->isDevMode) {
             $this->renderDevPage($e, $code);
             exit;
         }
 
-        // فایل view متناسب با status code
         $viewPath = $this->resolveView($code);
 
         if (file_exists($viewPath)) {
-            // متغیرهای قابل دسترس داخل view
             $statusCode = $code;
             $message    = $this->resolveMessage($e, $code);
             require $viewPath;
         } else {
-            // fallback اگه فایل view پیدا نشد
             echo "<h1>خطای {$code}</h1><p>" . $this->resolveMessage($e, $code) . "</p>";
         }
 
         exit;
     }
 
-    // ─────────────────────────────────────────
-    //  تعیین status code از نوع exception
-    // ─────────────────────────────────────────
-
     private function resolveStatusCode(Throwable $e): int
     {
-        // اگه exception خودش code داشت و یه HTTP code معتبر بود، ازش استفاده کن
         $code = $e->getCode();
 
         if (is_int($code) && $code >= 400 && $code < 600) {
             return $code;
         }
 
-        // بر اساس نوع exception
         return match (true) {
             $e instanceof \InvalidArgumentException => 400,
             $e instanceof \RuntimeException         => 400,
@@ -138,18 +111,12 @@ class ExceptionHandler
         };
     }
 
-    // ─────────────────────────────────────────
-    //  پیام مناسب برای کاربر
-    // ─────────────────────────────────────────
-
     private function resolveMessage(Throwable $e, int $code): string
     {
-        // در dev mode پیام واقعی exception رو نشون بده
         if ($this->isDevMode) {
             return $e->getMessage() ?: $this->defaultMessage($code);
         }
 
-        // در production فقط پیام‌های امن
         return $this->defaultMessage($code);
     }
 
@@ -169,33 +136,22 @@ class ExceptionHandler
         };
     }
 
-    // ─────────────────────────────────────────
-    //  مسیر فایل view
-    // ─────────────────────────────────────────
-
     private function resolveView(int $code): string
     {
         $base = dirname(__DIR__, 2) . '/views/errors';
-        // اول دنبال فایل دقیق بگرد (مثلاً 404.php)
         $specific = "{$base}/{$code}.php";
         if (file_exists($specific)) {
             return $specific;
         }
 
-        // بعد دنبال فایل عمومی بگرد (5xx.php یا 4xx.php)
         $category = (int) floor($code / 100) . 'xx';
         $general  = "{$base}/{$category}.php";
         if (file_exists($general)) {
             return $general;
         }
 
-        // fallback نهایی
         return "{$base}/500.php";
     }
-
-    // ─────────────────────────────────────────
-    //  تشخیص نوع request
-    // ─────────────────────────────────────────
 
     private function expectsJson(): bool
     {
@@ -206,10 +162,6 @@ class ExceptionHandler
             || str_contains($contentType, 'application/json')
             || str_starts_with($_SERVER['REQUEST_URI'] ?? '', '/api');
     }
-
-    // ─────────────────────────────────────────
-    //  صفحه debug برای development
-    // ─────────────────────────────────────────
 
     private function renderDevPage(Throwable $e, int $code): void
     {
@@ -258,10 +210,6 @@ class ExceptionHandler
         </html>
         HTML;
     }
-
-    // ─────────────────────────────────────────
-    //  فرمت trace برای JSON
-    // ─────────────────────────────────────────
 
     private function formatTrace(Throwable $e): array
     {

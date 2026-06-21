@@ -3,9 +3,6 @@ class ApiClient {
         this.baseURL = options.baseURL || (window.location.origin + '/index.php?url=');
         this.tenant = options.tenant || null;
         this.debug = options.debug || false;
-        this.accessToken = localStorage.getItem('access_token') || null;
-        this.refreshToken = localStorage.getItem('refresh_token') || null;
-        this.tokenExpiry = null;
         this._isRefreshing = false;
         this._refreshPromise = null;
     }
@@ -27,7 +24,7 @@ class ApiClient {
 
     _headers(extraHeaders = {}) {
         const headers = {
-            'Accept': 'application/json',
+            Accept: 'application/json',
             ...extraHeaders
         };
 
@@ -37,9 +34,6 @@ class ApiClient {
             if (csrf) headers['X-CSRF-TOKEN'] = csrf;
         }
 
-        if (this.accessToken) {
-            headers['Authorization'] = `Bearer ${this.accessToken}`;
-        }
         if (this.tenant) {
             headers['X-Tenant'] = this.tenant;
         }
@@ -49,7 +43,7 @@ class ApiClient {
     async _request(method, endpoint, body = null, isFormData = false) {
         let url = this.baseURL + endpoint;
         const headers = this._headers({ '_method': method });
-        const options = { method, headers };
+        const options = { method, headers, credentials: 'include' };
 
         if (body && !isFormData) {
             headers['Content-Type'] = 'application/json';
@@ -61,10 +55,9 @@ class ApiClient {
         this._log(`${method} ${url}`, body);
         let response = await fetch(url, options);
 
-        if (response.status === 401 && this.refreshToken && !this._isRefreshing) {
+        if (response.status === 401 && !this._isRefreshing) {
             const refreshed = await this._attemptRefresh();
             if (refreshed) {
-                options.headers['Authorization'] = `Bearer ${this.accessToken}`;
                 response = await fetch(url, options);
             } else {
                 this.logout();
@@ -87,17 +80,18 @@ class ApiClient {
     }
 
     async _attemptRefresh() {
-        if (!this.refreshToken || this._isRefreshing) return false;
+        if (this._isRefreshing) return false;
         this._isRefreshing = true;
         try {
             const res = await fetch(this.baseURL + 'auth/refresh', {
                 method: 'POST',
-                headers: this._headers({ 'Content-Type': 'application/json' }),
-                body: JSON.stringify({ refresh_token: this.refreshToken })
+                credentials: 'include',
+                headers: this._headers({ Accept: 'application/json' }),
             });
             if (res.ok) {
                 const data = await res.json();
-                this.setTokens(data.access_token, data.refresh_token);
+                const user = data.user || data.data?.user;
+                if (user) localStorage.setItem('admin_user', JSON.stringify(user));
                 this._isRefreshing = false;
                 return true;
             }
@@ -108,40 +102,26 @@ class ApiClient {
         return false;
     }
 
-    setTokens(accessToken, refreshToken) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        localStorage.setItem('access_token', accessToken);
-        if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
-    }
-
     logout() {
-        this.accessToken = null;
-        this.refreshToken = null;
+        localStorage.removeItem('admin_user');
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        localStorage.removeItem('admin_user');
     }
 
-    // ==================== AUTH ENDPOINTS ====================
     auth = {
         login: (phone, password) =>
             this._request('POST', 'auth/login', { phone, password }).then(d => {
-                this.setTokens(d.access_token, d.refresh_token);
-                if (d.user) localStorage.setItem('admin_user', JSON.stringify(d.user));
+                const user = d.user || d.data?.user;
+                if (user) localStorage.setItem('admin_user', JSON.stringify(user));
                 return d;
             }),
 
-        register: (data) =>
-            this._request('POST', 'auth/register', data).then(d => {
-                if (d.access_token) this.setTokens(d.access_token, d.refresh_token);
-                return d;
-            }),
+        register: (data) => this._request('POST', 'auth/register', data),
 
         verifyPhone: (phone, code) =>
             this._request('POST', 'auth/verifyPhone', { phone, code }).then(d => {
-                if (d.access_token) this.setTokens(d.access_token, d.refresh_token);
-                if (d.user) localStorage.setItem('admin_user', JSON.stringify(d.user));
+                const user = d.user || d.data?.user;
+                if (user) localStorage.setItem('admin_user', JSON.stringify(user));
                 return d;
             }),
 
@@ -150,19 +130,16 @@ class ApiClient {
 
         verifyLoginOtp: (phone, code) =>
             this._request('POST', 'auth/verifyLoginOtp', { phone, code }).then(d => {
-                if (d.access_token) this.setTokens(d.access_token, d.refresh_token);
-                if (d.user) localStorage.setItem('admin_user', JSON.stringify(d.user));
+                const user = d.user || d.data?.user;
+                if (user) localStorage.setItem('admin_user', JSON.stringify(user));
                 return d;
             }),
 
         refresh: () =>
-            this._request('POST', 'auth/refresh', { refresh_token: this.refreshToken }).then(d => {
-                this.setTokens(d.access_token, d.refresh_token);
-                return d;
-            }),
+            this._request('POST', 'auth/refresh', {}),
 
         logout: () =>
-            this._request('POST', 'auth/logout', { refresh_token: this.refreshToken }).then(() => {
+            this._request('POST', 'auth/logout', {}).then(() => {
                 this.logout();
             }),
 
@@ -173,7 +150,6 @@ class ApiClient {
             this._request('POST', 'auth/registerShop', data)
     };
 
-    // ==================== USER ENDPOINTS ====================
     user = {
         list: (params = {}) => {
             const query = new URLSearchParams(params).toString();
@@ -211,7 +187,6 @@ class ApiClient {
             this._request('DELETE', `users/deleteAddress/${id}`)
     };
 
-    // ==================== PRODUCTS ENDPOINTS ====================
     products = {
         list: (page = 1, perPage = 15) =>
             this._request('GET', `products?page=${page}&per_page=${perPage}`),
@@ -248,7 +223,6 @@ class ApiClient {
         }
     };
 
-    // ==================== CATEGORIES ENDPOINTS ====================
     categories = {
         listMain: () =>
             this._request('GET', 'categories'),
@@ -269,7 +243,6 @@ class ApiClient {
             this._request('DELETE', `categories/destroy/${id}`)
     };
 
-    // ==================== CART ENDPOINTS ====================
     cart = {
         get: () =>
             this._request('GET', 'cart'),
@@ -287,7 +260,6 @@ class ApiClient {
             this._request('POST', 'cart/clear')
     };
 
-    // ==================== COUPONS ENDPOINTS ====================
     coupons = {
         validate: (code, orderTotal) =>
             this._request('POST', 'coupons/validate', { code, order_total: orderTotal }),
@@ -305,7 +277,6 @@ class ApiClient {
             this._request('DELETE', `coupons/destroy/${id}`)
     };
 
-    // ==================== ORDERS ENDPOINTS ====================
     orders = {
         place: (addressId, couponCode = null, notes = null) =>
             this._request('POST', 'orders', { address_id: addressId, coupon_code: couponCode, notes }),
@@ -323,7 +294,6 @@ class ApiClient {
             this._request('PUT', `orders/updateStatus/${id}`, { status })
     };
 
-    // ==================== TENANTS ENDPOINTS (SUPERADMIN) ====================
     tenants = {
         list: () =>
             this._request('GET', 'tenants'),
@@ -341,7 +311,6 @@ class ApiClient {
             this._request('DELETE', `tenants/destroy/${id}`)
     };
 
-    // ==================== SYSTEM ENDPOINTS (SUPERADMIN) ====================
     system = {
         dashboard: () =>
             this._request('GET', 'system/dashboard'),
@@ -356,7 +325,6 @@ class ApiClient {
             this._request('GET', 'system/health')
     };
 
-    // ==================== PASSWORD RESET ENDPOINTS ====================
     passwordReset = {
         forgot: (phone, email = null) => {
             const body = {};
@@ -369,7 +337,6 @@ class ApiClient {
             this._request('POST', 'password/reset', { token, password: newPassword })
     };
 
-    // ==================== PAYMENT ENDPOINTS ====================
     payment = {
         verify: (authority, orderId) =>
             this._request('GET', `payment/verify?authority=${authority}&order_id=${orderId}`)

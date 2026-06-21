@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
   mountShell();
   if (window.lucide) lucide.createIcons();
+  await api.auth.validateSession();
   if (api.auth.isLoggedIn()) {
     try {
       await api.cart.mergeGuestIfNeeded();

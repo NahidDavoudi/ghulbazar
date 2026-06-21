@@ -5,13 +5,17 @@ use App\Core\Env;
 use App\Core\Http\Router;
 use App\Core\Http\Request;
 use App\Core\Http\ExceptionHandler;
+use App\Core\Http\SecurityHeaders;
+use App\Core\Http\RequestContext;
 
 // ─── Load environment ────────────────────────
 Env::load('.env');
 Env::assertProductionReady();
+RequestContext::configureProduction();
+RequestContext::boot();
+SecurityHeaders::apply();
 
 // ─── Exception Handler ───────────────────────
-// باید قبل از هر چیز دیگه‌ای ست بشه
 $handler = new ExceptionHandler();
 set_exception_handler([$handler, 'handle']);
 set_error_handler([$handler, 'handleError']);

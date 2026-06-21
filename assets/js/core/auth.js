@@ -1,27 +1,25 @@
 /**
- * core/auth.js — JWT token & user session storage
+ * core/auth.js — session state (tokens live in HttpOnly cookies only)
  */
 
 function keys() {
   const s = window.AppConfig?.storage || {};
   return {
-    token: s.token || 'gb_token',
-    refresh: s.refreshToken || 'gb_refresh',
     role: s.role || 'gb_role',
     user: s.user || 'gb_user',
   };
 }
 
 export const token = {
-  get: () => localStorage.getItem(keys().token),
-  set: (t) => localStorage.setItem(keys().token, t),
-  remove: () => localStorage.removeItem(keys().token),
+  get: () => null,
+  set: () => {},
+  remove: () => {},
 };
 
 export const refreshToken = {
-  get: () => localStorage.getItem(keys().refresh),
-  set: (t) => localStorage.setItem(keys().refresh, t),
-  remove: () => localStorage.removeItem(keys().refresh),
+  get: () => null,
+  set: () => {},
+  remove: () => {},
 };
 
 export const role = {
@@ -49,19 +47,15 @@ export function setCurrentUser(user) {
 }
 
 export function isLoggedIn() {
-  return !!token.get();
+  return !!getCurrentUser();
 }
 
 export function persistSession(data) {
   if (!data || typeof data !== 'object') return data;
 
-  const access = data.token ?? data.access_token;
-  const refresh = data.refresh_token;
   const user = data.user;
   const userRole = user?.role ?? data.role ?? 'user';
 
-  if (access) token.set(access);
-  if (refresh) refreshToken.set(refresh);
   role.set(userRole);
   if (user) setCurrentUser(user);
 
@@ -69,10 +63,12 @@ export function persistSession(data) {
 }
 
 export function clearSession() {
-  token.remove();
-  refreshToken.remove();
   role.remove();
   setCurrentUser(null);
+  localStorage.removeItem('gb_token');
+  localStorage.removeItem('gb_refresh');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
 }
 
 export default {

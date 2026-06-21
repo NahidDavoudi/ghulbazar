@@ -62,9 +62,7 @@ $router->group([
     ], function ($router) {
 
         // Auth
-        $router->get('/auth/me',       [AuthController::class, 'me']);
-        $router->post('/auth/refresh', [AuthController::class, 'refresh']);
-        $router->post('/auth/logout',  [AuthController::class, 'logout']);
+        $router->get('/auth/me', [AuthController::class, 'me']);
 
         // Profile
         $router->get('/users/me',          [UsersController::class, 'profile']);

@@ -10,8 +10,8 @@ class OtpService
 {
     private const OTP_LENGTH = 5;
     private const OTP_TTL_SECONDS = 120;
-    private const MAX_REQUESTS_PER_WINDOW = 3;
-    private const REQUEST_WINDOW_MINUTES = 10;
+    private const MAX_REQUESTS_PER_WINDOW = 5;
+    private const REQUEST_WINDOW_MINUTES = 15;
     private const VALID_PURPOSES = ['login', 'register', 'reset_password'];
 
     public function __construct(
@@ -35,7 +35,7 @@ class OtpService
         }
 
         if ($this->otpModel->countRecentRequests($phone, self::REQUEST_WINDOW_MINUTES) >= self::MAX_REQUESTS_PER_WINDOW) {
-            throw new \RuntimeException('تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً ۱۰ دقیقه دیگر تلاش کنید.', 429);
+            throw new \RuntimeException('تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً ۱۵ دقیقه دیگر تلاش کنید.', 429);
         }
 
         $this->otpModel->invalidatePending($phone, $purpose);

@@ -1177,24 +1177,15 @@ async function handleLogout() {
     } catch (e) {
         // Ignore errors
     }
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
     localStorage.removeItem('admin_user');
     window.location.href = 'login.html';
 }
 
 // ==================== AUTH CHECK & INIT ====================
 async function checkAuth() {
-    const token = localStorage.getItem('access_token');
-    
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
-    
     try {
         const result = await api.auth.me();
-        const user = result.user;
+        const user = result.user || result.data;
         
         if (!user) {
             handleLogout();

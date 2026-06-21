@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use App\Core\Env;
+
 class UploadHelper
 {
     /** @return string Public URL path (e.g. /universal/uploads/products/img_xxx.jpg) */
@@ -32,30 +34,28 @@ class UploadHelper
     /** @return array{filename: string, url: string, path: string} */
     private static function store(array $file, string $folder, array $options): array
     {
+        self::assertValidUpload($file);
+
         $allowed = $options['allowed'];
         $maxSize = $options['max_size'];
         $prefix  = $options['prefix'];
-
-        if (!in_array($file['type'], $allowed, true)) {
-            throw new \RuntimeException('فرمت فایل مجاز نیست.', 422);
-        }
 
         $detectedMime = self::detectMimeType($file['tmp_name']);
         if (!$detectedMime || !in_array($detectedMime, $allowed, true)) {
             throw new \RuntimeException('نوع واقعی فایل مجاز نیست.', 422);
         }
 
-        if ($file['size'] > $maxSize) {
+        if ((int) $file['size'] > $maxSize) {
             $mb = (int) ($maxSize / (1024 * 1024));
             throw new \RuntimeException("حجم فایل بیشتر از {$mb} مگابایت است.", 422);
         }
 
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        if (!self::extensionMatchesMime($ext, $detectedMime)) {
+        $ext = self::extensionForMime($detectedMime);
+        if (!$ext) {
             throw new \RuntimeException('پسوند فایل با نوع آن سازگار نیست.', 422);
         }
 
-        $filename = uniqid($prefix, true) . '.' . $ext;
+        $filename = $prefix . bin2hex(random_bytes(16)) . '.' . $ext;
         $dir      = self::uploadDir($folder);
 
         if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
@@ -73,18 +73,35 @@ class UploadHelper
         ];
     }
 
+    private static function assertValidUpload(array $file): void
+    {
+        if (empty($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            throw new \RuntimeException('فایل آپلود معتبر نیست.', 422);
+        }
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            throw new \RuntimeException('خطا در آپلود فایل.', 422);
+        }
+    }
+
     private static function uploadDir(string $folder): string
     {
         $configured = Env::get('UPLOAD_DIR');
-        $root       = $configured
-            ? rtrim($configured, '/\\')
-            : dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'uploads';
+        if ($configured) {
+            $root = rtrim($configured, '/\\');
+        } else {
+            $root = dirname(__DIR__, 3) . DIRECTORY_SEPARATOR . 'uploads';
+        }
 
         return $root . DIRECTORY_SEPARATOR . $folder . DIRECTORY_SEPARATOR;
     }
 
     private static function publicUrl(string $folder, string $filename): string
     {
+        $publicBase = rtrim((string) Env::get('UPLOAD_PUBLIC_BASE', ''), '/');
+        if ($publicBase !== '') {
+            return "{$publicBase}/{$folder}/{$filename}";
+        }
+
         $base = rtrim(Env::get('APP_BASE_PATH', ''), '/');
         $path = "/uploads/{$folder}/{$filename}";
 
@@ -108,16 +125,15 @@ class UploadHelper
         return is_string($mime) ? $mime : null;
     }
 
-    private static function extensionMatchesMime(string $ext, string $mime): bool
+    private static function extensionForMime(string $mime): ?string
     {
         $map = [
-            'jpg'  => ['image/jpeg'],
-            'jpeg' => ['image/jpeg'],
-            'png'  => ['image/png'],
-            'webp' => ['image/webp'],
-            'pdf'  => ['application/pdf'],
+            'image/jpeg'       => 'jpg',
+            'image/png'        => 'png',
+            'image/webp'       => 'webp',
+            'application/pdf'  => 'pdf',
         ];
 
-        return isset($map[$ext]) && in_array($mime, $map[$ext], true);
+        return $map[$mime] ?? null;
     }
 }

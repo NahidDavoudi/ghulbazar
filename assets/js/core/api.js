@@ -128,12 +128,11 @@ async function parseJsonSafe(res) {
 }
 
 async function _tryRefresh() {
-  const t = auth.token.get();
-  if (!t) return false;
   try {
     const res = await fetch(buildUrl('/auth/refresh'), {
       method: 'POST',
-      headers: { Authorization: `Bearer ${t}` },
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
     });
     if (!res.ok) return false;
     const json = await parseJsonSafe(res);
@@ -164,9 +163,7 @@ async function request(method, path, body = null, queryParams = {}, options = {}
 
 async function _requestOnce(method, path, body, queryParams, options, timeout) {
   const url = buildUrl(path, queryParams);
-  const headers = {};
-  const t = auth.token.get();
-  if (t) headers.Authorization = `Bearer ${t}`;
+  const headers = { Accept: 'application/json' };
 
   const isFormData = body instanceof FormData;
   if (body && !isFormData) headers['Content-Type'] = 'application/json';
@@ -179,6 +176,7 @@ async function _requestOnce(method, path, body, queryParams, options, timeout) {
     res = await fetch(url, {
       method,
       headers,
+      credentials: 'include',
       body: body ? (isFormData ? body : JSON.stringify(body)) : null,
       signal: controller.signal,
     });
@@ -197,7 +195,7 @@ async function _requestOnce(method, path, body, queryParams, options, timeout) {
   }
 
   if (
-    res.status === 401 && t && API().autoRefresh !== false &&
+    res.status === 401 && API().autoRefresh !== false &&
     !options.skipRefresh && !path.includes('/auth/login') && !path.includes('/auth/otp/')
   ) {
     const refreshed = await _tryRefresh();
@@ -289,10 +287,19 @@ const authApi = {
   refresh: async () => auth.persistSession(await post('/auth/refresh')),
   logout: async () => {
     try {
-      const rt = auth.refreshToken.get();
-      if (rt) await post('/auth/logout', { refresh_token: rt }, { skipRefresh: true });
+      await post('/auth/logout', {}, { skipRefresh: true });
     } catch (_) { /* noop */ }
     auth.clearSession();
+  },
+  validateSession: async () => {
+    try {
+      const user = await get('/auth/me');
+      auth.persistSession({ user });
+      return true;
+    } catch {
+      auth.clearSession();
+      return false;
+    }
   },
   isLoggedIn: () => auth.isLoggedIn(),
   isAdmin: () => auth.role.isAdmin(),

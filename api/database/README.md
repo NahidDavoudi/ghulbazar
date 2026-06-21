@@ -15,12 +15,14 @@ mysql -u root -p your_database < api/database/schema.sql
 3. `shop_settings_migration.sql` — تنظیمات فروشگاه
 4. `legal_content_migration.sql` — محتوای قانونی JSON
 5. `login_attempts.sql` — rate limit ورود
-6. `orders_cancel_reason.sql` — ستون دلیل لغو سفارش
-7. `promo_banners.sql` — بنرهای تبلیغاتی
+6. `security_migration.sql` — token blacklist، ایندکس‌های امنیتی
+7. `orders_cancel_reason.sql` — ستون دلیل لغو سفارش
+8. `promo_banners.sql` — بنرهای تبلیغاتی
 
 اسکریپت‌های PHP:
 - `migrate_product_catalog.php` — افزودن ستون‌ها + seed attributes
 - `migrate_product_cleanup.php` — مهاجرت فیلدهای legacy
+- `cleanup_expired_security.php` — پاک‌سازی token/otp/attempt منقضی (cron)
 
 ## نکات
 

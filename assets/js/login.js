@@ -65,7 +65,8 @@ async function boot() {
   pageTitle('ورود و ثبت‌نام');
   applyLoginBranding();
 
-  if (api.auth.isLoggedIn()) {
+  const sessionOk = await api.auth.validateSession();
+  if (sessionOk) {
     const redirect = new URLSearchParams(location.search).get('redirect') || 'index.html#/';
     location.replace(redirect);
     return;
