@@ -3,6 +3,7 @@
 namespace App\Modules\Auth;
 
 use App\Core\Auth\Auth as JwtAuth;
+use App\Core\Auth\AuthCookie;
 use App\Modules\Users\UsersModel;
 
 class AuthService
@@ -14,34 +15,42 @@ class AuthService
         $this->userModel = new UsersModel();
     }
 
-    // ─── Token Pair (OTP / Login) ─────────────────────────────────
-
     public function issueTokenPair(array $user): array
     {
         $role = $user['role'] ?? 'user';
-        $payload = ['user_id' => (int) $user['id'], 'role' => $role];
+        $payload = ['user_id' => (int) $user['id'], 'role' => (string) $role];
 
         $accessTtl = $role === 'admin' ? 3600 : 900;
+        $refreshTtl = 2592000;
+
+        $accessToken = JwtAuth::generateToken($payload, $accessTtl);
+        $refresh = JwtAuth::generateRefreshToken((int) $user['id'], $payload);
+
+        AuthCookie::setPair($accessToken, $accessTtl, $refresh['token'], $refreshTtl);
 
         return [
-            'token'         => JwtAuth::generateToken($payload, $accessTtl),
-            'refresh_token' => JwtAuth::generateRefreshToken((int) $user['id'], $payload),
+            'token'         => $accessToken,
+            'access_token'  => $accessToken,
+            'refresh_token' => $refresh['token'],
             'token_type'    => 'Bearer',
             'expires_in'    => $accessTtl,
             'user'          => $user,
         ];
     }
 
-    public function logout(string $refreshToken): void
+    public function logout(?string $refreshToken, ?string $accessToken = null): void
     {
-        if (empty(trim($refreshToken))) {
-            throw new \Exception('توکن رفرش الزامی است.', 422);
+        $refresh = $refreshToken ?: AuthCookie::getRefreshToken();
+        $access  = $accessToken ?: AuthCookie::getAccessToken();
+
+        if ($refresh) {
+            JwtAuth::revokeRefreshToken($refresh);
         }
-
-        JwtAuth::revokeRefreshToken($refreshToken);
+        if ($access) {
+            JwtAuth::revokeAccessToken($access);
+        }
+        AuthCookie::clearAll();
     }
-
-    // ─── Register ────────────────────────────────────────────────
 
     public function register(array $data): array
     {
@@ -57,25 +66,18 @@ class AuthService
         }
 
         $userId = $this->userModel->create([
-            'name'          => trim($data['name']),
-            'phone'         => $data['phone'],
-            'password'      => $data['password'],   // UserModel هش میکنه
+            'name'          => trim((string) $data['name']),
+            'phone'         => (string) $data['phone'],
+            'password'      => $data['password'],
             'role'          => 'user',
             'is_active'     => 1,
         ]);
 
-        $user  = $this->userModel->find($userId);
+        $user = $this->userModel->find($userId);
         unset($user['password_hash']);
 
-        $token = JwtAuth::generateToken(
-            ['user_id' => $userId, 'role' => 'user'],
-            86400 * 30
-        );
-
-        return ['token' => $token, 'user' => $user];
+        return $this->issueTokenPair($user);
     }
-
-    // ─── Login ────────────────────────────────────────────────────
 
     public function login(string $phone, string $password): array
     {
@@ -93,15 +95,8 @@ class AuthService
 
         unset($user['password_hash']);
 
-        $token = JwtAuth::generateToken(
-            ['user_id' => $user['id'], 'role' => $user['role']],
-            86400 * 30
-        );
-
-        return ['token' => $token, 'user' => $user];
+        return $this->issueTokenPair($user);
     }
-
-    // ─── Admin Login ──────────────────────────────────────────────
 
     public function adminLogin(string $phone, string $password): array
     {
@@ -123,15 +118,8 @@ class AuthService
 
         unset($user['password_hash']);
 
-        $token = JwtAuth::generateToken(
-            ['user_id' => $user['id'], 'role' => 'admin'],
-            86400 * 7    // ادمین توکن کوتاه‌تر
-        );
-
-        return ['token' => $token, 'user' => $user];
+        return $this->issueTokenPair($user);
     }
-
-    // ─── Me ───────────────────────────────────────────────────────
 
     public function me(int $userId): array
     {
@@ -149,28 +137,43 @@ class AuthService
         return $user;
     }
 
-    // ─── Refresh Token ────────────────────────────────────────────
-
-    public function refreshToken(int $userId, string $role): array
+    public function refreshToken(?string $refreshToken = null): array
     {
-        $user = $this->userModel->find($userId);
+        $token = $refreshToken ?: AuthCookie::getRefreshToken();
+        if (!$token) {
+            throw new \Exception('توکن رفرش یافت نشد.', 401);
+        }
 
+        $result = JwtAuth::rotateRefreshToken($token);
+        if (!$result) {
+            AuthCookie::clearAll();
+            throw new \Exception('توکن رفرش نامعتبر است.', 401);
+        }
+
+        AuthCookie::setPair(
+            $result['token'],
+            (int) $result['expires_in'],
+            $result['refresh_token'],
+            2592000
+        );
+
+        $decoded = JwtAuth::verifyToken($result['token']);
+        $userId = (int) ($decoded->data->user_id ?? 0);
+        $user = $this->userModel->find($userId);
         if (!$user || !$user['is_active']) {
             throw new \Exception('کاربر یافت نشد یا غیرفعال است.', 401);
         }
-
-        $ttl   = $role === 'admin' ? 86400 * 7 : 86400 * 30;
-        $token = JwtAuth::generateToken(
-            ['user_id' => $userId, 'role' => $role],
-            $ttl
-        );
-
         unset($user['password_hash']);
 
-        return ['token' => $token, 'user' => $user];
+        return [
+            'token'         => $result['token'],
+            'access_token'  => $result['token'],
+            'refresh_token' => $result['refresh_token'],
+            'token_type'    => 'Bearer',
+            'expires_in'    => $result['expires_in'],
+            'user'          => $user,
+        ];
     }
-
-    // ─── Validation Helpers ───────────────────────────────────────
 
     protected function validatePhone(string $phone): void
     {

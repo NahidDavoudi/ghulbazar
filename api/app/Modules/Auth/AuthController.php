@@ -4,6 +4,7 @@ namespace App\Modules\Auth;
 
 use App\Core\Controller;
 use App\Core\Http\Request;
+use App\Core\Auth\AuthCookie;
 use App\Core\Sms\SmsService;
 use App\Modules\Users\UsersModel;
 
@@ -26,7 +27,6 @@ class AuthController extends Controller
     private AuthService $service;
     private OtpService $otpService;
 
-    // POST /api/v1/auth/otp/request
     public function otpRequest(Request $request): void
     {
         $phone   = $request->input('phone');
@@ -37,8 +37,12 @@ class AuthController extends Controller
         }
 
         try {
+            if ($this->loginRateLimiter->tooManyAttempts('otp-request', (string) $phone)) {
+                $this->tooManyRequests('تعداد درخواست‌های OTP بیش از حد مجاز است. ۱۵ دقیقه دیگر تلاش کنید.');
+            }
+
             $result = $this->otpService->request($phone, $purpose);
-            $this->success($result, 'کد تایید ارسال شد');
+            $this->success($this->publicAuthPayload($result), 'کد تایید ارسال شد');
         } catch (\RuntimeException $e) {
             $code = $e->getCode() ?: 400;
             if ($code === 429) {
@@ -48,7 +52,6 @@ class AuthController extends Controller
         }
     }
 
-    // POST /api/v1/auth/otp/verify
     public function otpVerify(Request $request): void
     {
         $phone    = $request->input('phone');
@@ -62,27 +65,31 @@ class AuthController extends Controller
         }
 
         try {
+            if ($this->loginRateLimiter->tooManyAttempts('otp-verify', (string) $phone)) {
+                $this->tooManyRequests('تعداد تلاش‌های OTP بیش از حد مجاز است. ۱۵ دقیقه دیگر تلاش کنید.');
+            }
+
             $result = $this->otpService->verify($phone, $code, $purpose, $name, $password);
-            $this->success($result, 'ورود موفق');
+            $this->loginRateLimiter->clear('otp-verify', (string) $phone);
+            $this->success($this->publicAuthPayload($result), 'ورود موفق');
         } catch (\RuntimeException $e) {
+            $this->loginRateLimiter->hit('otp-verify', (string) $phone);
             $this->error($e->getMessage(), $e->getCode() ?: 422);
         }
     }
 
-    // POST /api/v1/auth/register
     public function register(Request $request): void
     {
         $data = $request->only(['name', 'phone', 'password']);
 
         try {
             $result = $this->service->register($data);
-            $this->created($result, 'ثبت‌نام با موفقیت انجام شد');
+            $this->created($this->publicAuthPayload($result), 'ثبت‌نام با موفقیت انجام شد');
         } catch (\Exception $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
 
-    // POST /api/v1/auth/login
     public function login(Request $request): void
     {
         $phone    = $request->input('phone');
@@ -93,18 +100,18 @@ class AuthController extends Controller
         }
 
         try {
-            if ($this->loginRateLimiter->tooManyAttempts('login', $phone)) {
+            if ($this->loginRateLimiter->tooManyAttempts('login', (string) $phone)) {
                 $this->tooManyRequests('تعداد تلاش‌های ورود بیش از حد مجاز است. ۱۵ دقیقه دیگر تلاش کنید.');
             }
 
-            $result = $this->service->login($phone, $password);
-            $this->loginRateLimiter->clear('login', $phone);
-            $this->success($result, 'ورود موفق');
+            $result = $this->service->login((string) $phone, (string) $password);
+            $this->loginRateLimiter->clear('login', (string) $phone);
+            $this->success($this->publicAuthPayload($result), 'ورود موفق');
         } catch (\PDOException $e) {
             $this->error('خطا در سرویس ورود. لطفاً با پشتیبانی تماس بگیرید.', 503);
         } catch (\Exception $e) {
             try {
-                $this->loginRateLimiter->hit('login', $phone);
+                $this->loginRateLimiter->hit('login', (string) $phone);
             } catch (\PDOException) {
                 /* rate limit storage unavailable */
             }
@@ -112,7 +119,6 @@ class AuthController extends Controller
         }
     }
 
-    // POST /api/v1/auth/admin-login
     public function adminLogin(Request $request): void
     {
         $phone    = $request->input('phone');
@@ -122,34 +128,33 @@ class AuthController extends Controller
             $this->error('شماره تلفن و رمز عبور الزامی است', 422);
         }
 
-        if ($this->loginRateLimiter->tooManyAttempts('admin-login', $phone)) {
+        if ($this->loginRateLimiter->tooManyAttempts('admin-login', (string) $phone)) {
             $this->tooManyRequests('تعداد تلاش‌های ورود بیش از حد مجاز است. ۱۵ دقیقه دیگر تلاش کنید.');
         }
 
         try {
-            $result = $this->service->adminLogin($phone, $password);
-            $this->loginRateLimiter->clear('admin-login', $phone);
-            $this->success($result, 'ورود ادمین موفق');
+            $result = $this->service->adminLogin((string) $phone, (string) $password);
+            $this->loginRateLimiter->clear('admin-login', (string) $phone);
+            $this->success($this->publicAuthPayload($result), 'ورود ادمین موفق');
         } catch (\Exception $e) {
-            $this->loginRateLimiter->hit('admin-login', $phone);
+            $this->loginRateLimiter->hit('admin-login', (string) $phone);
             $this->error($e->getMessage(), $e->getCode() ?: 401);
         }
     }
 
-    // POST /api/v1/auth/logout
     public function logout(Request $request): void
     {
-        $refreshToken = $request->input('refresh_token');
+        $refreshToken = $request->input('refresh_token') ?: AuthCookie::getRefreshToken();
+        $accessToken  = AuthCookie::getAccessToken();
 
         try {
-            $this->service->logout($refreshToken ?? '');
+            $this->service->logout($refreshToken, $accessToken);
             $this->success(null, 'خروج موفق');
         } catch (\Exception $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
     }
 
-    // GET /api/v1/auth/me
     public function me(Request $request): void
     {
         try {
@@ -160,17 +165,21 @@ class AuthController extends Controller
         }
     }
 
-    // POST /api/v1/auth/refresh
     public function refresh(Request $request): void
     {
         try {
-            $result = $this->service->refreshToken(
-                $request->userId(),
-                $request->user()->role ?? 'user'
-            );
-            $this->success($result, 'توکن تمدید شد');
+            $refresh = $request->input('refresh_token') ?: AuthCookie::getRefreshToken();
+            $result = $this->service->refreshToken($refresh);
+            $this->success($this->publicAuthPayload($result), 'توکن تمدید شد');
         } catch (\Exception $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 401);
         }
+    }
+
+    /** Strip tokens from JSON body — they live in HttpOnly cookies. */
+    private function publicAuthPayload(array $result): array
+    {
+        unset($result['token'], $result['access_token'], $result['refresh_token']);
+        return $result;
     }
 }
