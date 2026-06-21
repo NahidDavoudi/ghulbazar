@@ -98,6 +98,11 @@ class Request {
     }
 
     public function bearerToken(): ?string {
+        $cookieToken = \App\Core\Auth\AuthCookie::getAccessToken();
+        if ($cookieToken) {
+            return $cookieToken;
+        }
+
         // روش اول: از هدر Authorization
         $auth = $this->header('Authorization', '');
         

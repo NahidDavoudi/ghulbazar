@@ -30,6 +30,8 @@ $router->group([
     $router->post('/api/v1/auth/admin-login', [AuthController::class, 'adminLogin']);
     $router->post('/api/v1/auth/otp/request', [AuthController::class, 'otpRequest']);
     $router->post('/api/v1/auth/otp/verify',  [AuthController::class, 'otpVerify']);
+    $router->post('/api/v1/auth/refresh',    [AuthController::class, 'refresh']);
+    $router->post('/api/v1/auth/logout',     [AuthController::class, 'logout']);
 
     // Products
     $router->get('/api/v1/products',          [ProductController::class, 'index']);
