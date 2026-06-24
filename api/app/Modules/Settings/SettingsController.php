@@ -65,6 +65,7 @@ class SettingsController extends Controller
             'meta_title',
             'meta_description',
             'legal_content',
+            'enamad_html',
         ]);
 
         try {

@@ -34,6 +34,7 @@ class SettingsModel extends Model
         'meta_title',
         'meta_description',
         'legal_content',
+        'enamad_html',
     ];
     protected bool $timestamps = true;
 

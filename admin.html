@@ -579,6 +579,18 @@
                                         <input type="text" id="settingsSocialWhatsapp" dir="ltr" class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none">
                                     </div>
                                 </div>
+                                <div class="border-t border-border pt-5 space-y-3">
+                                    <div>
+                                        <label class="block text-muted mb-2 text-sm" data-admin-text="settings.contact.enamadLabel">کد نماد اعتماد (اینماد)</label>
+                                        <p class="text-xs text-muted mb-3" data-admin-text="settings.contact.enamadHint">کد HTML دریافتی از enamad.ir را اینجا قرار دهید. پس از ذخیره، نماد در فوتر سایت نمایش داده می‌شود.</p>
+                                        <textarea id="settingsEnamadHtml" rows="4" dir="ltr" placeholder="&lt;a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=...'&gt;..."
+                                            class="w-full bg-card border border-border rounded-xl px-4 py-3 text-body focus:border-accent outline-none font-mono text-xs leading-relaxed"></textarea>
+                                    </div>
+                                    <div id="settingsEnamadPreviewWrap" class="hidden bg-surface border border-border rounded-2xl p-4">
+                                        <p class="text-sm font-medium text-body mb-3" data-admin-text="settings.contact.enamadPreview">پیش‌نمایش نماد اعتماد</p>
+                                        <div id="settingsEnamadPreview" class="flex items-center justify-start min-h-16"></div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Shipping -->

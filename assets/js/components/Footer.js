@@ -1,10 +1,12 @@
 import { storeConfig } from '../config/bootstrap.js';
+import { escapeAttr } from '../utils/htmlEscape.js';
 
 const Footer = {
   render() {
     const { footer } = storeConfig.texts;
     const navLinks = storeConfig.texts.nav;
     const legalLinks = storeConfig.texts.legal?.footerLinks || [];
+    const enamad = footer.enamad;
 
     return `
       <footer class="border-t border-border bg-body mt-20">
@@ -13,7 +15,7 @@ const Footer = {
             <div class="text-right flex flex-col items-start">
               <div class="flex items-center gap-2 justify-end mb-4">
                 <span class="font-display text-lg text-body">${storeConfig.name}</span>
-                <img src="${storeConfig.logo}" alt="" class="w-8 h-8 object-contain">
+                <img src="${escapeAttr(storeConfig.logo)}" alt="" class="w-8 h-8 object-contain">
               </div>
               <p class="text-sm text-muted leading-relaxed">${footer.tagline}</p>
             </div>
@@ -45,19 +47,19 @@ const Footer = {
           </div>
           <div class="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted/60">
             <p>${footer.copyright}</p>
-            ${footer.enamad ? `
+            ${enamad?.href && enamad?.logoUrl ? `
               <a
-                href="${footer.enamad.href}"
+                href="${escapeAttr(enamad.href)}"
                 target="_blank"
                 rel="noopener noreferrer"
                 referrerpolicy="origin"
                 class="inline-block shrink-0"
               >
                 <img
-                  src="${footer.enamad.logoUrl}"
+                  src="${escapeAttr(enamad.logoUrl)}"
                   alt="نماد اعتماد الکترونیکی"
                   referrerpolicy="origin"
-                  code="${footer.enamad.code}"
+                  ${enamad.code ? `code="${escapeAttr(enamad.code)}"` : ''}
                   class="cursor-pointer h-16 w-auto object-contain"
                 >
               </a>` : ''}

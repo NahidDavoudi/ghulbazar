@@ -1387,6 +1387,9 @@ export default {
           instagram: 'اینستاگرام',
           telegram: 'تلگرام',
           whatsapp: 'واتساپ',
+          enamadLabel: 'کد نماد اعتماد (اینماد)',
+          enamadHint: 'کد HTML دریافتی از enamad.ir را اینجا قرار دهید. پس از ذخیره، نماد در فوتر سایت نمایش داده می‌شود.',
+          enamadPreview: 'پیش‌نمایش نماد اعتماد',
         },
 
         shipping: {

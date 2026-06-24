@@ -93,6 +93,12 @@ export function mergeStoreSettings(remote) {
     storeConfig.shipping.standardCost = Number(remote.shipping_standard_cost);
   }
 
+  if (remote.enamad?.href && remote.enamad?.logoUrl) {
+    storeConfig.texts.footer.enamad = remote.enamad;
+  } else if (Object.prototype.hasOwnProperty.call(remote, 'enamad') && !remote.enamad) {
+    storeConfig.texts.footer.enamad = null;
+  }
+
   syncWindowConfig();
   return storeConfig;
 }

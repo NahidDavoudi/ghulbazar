@@ -77,6 +77,32 @@ import { applyAdminBranding } from '../branding.js';
     }
   }
 
+  function _enamadToHtml(enamad) {
+    if (!enamad?.href || !enamad?.logoUrl) return '';
+    const codeAttr = enamad.code ? ` code='${enamad.code}'` : '';
+    return `<a referrerpolicy='origin' target='_blank' href='${enamad.href}'><img referrerpolicy='origin' src='${enamad.logoUrl}' alt='' style='cursor:pointer'${codeAttr}></a>`;
+  }
+
+  function _updateEnamadPreview(enamad) {
+    const wrap = $('settingsEnamadPreviewWrap');
+    const preview = $('settingsEnamadPreview');
+    if (!wrap || !preview) return;
+
+    if (!enamad?.href || !enamad?.logoUrl) {
+      wrap.classList.add('hidden');
+      preview.innerHTML = '';
+      return;
+    }
+
+    wrap.classList.remove('hidden');
+    preview.innerHTML = `
+      <a href="${enamad.href}" target="_blank" rel="noopener noreferrer" referrerpolicy="origin" class="inline-block">
+        <img src="${enamad.logoUrl}" alt="نماد اعتماد" referrerpolicy="origin"
+          ${enamad.code ? `code="${enamad.code}"` : ''}
+          class="h-16 w-auto object-contain cursor-pointer">
+      </a>`;
+  }
+
   function _switchTab(tab) {
     if (!TABS.includes(tab)) return;
     _activeTab = tab;
@@ -102,6 +128,9 @@ import { applyAdminBranding } from '../branding.js';
     _setPreview('settingsLogoPreview', data.shop_logo);
     _setPreview('settingsHeroPreview', data.shop_hero_image);
     _setPreview('settingsFaviconPreview', data.shop_favicon);
+
+    _setVal('settingsEnamadHtml', data.enamad_html || _enamadToHtml(data.enamad));
+    _updateEnamadPreview(data.enamad);
 
     _togglePaymentFields();
     _toggleSmsFields();
@@ -145,6 +174,7 @@ import { applyAdminBranding } from '../branding.js';
       sms_api_key: _getVal('settingsSmsApiKey') || null,
       meta_title: _getVal('settingsMetaTitle'),
       meta_description: _getVal('settingsMetaDescription'),
+      enamad_html: _getVal('settingsEnamadHtml') || null,
     };
 
     return payload;
@@ -164,6 +194,7 @@ import { applyAdminBranding } from '../branding.js';
       _populateForm(data);
       mergeStoreSettings(data);
       applyAdminBranding();
+      _updateEnamadPreview(data.enamad);
       toast(_t('settings.saved', 'تنظیمات ذخیره شد'));
     } catch (e) {
       toast(e.message, 'error');

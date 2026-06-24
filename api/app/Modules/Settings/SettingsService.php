@@ -42,6 +42,7 @@ class SettingsService
         'sms_api_key',
         'meta_title',
         'meta_description',
+        'enamad_html',
     ];
 
     private const INT_FIELDS = [
@@ -56,6 +57,7 @@ class SettingsService
         'contact_address',
         'zarinpal_merchant_id',
         'sms_api_key',
+        'enamad_html',
     ];
 
     public function __construct(
@@ -84,6 +86,8 @@ class SettingsService
         foreach (self::SENSITIVE_FIELDS as $field) {
             unset($settings[$field]);
         }
+
+        unset($settings['enamad_html']);
 
         return $settings;
     }
@@ -130,6 +134,16 @@ class SettingsService
 
             if (in_array($field, self::NULLABLE_TEXT_FIELDS, true)) {
                 $value = $data[$field];
+                if ($field === 'enamad_html') {
+                    $trimmed = $value === null ? '' : trim((string) $value);
+                    if ($trimmed === '') {
+                        $payload[$field] = null;
+                    } else {
+                        $this->parseEnamadHtml($trimmed);
+                        $payload[$field] = $trimmed;
+                    }
+                    continue;
+                }
                 $payload[$field] = $value === null || $value === ''
                     ? null
                     : trim((string) $value);
@@ -199,16 +213,59 @@ class SettingsService
 
     private function formatSettings(array $settings): array
     {
-        if (!isset($settings['legal_content'])) {
-            return $settings;
-        }
-
-        if (is_string($settings['legal_content'])) {
+        if (isset($settings['legal_content']) && is_string($settings['legal_content'])) {
             $decoded = json_decode($settings['legal_content'], true);
             $settings['legal_content'] = is_array($decoded) ? $decoded : null;
         }
 
+        $settings['enamad'] = $this->parseEnamadHtmlSafe($settings['enamad_html'] ?? null);
+
         return $settings;
+    }
+
+    private function parseEnamadHtmlSafe(?string $html): ?array
+    {
+        if ($html === null || trim($html) === '') {
+            return null;
+        }
+
+        try {
+            return $this->parseEnamadHtml(trim($html));
+        } catch (\RuntimeException) {
+            return null;
+        }
+    }
+
+    private function parseEnamadHtml(string $html): array
+    {
+        if (!preg_match("/href=['\"]([^'\"]+)['\"]/i", $html, $hrefMatch)) {
+            throw new \RuntimeException('کد نماد اعتماد معتبر نیست. لینک href یافت نشد.', 422);
+        }
+
+        $href = html_entity_decode($hrefMatch[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if (!preg_match('#^https://trustseal\.enamad\.ir/#i', $href)) {
+            throw new \RuntimeException('لینک نماد اعتماد باید از enamad.ir باشد.', 422);
+        }
+
+        if (!preg_match("/src=['\"]([^'\"]+)['\"]/i", $html, $srcMatch)) {
+            throw new \RuntimeException('کد نماد اعتماد معتبر نیست. آدرس تصویر یافت نشد.', 422);
+        }
+
+        $logoUrl = html_entity_decode($srcMatch[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if (!preg_match('#^https://trustseal\.enamad\.ir/#i', $logoUrl)) {
+            throw new \RuntimeException('آدرس تصویر نماد اعتماد معتبر نیست.', 422);
+        }
+
+        $code = null;
+        if (preg_match("/\bcode=['\"]([^'\"]+)['\"]/i", $html, $codeMatch)) {
+            $code = html_entity_decode($codeMatch[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+
+        return [
+            'href'    => $href,
+            'logoUrl' => $logoUrl,
+            'code'    => $code,
+        ];
     }
 
     private function validateLegalContent(mixed $content): array
