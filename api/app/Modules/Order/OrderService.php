@@ -78,6 +78,15 @@ class OrderService
             $orderItems = [];
             foreach ($cart['items'] as $item) {
                 $variantId = (int) ($item['variant_id'] ?? 0);
+                $productId = (int) $item['product_id'];
+
+                if (!$variantId && $this->variantService->requiresExplicitVariant($productId)) {
+                    throw new \RuntimeException(
+                        "برای «{$item['name']}» باید سایز یا رنگ انتخاب شود. لطفاً از سبد حذف و دوباره اضافه کنید.",
+                        422
+                    );
+                }
+
                 $orderItems[] = [
                     'product_id'     => $item['product_id'],
                     'variant_id'     => $variantId ?: null,

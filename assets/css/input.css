@@ -25,6 +25,8 @@
 .text-dim        { color: var(--color-text-dim); }
 .text-accent     { color: var(--color-accent); }
 .border-border   { border-color: var(--color-border); }
+.border-accent   { border-color: var(--color-accent); }
+.ring-accent\/30 { --tw-ring-color: color-mix(in oklab, var(--color-accent) 30%, transparent); }
 .hover\:bg-accent-hover:hover { background-color: var(--color-accent-hover); }
 .hover\:text-accent:hover     { color: var(--color-accent); }
 .hover\:bg-row:hover          { background-color: var(--color-dark-2); }

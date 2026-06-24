@@ -41,6 +41,10 @@ class CartService
             throw new \RuntimeException('محصول یافت نشد.', 404);
         }
 
+        if ($this->variantService->requiresExplicitVariant($productId) && !$variantId) {
+            throw new \RuntimeException('لطفاً سایز یا رنگ محصول را انتخاب کنید.', 422);
+        }
+
         $variantId = $this->variantService->resolveVariantId($productId, $variantId);
         $variant   = $this->variantService->getProductVariants($productId);
         $variantRow = null;
@@ -76,6 +80,10 @@ class CartService
         $product = $this->productModel->find($productId);
         if (!$product || !$product['is_active']) {
             throw new \RuntimeException('محصول یافت نشد.', 404);
+        }
+
+        if ($this->variantService->requiresExplicitVariant($productId) && !$variantId) {
+            throw new \RuntimeException('لطفاً سایز یا رنگ محصول را انتخاب کنید.', 422);
         }
 
         $variantId = $this->variantService->resolveVariantId($productId, $variantId);
@@ -180,6 +188,21 @@ class CartService
                 $errors[] = "محصول «{$item['name']}» دیگر فعال نیست.";
                 continue;
             }
+
+            if ($this->variantService->requiresExplicitVariant((int) $item['product_id'])
+                && empty($item['variant_id'])) {
+                $errors[] = "برای «{$item['name']}» باید سایز یا رنگ انتخاب شود. لطفاً از سبد حذف و دوباره اضافه کنید.";
+                continue;
+            }
+
+            if (!empty($item['variant_id'])) {
+                $available = $this->inventoryModel->getAvailable((int) $item['variant_id']);
+                if ($available < $item['quantity']) {
+                    $errors[] = "موجودی «{$item['name']}» کافی نیست (موجود: {$available}).";
+                }
+                continue;
+            }
+
             if ($item['stock'] < $item['quantity']) {
                 $errors[] = "موجودی «{$item['name']}» کافی نیست (موجود: {$item['stock']}).";
             }

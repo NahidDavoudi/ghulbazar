@@ -136,6 +136,22 @@ export default {
 
     },
 
+    variant: {
+
+      swatchActive: 'border-accent ring-2 ring-accent/30',
+
+      swatchInactive: 'border-black/10',
+
+      swatchDisabled: 'opacity-30 cursor-not-allowed',
+
+      textActive: 'bg-accent text-white border-accent',
+
+      textInactive: 'border-black/10 hover:border-black/30 text-body',
+
+      textDisabled: 'border-black/10 text-muted/50 cursor-not-allowed opacity-50',
+
+    },
+
   },
 
   promoSlider: {
@@ -420,6 +436,12 @@ export default {
 
       ],
 
+      selectVariant: 'لطفاً گزینه محصول را انتخاب کنید',
+
+      selectOptionsHint: 'لطفاً سایز و رنگ را انتخاب کنید',
+
+      outOfStock: 'ناموجود',
+
     },
 
     footer: {
@@ -431,6 +453,16 @@ export default {
       social: '@rar.shop',
 
       copyright: '© ۱۴۰۴ RAR shop — تمام حقوق محفوظ است',
+
+      enamad: {
+
+        href: 'https://trustseal.enamad.ir/?id=748712&Code=mgfnrIugP7v19yqGjYPqItMm5nJmOrj3',
+
+        logoUrl: 'https://trustseal.enamad.ir/logo.aspx?id=748712&Code=mgfnrIugP7v19yqGjYPqItMm5nJmOrj3',
+
+        code: 'mgfnrIugP7v19yqGjYPqItMm5nJmOrj3',
+
+      },
 
     },
 

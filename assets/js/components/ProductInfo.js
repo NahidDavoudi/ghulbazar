@@ -3,36 +3,99 @@ import { formatPrice } from '../utils/priceFormatter.js';
 import { escapeHtml, escapeAttr } from '../utils/htmlEscape.js';
 import Button from './Button.js';
 
-function renderAxis(axis, variants, selectedValues) {
-  const selected = selectedValues[axis.type_slug] || null;
+function buildValueMap(variant) {
+  const map = {};
+  (variant.attribute_values || []).forEach((av) => {
+    map[av.type_slug] = Number(av.id);
+  });
+  return map;
+}
 
-  if (axis.input_type === 'swatch') {
-    return axis.values.map((val) => {
-      const hasStock = variants.some((v) =>
-        v.is_active &&
-        (v.inventory?.quantity ?? 0) > 0 &&
-        (v.attribute_values || []).some((av) => Number(av.id) === Number(val.id)),
-      );
-      const active = Number(selected) === Number(val.id);
-      const style = val.swatch_hex ? `background:${escapeAttr(val.swatch_hex)}` : '';
-      return `<button type="button" data-axis="${escapeAttr(axis.type_slug)}" data-value-id="${val.id}"
-        ${hasStock ? '' : 'disabled'}
-        class="product-variant-btn w-9 h-9 rounded-full border-2 transition-all ${active ? 'border-body ring-2 ring-body/30' : 'border-black/10'} ${hasStock ? '' : 'opacity-30 cursor-not-allowed'}"
-        title="${escapeAttr(val.value)}" style="${style}"></button>`;
-    }).join('');
+function findMatchingVariant(variants, variantAxes, selected) {
+  const axisSlugs = variantAxes.map((a) => a.type_slug);
+  if (!axisSlugs.length) {
+    return variants.find((v) => v.is_default)
+      || variants.find((v) => v.is_active)
+      || variants[0]
+      || null;
   }
 
+  if (!axisSlugs.every((slug) => selected[slug])) return null;
+
+  return variants.find((v) => {
+    if (!v.is_active) return false;
+    const valueMap = buildValueMap(v);
+    return axisSlugs.every((slug) => valueMap[slug] === Number(selected[slug]));
+  }) || null;
+}
+
+function isValueSelectable(variants, variantAxes, selected, axisSlug, valueId) {
+  const axisSlugs = variantAxes.map((a) => a.type_slug);
+
+  return variants.some((v) => {
+    if (!v.is_active || (v.inventory?.quantity ?? 0) <= 0) return false;
+    const valueMap = buildValueMap(v);
+    if (valueMap[axisSlug] !== Number(valueId)) return false;
+    return axisSlugs.every((slug) => {
+      if (slug === axisSlug) return true;
+      if (selected[slug] == null) return true;
+      return valueMap[slug] === Number(selected[slug]);
+    });
+  });
+}
+
+function findInitialSelection(variants, variantAxes) {
+  const selected = {};
+  const axisSlugs = variantAxes.map((a) => a.type_slug);
+  const firstInStock = variants.find(
+    (v) => v.is_active && (v.inventory?.quantity ?? 0) > 0,
+  );
+
+  if (firstInStock) {
+    const valueMap = buildValueMap(firstInStock);
+    axisSlugs.forEach((slug) => {
+      if (valueMap[slug]) selected[slug] = valueMap[slug];
+    });
+  }
+
+  return selected;
+}
+
+function getVariantUi() {
+  return storeConfig.ui.variant || {};
+}
+
+function renderAxis(axis, variants, variantAxes, selectedValues) {
+  const ui = getVariantUi();
+  const selected = selectedValues[axis.type_slug] || null;
+  const isSwatch = axis.input_type === 'swatch';
+
   return axis.values.map((val) => {
-    const hasStock = variants.some((v) =>
-      v.is_active &&
-      (v.inventory?.quantity ?? 0) > 0 &&
-      (v.attribute_values || []).some((av) => Number(av.id) === Number(val.id)),
-    );
+    const selectable = isValueSelectable(variants, variantAxes, selectedValues, axis.type_slug, val.id);
     const active = Number(selected) === Number(val.id);
+    const style = val.swatch_hex ? `background:${escapeAttr(val.swatch_hex)}` : '';
+
+    if (isSwatch) {
+      const stateClass = !selectable
+        ? ui.swatchDisabled
+        : active
+          ? ui.swatchActive
+          : ui.swatchInactive;
+      return `<button type="button" data-axis="${escapeAttr(axis.type_slug)}" data-value-id="${val.id}"
+        ${selectable ? '' : 'disabled'}
+        class="product-variant-btn w-9 h-9 rounded-full border-2 transition-all ${stateClass}"
+        title="${escapeAttr(val.value)}" style="${style}"></button>`;
+    }
+
+    const stateClass = !selectable
+      ? ui.textDisabled
+      : active
+        ? ui.textActive
+        : ui.textInactive;
     return `<button type="button" data-axis="${escapeAttr(axis.type_slug)}" data-value-id="${val.id}"
-      ${hasStock ? '' : 'disabled'}
-      class="product-variant-btn min-w-[2.75rem] h-11 px-3 rounded-lg border text-sm font-medium transition-colors
-        ${active ? 'bg-body text-white border-body' : hasStock ? 'border-black/10 hover:border-black/30 text-body' : 'border-black/10 text-muted/50 cursor-not-allowed'}">${escapeHtml(val.value)}</button>`;
+      ${selectable ? '' : 'disabled'}
+      class="product-variant-btn relative min-w-[2.75rem] h-11 px-3 rounded-lg border text-sm font-medium transition-colors ${stateClass}
+        ${!selectable ? 'product-size-unavailable' : ''}">${escapeHtml(val.value)}</button>`;
   }).join('');
 }
 
@@ -54,12 +117,15 @@ const ProductInfo = {
     const desc = escapeHtml(shortDescription || description);
     const safeName = escapeHtml(name);
     const safeShipping = escapeHtml(shippingText || t.shippingText);
+    const initialSelected = variantAxes.length
+      ? findInitialSelection(variants, variantAxes)
+      : {};
 
     const axesHtml = variantAxes.length
       ? variantAxes.map((axis) => `
           <div class="mb-6" data-variant-axis="${escapeAttr(axis.type_slug)}">
             <p class="text-sm font-medium text-body mb-3">${escapeHtml(axis.type_name)}</p>
-            <div class="flex flex-wrap gap-2 justify-end">${renderAxis(axis, variants, {})}</div>
+            <div class="flex flex-wrap gap-2 justify-end">${renderAxis(axis, variants, variantAxes, initialSelected)}</div>
           </div>`).join('')
       : '';
 
@@ -92,7 +158,7 @@ const ProductInfo = {
         </div>
 
         <p id="product-stock-hint" class="text-xs text-muted mb-4 ${outOfStock ? 'text-accent' : ''}">
-          ${outOfStock ? t.outOfStock || 'ناموجود' : ''}
+          ${outOfStock ? (t.outOfStock || 'ناموجود') : ''}
         </p>
 
         <button type="button" id="quick-buy-btn"
@@ -127,43 +193,50 @@ const ProductInfo = {
     const {
       variants = [],
       variantAxes = [],
-      resolveVariant = () => null,
       getVariantPrice = () => 0,
     } = callbacks;
 
-    const selected = {};
+    const t = storeConfig.texts.product;
+    const ui = getVariantUi();
+    const selected = variantAxes.length
+      ? findInitialSelection(variants, variantAxes)
+      : {};
     let qty = 1;
     let maxQty = callbacks.maxQty || 99;
 
-    function findMatchingVariant() {
-      const axisSlugs = variantAxes.map((a) => a.type_slug);
-      if (!axisSlugs.length) {
-        if (resolveVariant) return resolveVariant(selected);
-        return variants.find((v) => v.is_default)
-          || variants.find((v) => v.is_active)
-          || variants[0]
-          || null;
+    function applyButtonState(btn, axis, valueId) {
+      const selectable = isValueSelectable(variants, variantAxes, selected, axis, valueId);
+      const active = Number(selected[axis]) === Number(valueId);
+      const isSwatch = btn.classList.contains('rounded-full');
+
+      btn.disabled = !selectable;
+
+      if (isSwatch) {
+        btn.className = `product-variant-btn w-9 h-9 rounded-full border-2 transition-all ${
+          !selectable ? ui.swatchDisabled : active ? ui.swatchActive : ui.swatchInactive
+        }`;
+      } else {
+        btn.className = `product-variant-btn relative min-w-[2.75rem] h-11 px-3 rounded-lg border text-sm font-medium transition-colors ${
+          !selectable ? ui.textDisabled : active ? ui.textActive : ui.textInactive
+        } ${!selectable ? 'product-size-unavailable' : ''}`;
       }
+    }
 
-      const allSelected = axisSlugs.every((slug) => selected[slug]);
-      if (!allSelected) return null;
-
-      return variants.find((v) => {
-        if (!v.is_active) return false;
-        const valueMap = {};
-        (v.attribute_values || []).forEach((av) => {
-          valueMap[av.type_slug] = Number(av.id);
-        });
-        return axisSlugs.every((slug) => valueMap[slug] === Number(selected[slug]));
-      }) || null;
+    function refreshVariantButtons() {
+      container.querySelectorAll('.product-variant-btn').forEach((btn) => {
+        applyButtonState(btn, btn.dataset.axis, Number(btn.dataset.valueId));
+      });
     }
 
     function updateUI() {
-      const variant = findMatchingVariant();
-      const stock = variant ? Number(variant.inventory?.quantity ?? 0) : maxQty;
-      maxQty = Math.max(1, stock);
-      if (qty > maxQty) {
-        qty = maxQty;
+      const variant = findMatchingVariant(variants, variantAxes, selected);
+      const axisSlugs = variantAxes.map((a) => a.type_slug);
+      const allSelected = !axisSlugs.length || axisSlugs.every((slug) => selected[slug]);
+      const stock = variant ? Number(variant.inventory?.quantity ?? 0) : 0;
+
+      maxQty = Math.max(1, stock || 1);
+      if (variant && stock > 0 && qty > stock) {
+        qty = stock;
         const qtyVal = container.querySelector('#qty-value');
         if (qtyVal) qtyVal.textContent = qty;
       }
@@ -176,7 +249,8 @@ const ProductInfo = {
       const addBtn = container.querySelector('.product-add-btn');
       const quickBtn = container.querySelector('#quick-buy-btn');
       const stockHint = container.querySelector('#product-stock-hint');
-      const out = stock === 0 || (variantAxes.length > 0 && !variant);
+      const canOrder = variant && stock > 0;
+      const out = !canOrder;
 
       if (addBtn) addBtn.disabled = out;
       if (quickBtn) {
@@ -185,51 +259,24 @@ const ProductInfo = {
         quickBtn.classList.toggle('pointer-events-none', out);
       }
       if (stockHint) {
-        stockHint.textContent = out
-          ? (storeConfig.texts.product.outOfStock || 'ناموجود')
-          : '';
-        stockHint.classList.toggle('text-accent', out);
+        let hint = '';
+        if (variantAxes.length && !allSelected) {
+          hint = t.selectOptionsHint || t.selectVariant;
+        } else if (out) {
+          hint = t.outOfStock || 'ناموجود';
+        }
+        stockHint.textContent = hint;
+        stockHint.classList.toggle('text-accent', !!hint);
       }
 
+      refreshVariantButtons();
       callbacks.onVariantChange?.(variant);
     }
 
-    variantAxes.forEach((axis) => {
-      const firstAvailable = axis.values.find((val) =>
-        variants.some((v) =>
-          v.is_active &&
-          (v.inventory?.quantity ?? 0) > 0 &&
-          (v.attribute_values || []).some((av) => Number(av.id) === Number(val.id)),
-        ),
-      );
-      if (firstAvailable) selected[axis.type_slug] = firstAvailable.id;
-    });
-
-    container.querySelectorAll('.product-variant-btn:not([disabled])').forEach((btn) => {
-      const axis = btn.dataset.axis;
-      const valueId = Number(btn.dataset.valueId);
-      if (Number(selected[axis]) === valueId) {
-        if (btn.classList.contains('rounded-full')) {
-          btn.classList.add('border-body', 'ring-2', 'ring-body/30');
-        } else {
-          btn.classList.add('bg-body', 'text-white', 'border-body');
-        }
-      }
-
+    container.querySelectorAll('.product-variant-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        selected[axis] = valueId;
-        container.querySelectorAll(`.product-variant-btn[data-axis="${axis}"]`).forEach((b) => {
-          if (b.classList.contains('rounded-full')) {
-            b.classList.toggle('border-body', Number(b.dataset.valueId) === valueId);
-            b.classList.toggle('ring-2', Number(b.dataset.valueId) === valueId);
-            b.classList.toggle('ring-body/30', Number(b.dataset.valueId) === valueId);
-          } else {
-            const active = Number(b.dataset.valueId) === valueId;
-            b.classList.toggle('bg-body', active);
-            b.classList.toggle('text-white', active);
-            b.classList.toggle('border-body', active);
-          }
-        });
+        if (btn.disabled) return;
+        selected[btn.dataset.axis] = Number(btn.dataset.valueId);
         updateUI();
       });
     });
@@ -242,17 +289,19 @@ const ProductInfo = {
       if (qtyVal) qtyVal.textContent = qty;
     });
     container.querySelector('#qty-plus')?.addEventListener('click', () => {
-      qty = Math.min(maxQty, qty + 1);
+      const variant = findMatchingVariant(variants, variantAxes, selected);
+      const stock = variant ? Number(variant.inventory?.quantity ?? 0) : maxQty;
+      qty = Math.min(Math.max(1, stock), qty + 1);
       if (qtyVal) qtyVal.textContent = qty;
     });
 
     container.querySelector('.product-add-btn')?.addEventListener('click', async () => {
-      const variant = findMatchingVariant();
+      const variant = findMatchingVariant(variants, variantAxes, selected);
       await callbacks.onAddToCart?.({ variant, qty });
     });
 
     container.querySelector('#quick-buy-btn')?.addEventListener('click', async () => {
-      const variant = findMatchingVariant();
+      const variant = findMatchingVariant(variants, variantAxes, selected);
       await callbacks.onQuickBuy?.({ variant, qty });
     });
 

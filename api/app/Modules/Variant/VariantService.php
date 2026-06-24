@@ -51,6 +51,20 @@ class VariantService
         return (int) $default['id'];
     }
 
+    public function requiresExplicitVariant(int $productId): bool
+    {
+        $product = $this->productModel->find($productId);
+        if (!$product) {
+            return false;
+        }
+
+        if (($product['product_type'] ?? 'simple') === 'variable') {
+            return true;
+        }
+
+        return count($this->variantModel->getByProductId($productId)) > 1;
+    }
+
     public function createDefaultVariant(int $productId, array $productData): int
     {
         $product = $this->productModel->find($productId);

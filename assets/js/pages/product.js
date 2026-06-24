@@ -69,7 +69,10 @@ async function fetchRelated(p) {
 }
 
 async function addToCart(p, { variant, qty }) {
-  const variantId = variant?.id || p.default_variant_id || null;
+  if ((p.variant_axes?.length || 0) > 0 && !variant?.id) {
+    throw new Error(storeConfig.texts.product.selectVariant);
+  }
+  const variantId = variant?.id || null;
   await api.cart.add(p.id, qty, variantId);
   window.loadCartCount?.();
 }
@@ -146,7 +149,7 @@ Router.onEnter('products', async function (params) {
         onAddToCart: async ({ variant, qty }) => {
           try {
             if ((p.variant_axes?.length || 0) > 0 && !variant) {
-              api.utils.toast('لطفاً گزینه محصول را انتخاب کنید', 'error');
+              api.utils.toast(t.selectVariant, 'error');
               return;
             }
             await addToCart(p, { variant, qty });
@@ -159,7 +162,7 @@ Router.onEnter('products', async function (params) {
         onQuickBuy: async ({ variant, qty }) => {
           try {
             if ((p.variant_axes?.length || 0) > 0 && !variant) {
-              api.utils.toast('لطفاً گزینه محصول را انتخاب کنید', 'error');
+              api.utils.toast(t.selectVariant, 'error');
               return;
             }
             await addToCart(p, { variant, qty });

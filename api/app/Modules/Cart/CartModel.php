@@ -51,7 +51,11 @@ class CartModel extends Model
 
         foreach ($items as &$item) {
             $item['price'] = $item['variant_sale_price'] ?? $item['variant_price'] ?? $item['product_price'];
-            $item['stock'] = (int) ($item['variant_stock'] ?? $item['product_stock']);
+            if (!empty($item['variant_id'])) {
+                $item['stock'] = (int) ($item['variant_stock'] ?? 0);
+            } else {
+                $item['stock'] = (int) ($item['product_stock'] ?? 0);
+            }
             $item['name']  = $item['variant_title'] && $item['variant_title'] !== 'Default'
                 ? $item['name'] . ' — ' . $item['variant_title']
                 : $item['name'];

@@ -45,6 +45,22 @@ const Footer = {
           </div>
           <div class="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted/60">
             <p>${footer.copyright}</p>
+            ${footer.enamad ? `
+              <a
+                href="${footer.enamad.href}"
+                target="_blank"
+                rel="noopener noreferrer"
+                referrerpolicy="origin"
+                class="inline-block shrink-0"
+              >
+                <img
+                  src="${footer.enamad.logoUrl}"
+                  alt="نماد اعتماد الکترونیکی"
+                  referrerpolicy="origin"
+                  code="${footer.enamad.code}"
+                  class="cursor-pointer h-16 w-auto object-contain"
+                >
+              </a>` : ''}
           </div>
         </div>
       </footer>`;
