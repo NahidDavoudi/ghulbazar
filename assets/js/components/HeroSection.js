@@ -1,14 +1,16 @@
 import { storeConfig } from '../config/bootstrap.js';
+import { pickVariantSet } from '../utils/imageUrl.js';
 import Button from './Button.js';
 
 const HeroSection = {
   render() {
     const { hero } = storeConfig;
+    const heroImage = pickVariantSet(hero.imageVariants, 'large') || hero.image;
 
     return `
       <section class="hero-fullbleed relative w-full overflow-hidden bg-body">
         <div class="relative w-full aspect-[4/5] sm:aspect-[16/9] md:aspect-[21/9] min-h-[320px] sm:min-h-[420px] md:min-h-[560px]">
-          <img src="${hero.image}" alt="${storeConfig.name}"
+          <img src="${heroImage}" alt="${storeConfig.name}"
                class="w-full h-full object-cover">
           <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none"></div>
         </div>

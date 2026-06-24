@@ -4,6 +4,7 @@ namespace App\Modules\Category;
 
 use App\Core\Controller;
 use App\Core\Http\Request;
+use App\Core\ImageVariants;
 use App\Core\UploadHelper;
 
 class CategoryController extends Controller
@@ -97,9 +98,12 @@ class CategoryController extends Controller
         }
 
         try {
-            $url      = UploadHelper::storeImage($file, 'categories');
-            $category = $this->service->update($id, ['poster_image' => $url]);
-            $this->success(['url' => $url, 'category' => $category], 'پوستر آپلود شد');
+            $variants = UploadHelper::storeOptimizedImage($file, 'categories');
+            $category = $this->service->update($id, ImageVariants::posterFields($variants));
+            $this->success([
+                'urls'     => $variants,
+                'category' => $category,
+            ], 'پوستر آپلود شد');
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }
@@ -127,14 +131,13 @@ class CategoryController extends Controller
         }
 
         try {
-            $url   = UploadHelper::storeImage($file, 'categories');
-            $image = $this->imageService->addImage($id, [
-                'image_url'  => $url,
+            $variants = UploadHelper::storeOptimizedImage($file, 'categories');
+            $image = $this->imageService->addImage($id, ImageVariants::imageFields($variants) + [
                 'alt_text'   => $request->input('alt_text', ''),
                 'is_main'    => (int) $request->input('is_main', 0),
                 'sort_order' => (int) $request->input('sort_order', 0),
             ]);
-            $this->created($image, 'تصویر اضافه شد');
+            $this->created(ImageVariants::enrichRow($image), 'تصویر اضافه شد');
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }

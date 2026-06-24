@@ -63,7 +63,7 @@ class ProductModel extends Model
 
         $sql = "
             SELECT p.*,
-                   (SELECT pi.image_url FROM product_images pi
+                   (SELECT COALESCE(NULLIF(pi.image_medium_url, ''), pi.image_url) FROM product_images pi
                     WHERE pi.product_id = p.id AND pi.is_main = 1
                     LIMIT 1) AS main_image,
                    c.name AS category_name,
@@ -145,7 +145,7 @@ class ProductModel extends Model
 
         $stmt = $this->pdo->prepare("
             SELECT p.*,
-                   (SELECT pi.image_url FROM product_images pi
+                   (SELECT COALESCE(NULLIF(pi.image_medium_url, ''), pi.image_url) FROM product_images pi
                     WHERE pi.product_id = p.id AND pi.is_main = 1
                     LIMIT 1) AS main_image
             FROM {$this->table} p
@@ -164,7 +164,7 @@ class ProductModel extends Model
     {
         $stmt = $this->pdo->prepare("
             SELECT p.*,
-                   (SELECT pi.image_url FROM product_images pi
+                   (SELECT COALESCE(NULLIF(pi.image_medium_url, ''), pi.image_url) FROM product_images pi
                     WHERE pi.product_id = p.id AND pi.is_main = 1
                     LIMIT 1) AS main_image
             FROM {$this->table} p

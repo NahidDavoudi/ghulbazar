@@ -10,6 +10,9 @@ class PromoBannerModel extends Model
     protected array $fillable = [
         'title',
         'image_url',
+        'image_large_url',
+        'image_medium_url',
+        'image_thumb_url',
         'sort_order',
         'is_active',
     ];
@@ -25,7 +28,7 @@ class PromoBannerModel extends Model
     public function getActive(): array
     {
         $stmt = $this->pdo->query(
-            "SELECT id, title, image_url, sort_order
+            "SELECT id, title, image_url, image_large_url, image_medium_url, image_thumb_url, sort_order
              FROM {$this->table}
              WHERE is_active = 1
              ORDER BY sort_order ASC, id ASC"

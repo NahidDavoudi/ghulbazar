@@ -2,6 +2,8 @@
 
 namespace App\Modules\PromoBanner;
 
+use App\Core\ImageVariants;
+
 class PromoBannerService
 {
     public function __construct(
@@ -10,12 +12,18 @@ class PromoBannerService
 
     public function getActive(): array
     {
-        return $this->model->getActive();
+        return array_map(
+            fn(array $row) => ImageVariants::enrichRow($row),
+            $this->model->getActive()
+        );
     }
 
     public function getAll(): array
     {
-        return $this->model->getAllOrdered();
+        return array_map(
+            fn(array $row) => ImageVariants::enrichRow($row),
+            $this->model->getAllOrdered()
+        );
     }
 
     public function getById(int $id): array
@@ -24,21 +32,20 @@ class PromoBannerService
         if (!$banner) {
             throw new \RuntimeException('پوستر یافت نشد.', 404);
         }
-        return $banner;
+        return ImageVariants::enrichRow($banner);
     }
 
-    public function create(string $imageUrl, string $title = ''): array
+    public function create(array $variants, string $title = ''): array
     {
-        if ($imageUrl === '') {
+        if (empty($variants['large'])) {
             throw new \RuntimeException('آدرس تصویر الزامی است.', 422);
         }
 
         $id = $this->model->create([
             'title'      => trim($title),
-            'image_url'  => $imageUrl,
             'sort_order' => $this->model->getNextSortOrder(),
             'is_active'  => 1,
-        ]);
+        ] + ImageVariants::imageFields($variants));
 
         return $this->getById($id);
     }
@@ -57,8 +64,12 @@ class PromoBannerService
         if (array_key_exists('sort_order', $data)) {
             $payload['sort_order'] = max(0, (int) $data['sort_order']);
         }
-        if (!empty($data['image_url'])) {
-            $payload['image_url'] = trim((string) $data['image_url']);
+        if (!empty($data['image_url']) || !empty($data['image_large_url'])) {
+            $payload = array_merge($payload, ImageVariants::imageFields([
+                'large'  => trim((string) ($data['image_large_url'] ?? $data['image_url'] ?? '')),
+                'medium' => trim((string) ($data['image_medium_url'] ?? $data['image_url'] ?? '')),
+                'thumb'  => trim((string) ($data['image_thumb_url'] ?? $data['image_url'] ?? '')),
+            ]));
         }
 
         if (empty($payload)) {

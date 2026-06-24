@@ -1,4 +1,5 @@
 import { storeConfig } from '../config/bootstrap.js';
+import { pickBannerImage } from '../utils/imageUrl.js';
 
 const PromoPosterSlider = {
   render(data = {}) {
@@ -10,7 +11,7 @@ const PromoPosterSlider = {
     const slides = banners.map((b) => `
       <div class="swiper-slide">
         <div class="promo-poster-slide ${aspect} overflow-hidden rounded-2xl bg-surface border border-border">
-          <img src="${b.image_url}" alt="${b.title || 'پوستر تبلیغاتی'}"
+          <img src="${pickBannerImage(b, 'medium')}" alt="${b.title || 'پوستر تبلیغاتی'}"
                class="w-full h-full object-cover" loading="lazy">
         </div>
       </div>`).join('');

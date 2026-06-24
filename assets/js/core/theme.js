@@ -2,6 +2,7 @@
  * core/theme.js — inject store theme into CSS variables & document meta
  */
 import { storeConfig } from '../config/bootstrap.js';
+import { pickVariantSet } from '../utils/imageUrl.js';
 
 const VAR_MAP = {
   primary: '--color-accent',
@@ -27,14 +28,15 @@ export function initTheme() {
   if (fonts?.display) root.style.setProperty('--font-display', `'${fonts.display}', sans-serif`);
   if (fonts?.felipa) root.style.setProperty('--font-felipa', `'${fonts.felipa}', sans-serif`);
 
-  if (storeConfig.favicon) {
+  const faviconSrc = pickVariantSet(storeConfig.faviconVariants, 'thumb') || storeConfig.favicon;
+  if (faviconSrc) {
     let link = document.querySelector('link[rel="shortcut icon"]');
     if (!link) {
       link = document.createElement('link');
       link.rel = 'shortcut icon';
       document.head.appendChild(link);
     }
-    link.href = storeConfig.favicon;
+    link.href = faviconSrc;
   }
 
   const themeColor = document.querySelector('meta[name="theme-color"]');

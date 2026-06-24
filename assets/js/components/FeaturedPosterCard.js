@@ -1,5 +1,6 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
+import { pickProductImage } from '../utils/imageUrl.js';
 import DOM from '../utils/dom.js';
 
 const FeaturedPosterCard = {
@@ -7,11 +8,7 @@ const FeaturedPosterCard = {
     const { ui, carousel } = storeConfig;
     const isCurve = options.variant === 'curve';
     const isMarquee = options.variant === 'marquee';
-    const img = p.images?.find((i) => i.is_main)?.url
-    || p.images?.[0]?.url
-    || p.main_image
-    || p.image
-    || '';
+    const img = pickProductImage(p, 'medium');
     const href = DOM.hashHref('product', { id: p.id });
     const radius = isMarquee ? carousel.featured.curve?.cardRadius : null;
     const radiusStyle = radius != null ? `border-radius:${radius}px` : '';

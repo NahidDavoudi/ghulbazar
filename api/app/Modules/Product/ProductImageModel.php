@@ -11,6 +11,9 @@ class ProductImageModel extends Model
     protected array $fillable = [
         'product_id',
         'image_url',
+        'image_large_url',
+        'image_medium_url',
+        'image_thumb_url',
         'alt_text',
         'is_main',
         'sort_order',

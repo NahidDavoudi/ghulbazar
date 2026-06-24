@@ -78,8 +78,12 @@ class CategoryService
         if (isset($data['description'])) {
             $payload['description'] = trim($data['description']);
         }
-        if (isset($data['poster_image'])) {
-            $payload['poster_image'] = trim($data['poster_image']);
+        if (isset($data['poster_image']) || isset($data['poster_image_medium']) || isset($data['poster_image_thumb'])) {
+            foreach (['poster_image', 'poster_image_medium', 'poster_image_thumb'] as $field) {
+                if (array_key_exists($field, $data)) {
+                    $payload[$field] = trim((string) $data[$field]);
+                }
+            }
         }
 
         if (empty($payload)) {

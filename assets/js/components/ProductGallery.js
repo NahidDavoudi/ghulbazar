@@ -1,5 +1,6 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { renderImageWithFallback, renderImagePlaceholder } from '../utils/imagePlaceholder.js';
+import { pickImageUrl } from '../utils/imageUrl.js';
 
 const ProductGallery = {
   render({ images = [], name = '', refCode = '' }) {
@@ -12,7 +13,7 @@ const ProductGallery = {
                   class="product-thumb relative w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-colors bg-surface
                          ${i === 0 ? 'border-body' : 'border-transparent hover:border-black/20'}">
             ${renderImageWithFallback({
-              src: img.url,
+              src: pickImageUrl(img, 'thumb'),
               alt: '',
               imgClass: 'w-full h-full object-cover',
               iconSize: 'w-5 h-5',
@@ -31,7 +32,7 @@ const ProductGallery = {
             <div id="product-main-image-wrap" class="relative aspect-square bg-surface rounded-2xl overflow-hidden">
               ${validImages.length
                 ? renderImageWithFallback({
-                    src: validImages[0].url,
+                    src: pickImageUrl(validImages[0], 'large'),
                     alt: name,
                     imgClass: 'w-full h-full object-cover',
                     iconSize: 'w-16 h-16',
@@ -51,7 +52,7 @@ const ProductGallery = {
     container.querySelectorAll('.product-thumb').forEach((btn) => {
       btn.addEventListener('click', () => {
         const idx = parseInt(btn.dataset.thumbIndex, 10);
-        const src = images[idx]?.url;
+        const src = pickImageUrl(images[idx], 'large');
         if (!src || !mainImg) return;
         mainImg.src = src;
         mainImg.classList.remove('hidden');

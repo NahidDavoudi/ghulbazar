@@ -4,6 +4,7 @@ namespace App\Modules\Product;
 
 use App\Core\Controller;
 use App\Core\Http\Request;
+use App\Core\ImageVariants;
 use App\Core\UploadHelper;
 
 class ProductController extends Controller
@@ -125,14 +126,13 @@ class ProductController extends Controller
         }
 
         try {
-            $url   = UploadHelper::storeImage($file, 'products');
-            $image = $this->service->addImage($id, [
-                'image_url'  => $url,
+            $variants = UploadHelper::storeOptimizedImage($file, 'products');
+            $image = $this->service->addImage($id, ImageVariants::imageFields($variants) + [
                 'alt_text'   => $request->input('alt_text', ''),
                 'is_main'    => (int) $request->input('is_main', 0),
                 'sort_order' => (int) $request->input('sort_order', 0),
             ]);
-            $this->created($image, 'تصویر اضافه شد');
+            $this->created(ImageVariants::enrichRow($image), 'تصویر اضافه شد');
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);
         }

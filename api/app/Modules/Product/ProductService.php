@@ -2,6 +2,7 @@
 
 namespace App\Modules\Product;
 
+use App\Core\ImageVariants;
 use App\Modules\Attribute\AttributeTypeModel;
 use App\Modules\Variant\VariantService;
 use App\Utils\SlugHelper;
@@ -190,7 +191,7 @@ class ProductService
     {
         $this->productModel->find($productId) or throw new \RuntimeException('محصول یافت نشد.', 404);
 
-        if (empty($imageData['image_url'])) {
+        if (empty($imageData['image_url']) && empty($imageData['image_large_url'])) {
             throw new \RuntimeException('آدرس تصویر الزامی است.', 422);
         }
 
@@ -201,15 +202,20 @@ class ProductService
             $this->imageModel->unsetMain($productId);
         }
 
+        $fields = ImageVariants::imageFields([
+            'large'  => trim($imageData['image_large_url'] ?? $imageData['image_url'] ?? ''),
+            'medium' => trim($imageData['image_medium_url'] ?? $imageData['image_url'] ?? ''),
+            'thumb'  => trim($imageData['image_thumb_url'] ?? $imageData['image_url'] ?? ''),
+        ]);
+
         $id = $this->imageModel->create([
             'product_id' => $productId,
-            'image_url'  => trim($imageData['image_url']),
             'alt_text'   => trim($imageData['alt_text'] ?? ''),
             'is_main'    => $isMain,
             'sort_order' => (int) ($imageData['sort_order'] ?? count($existing)),
-        ]);
+        ] + $fields);
 
-        return $this->imageModel->find($id);
+        return ImageVariants::enrichRow($this->imageModel->find($id));
     }
 
     public function setMainImage(int $productId, int $imageId): void
@@ -257,7 +263,10 @@ class ProductService
     {
         $id = (int) $product['id'];
 
-        $product['images']      = $this->imageModel->getByProductId($id);
+        $product['images'] = array_map(
+            fn(array $img) => ImageVariants::enrichRow($img),
+            $this->imageModel->getByProductId($id)
+        );
         $product['options']     = $this->productModel->getOptions($id);
         $product['attributes']  = $this->productModel->getDescriptiveAttributes($id);
         $product['variants']    = $this->variantService->getProductVariants($id);

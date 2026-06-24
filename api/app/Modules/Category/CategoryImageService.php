@@ -2,6 +2,8 @@
 
 namespace App\Modules\Category;
 
+use App\Core\ImageVariants;
+
 class CategoryImageService
 {
     public function __construct(
@@ -12,7 +14,10 @@ class CategoryImageService
     public function getImages(int $categoryId): array
     {
         $this->assertCategoryExists($categoryId);
-        return $this->imageModel->getByCategoryId($categoryId);
+        return array_map(
+            fn(array $img) => ImageVariants::enrichRow($img),
+            $this->imageModel->getByCategoryId($categoryId)
+        );
     }
 
     public function getMainImage(int $categoryId): ?array
@@ -25,7 +30,7 @@ class CategoryImageService
     {
         $this->assertCategoryExists($categoryId);
 
-        if (empty($data['image_url'])) {
+        if (empty($data['image_url']) && empty($data['image_large_url'])) {
             throw new \RuntimeException('آدرس تصویر الزامی است.', 422);
         }
 
@@ -36,15 +41,20 @@ class CategoryImageService
             $this->imageModel->unsetMain($categoryId);
         }
 
+        $fields = ImageVariants::imageFields([
+            'large'  => trim($data['image_large_url'] ?? $data['image_url'] ?? ''),
+            'medium' => trim($data['image_medium_url'] ?? $data['image_url'] ?? ''),
+            'thumb'  => trim($data['image_thumb_url'] ?? $data['image_url'] ?? ''),
+        ]);
+
         $id = $this->imageModel->create([
             'category_id' => $categoryId,
-            'image_url'   => trim($data['image_url']),
             'alt_text'    => trim($data['alt_text'] ?? ''),
             'is_main'     => $isMain,
             'sort_order'  => (int) ($data['sort_order'] ?? count($existing)),
-        ]);
+        ] + $fields);
 
-        return $this->imageModel->find($id);
+        return ImageVariants::enrichRow($this->imageModel->find($id));
     }
 
     public function setMain(int $categoryId, int $imageId): void

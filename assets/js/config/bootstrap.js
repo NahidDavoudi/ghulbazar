@@ -50,16 +50,32 @@ export function mergeStoreSettings(remote) {
 
   if (remote.shop_logo) {
     storeConfig.logo = remote.shop_logo;
+    storeConfig.logoVariants = {
+      large: remote.shop_logo,
+      medium: remote.shop_logo_medium || remote.shop_logo,
+      thumb: remote.shop_logo_thumb || remote.shop_logo,
+    };
   }
 
   if (remote.shop_favicon) {
     storeConfig.favicon = remote.shop_favicon;
+    storeConfig.faviconVariants = {
+      large: remote.shop_favicon,
+      medium: remote.shop_favicon_medium || remote.shop_favicon,
+      thumb: remote.shop_favicon_thumb || remote.shop_favicon,
+    };
   } else if (remote.shop_logo) {
     storeConfig.favicon = remote.shop_logo;
+    storeConfig.faviconVariants = storeConfig.logoVariants;
   }
 
   if (remote.shop_hero_image) {
     storeConfig.hero.image = remote.shop_hero_image;
+    storeConfig.hero.imageVariants = {
+      large: remote.shop_hero_image,
+      medium: remote.shop_hero_image_medium || remote.shop_hero_image,
+      thumb: remote.shop_hero_image_thumb || remote.shop_hero_image,
+    };
   }
 
   if (remote.contact_phone) {

@@ -2,6 +2,8 @@
 
 namespace App\Modules\Settings;
 
+use App\Core\ImageVariants;
+
 class SettingsService
 {
     private const PAYMENT_METHODS = ['card_to_card', 'zarinpal', 'both'];
@@ -189,14 +191,20 @@ class SettingsService
         return $this->getSettings();
     }
 
-    public function uploadImage(string $type, string $url): array
+    public function uploadImage(string $type, array $variants): array
     {
         $field = self::UPLOAD_FIELD_MAP[$type] ?? null;
         if (!$field) {
             throw new \RuntimeException('نوع تصویر معتبر نیست.', 422);
         }
 
-        $this->settingsModel->updateSingleton([$field => $url]);
+        if (empty($variants['large'])) {
+            throw new \RuntimeException('آدرس تصویر الزامی است.', 422);
+        }
+
+        $this->settingsModel->updateSingleton(
+            ImageVariants::settingsFields($field, $variants)
+        );
 
         return $this->getSettings();
     }

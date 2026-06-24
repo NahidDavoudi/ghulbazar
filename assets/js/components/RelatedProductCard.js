@@ -1,18 +1,14 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { formatPrice } from '../utils/priceFormatter.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
-import { renderProductCardOverlay } from '../utils/productCardOverlay.js';
+import { pickProductImage } from '../utils/imageUrl.js';
 import DOM from '../utils/dom.js';
 import Button from './Button.js';
 
 const RelatedProductCard = {
   render(p) {
     const ui = storeConfig.ui;
-    const img = p.images?.find((i) => i.is_main)?.url
-      || p.images?.[0]?.url
-      || p.main_image
-      || p.image
-      || '';
+    const img = pickProductImage(p, 'thumb');
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
 

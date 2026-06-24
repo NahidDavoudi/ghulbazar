@@ -1,10 +1,12 @@
 import { storeConfig } from '../config/bootstrap.js';
+import { pickVariantSet } from '../utils/imageUrl.js';
 import auth from '../core/auth.js';
 
 const Header = {
   render() {
     const user = auth.getCurrentUser();
     const loggedIn = auth.isLoggedIn();
+    const logoSrc = pickVariantSet(storeConfig.logoVariants, 'thumb') || storeConfig.logo;
     const navLinks = storeConfig.texts.nav;
 
     const navItems = navLinks.map((l) => `
@@ -26,7 +28,7 @@ const Header = {
       <header class="sticky top-0 z-50 bg-body/80 backdrop-blur-xl border-b border-border">
         <div class="max-w-[1280px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
           <a href="#/" data-link class="shrink-0 flex items-center gap-2.5">
-            <img src="${storeConfig.logo}" alt="${storeConfig.name}" class="h-9 w-9 object-contain">
+            <img src="${logoSrc}" alt="${storeConfig.name}" class="h-9 w-9 object-contain">
             <span class="font-display text-xl md:text-2xl text-body tracking-[0.15em] font-bold hidden md:inline" dir="ltr">${storeConfig.name}</span>
           </a>
           <nav class="hidden md:flex items-center gap-1">${navItems}</nav>

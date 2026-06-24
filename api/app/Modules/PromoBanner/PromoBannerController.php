@@ -37,9 +37,9 @@ class PromoBannerController extends Controller
         }
 
         try {
-            $url = UploadHelper::storeImage($file, 'promo-banners');
+            $variants = UploadHelper::storeOptimizedImage($file, 'promo-banners');
             $title = trim((string) $request->input('title', ''));
-            $banner = $this->service->create($url, $title);
+            $banner = $this->service->create($variants, $title);
             $this->created($banner, 'پوستر اضافه شد');
         } catch (\RuntimeException $e) {
             $this->error($e->getMessage(), $e->getCode() ?: 400);

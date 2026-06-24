@@ -11,7 +11,9 @@ class CategoryModel extends Model
         'name',
         'slug',
         'description',
-        'poster_image',  // ستون اضافه شده در migration
+        'poster_image',
+        'poster_image_medium',
+        'poster_image_thumb',
     ];
     protected bool $timestamps = true;
 

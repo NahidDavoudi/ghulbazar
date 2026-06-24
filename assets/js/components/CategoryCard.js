@@ -1,6 +1,7 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { renderImageWithFallback, renderImagePlaceholder } from '../utils/imagePlaceholder.js';
 import { escapeHtml } from '../utils/htmlEscape.js';
+import { pickCategoryImage } from '../utils/imageUrl.js';
 import DOM from '../utils/dom.js';
 
 const CategoryCard = {
@@ -8,10 +9,7 @@ const CategoryCard = {
     const ui = storeConfig.ui;
     const slug = c.slug || c.name;
     const name = escapeHtml(c.name);
-    const img = c.poster_image
-      || c.images?.find((i) => i.is_main)?.image_url
-      || c.images?.[0]?.image_url
-      || '';
+    const img = pickCategoryImage(c, 'medium');
 
     return `
       <a href="${DOM.hashHref('shop', { category: slug })}" data-link

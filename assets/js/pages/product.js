@@ -14,10 +14,21 @@ import DOM from '../utils/dom.js';
 const { show, hide, text, hashHref } = DOM;
 
 function normalizeImages(images = []) {
-  return images.map((img) => ({
-    ...img,
-    url: img.url || img.image_url || '',
-  })).filter((img) => img.url);
+  return images.map((img) => {
+    const normalized = {
+      ...img,
+      url: img.url || img.image_url || '',
+      image_large_url: img.image_large_url || img.urls?.large || img.url || img.image_url || '',
+      image_medium_url: img.image_medium_url || img.urls?.medium || img.url || img.image_url || '',
+      image_thumb_url: img.image_thumb_url || img.urls?.thumb || img.url || img.image_url || '',
+    };
+    normalized.urls = {
+      large: normalized.image_large_url,
+      medium: normalized.image_medium_url,
+      thumb: normalized.image_thumb_url,
+    };
+    return normalized;
+  }).filter((img) => img.url || img.image_large_url);
 }
 
 function normalizeProduct(p) {

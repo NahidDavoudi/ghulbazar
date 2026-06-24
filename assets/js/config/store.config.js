@@ -170,6 +170,25 @@ export default {
 
   },
 
+  images: {
+    variants: ['large', 'medium', 'thumb'],
+    defaultSize: {
+      card: 'medium',
+      thumb: 'thumb',
+      detail: 'large',
+      logo: 'thumb',
+      hero: 'large',
+      banner: 'medium',
+    },
+    presets: {
+      products: { large: 1600, medium: 800, thumb: 300 },
+      categories: { large: 1200, medium: 600, thumb: 300 },
+      promoBanners: { large: 1920, medium: 1200, thumb: 400 },
+      logo: { large: 256, medium: 128, thumb: 64 },
+      hero: { large: 1920, medium: 1200, thumb: 400 },
+    },
+  },
+
   carousel: {
 
     featured: {

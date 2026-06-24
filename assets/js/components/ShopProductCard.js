@@ -1,6 +1,7 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { formatPrice } from '../utils/priceFormatter.js';
 import { renderImageWithFallback } from '../utils/imagePlaceholder.js';
+import { pickProductImage } from '../utils/imageUrl.js';
 import { renderProductCardOverlay } from '../utils/productCardOverlay.js';
 import DOM from '../utils/dom.js';
 import Button from './Button.js';
@@ -8,11 +9,7 @@ import Button from './Button.js';
 const ShopProductCard = {
   render(p) {
     const ui = storeConfig.ui;
-    const img = p.images?.find((i) => i.is_main)?.url
-      || p.images?.[0]?.url
-      || p.main_image
-      || p.image
-      || '';
+    const img = pickProductImage(p, 'medium');
     const price = formatPrice(p.price);
     const href = DOM.hashHref('product', { id: p.id });
 

@@ -16,6 +16,44 @@ class UploadHelper
         ])['url'];
     }
 
+    /**
+     * Validate, resize, convert to WebP, and store large/medium/thumb variants.
+     *
+     * @return array{large:string,medium:string,thumb:string,files:array<string,string>}
+     */
+    public static function storeOptimizedImage(array $file, string $folder, ?string $presetType = null): array
+    {
+        self::assertValidUpload($file);
+
+        $detectedMime = self::detectMimeType($file['tmp_name']);
+        if (!$detectedMime || !in_array($detectedMime, ImageConfig::INPUT_MIMES, true)) {
+            throw new \RuntimeException('فقط فایل‌های JPG و PNG مجاز هستند.', 422);
+        }
+
+        $maxSize = ImageConfig::maxUploadBytes();
+        if ((int) $file['size'] > $maxSize) {
+            $mb = (int) ($maxSize / (1024 * 1024));
+            throw new \RuntimeException("حجم فایل بیشتر از {$mb} مگابایت است.", 422);
+        }
+
+        $basename = 'img_' . bin2hex(random_bytes(16));
+        $dir      = self::uploadDir($folder);
+        $preset   = ImageConfig::presetFor($folder, $presetType);
+
+        $generated = ImageProcessor::generateVariants($file['tmp_name'], $dir, $basename, $preset);
+
+        return [
+            'large'  => self::publicUrl($folder, $generated['files']['large']),
+            'medium' => self::publicUrl($folder, $generated['files']['medium']),
+            'thumb'  => self::publicUrl($folder, $generated['files']['thumb']),
+            'files'  => [
+                'large'  => $generated['files']['large'],
+                'medium' => $generated['files']['medium'],
+                'thumb'  => $generated['files']['thumb'],
+            ],
+        ];
+    }
+
     /** @return array{file_name: string, file_path: string} */
     public static function storeReceipt(array $file): array
     {

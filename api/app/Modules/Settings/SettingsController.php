@@ -90,12 +90,13 @@ class SettingsController extends Controller
         }
 
         try {
-            $url = UploadHelper::storeImage($file, 'settings');
-            $settings = $this->service->uploadImage($type, $url);
+            $variants = UploadHelper::storeOptimizedImage($file, 'settings', $type);
+            $settings = $this->service->uploadImage($type, $variants);
             $field = SettingsService::uploadFieldForType($type);
 
             $this->success([
-                'url'      => $url,
+                'urls'     => $variants,
+                'url'      => $variants['large'],
                 'type'     => $type,
                 'field'    => $field,
                 'settings' => $settings,

@@ -1,11 +1,13 @@
 import { storeConfig } from '../config/bootstrap.js';
 import { escapeAttr } from '../utils/htmlEscape.js';
+import { pickVariantSet } from '../utils/imageUrl.js';
 
 const Footer = {
   render() {
     const { footer } = storeConfig.texts;
     const navLinks = storeConfig.texts.nav;
     const legalLinks = storeConfig.texts.legal?.footerLinks || [];
+    const logoSrc = pickVariantSet(storeConfig.logoVariants, 'thumb') || storeConfig.logo;
     const enamad = footer.enamad;
 
     return `
@@ -15,7 +17,7 @@ const Footer = {
             <div class="text-right flex flex-col items-start">
               <div class="flex items-center gap-2 justify-end mb-4">
                 <span class="font-display text-lg text-body">${storeConfig.name}</span>
-                <img src="${escapeAttr(storeConfig.logo)}" alt="" class="w-8 h-8 object-contain">
+                <img src="${escapeAttr(logoSrc)}" alt="" class="w-8 h-8 object-contain">
               </div>
               <p class="text-sm text-muted leading-relaxed">${footer.tagline}</p>
             </div>
