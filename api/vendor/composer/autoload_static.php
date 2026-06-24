@@ -33,11 +33,16 @@ class ComposerStaticInit094b43d0cd8ea5ddf4450930beece61a
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
+            'Predis\\' => 7,
             'PhpOption\\' => 10,
         ),
         'M' =>
         array (
             'Monolog\\' => 8,
+        ),
+        'I' =>
+        array (
+            'Intervention\\Image\\' => 19,
         ),
         'G' =>
         array (
@@ -94,6 +99,10 @@ class ComposerStaticInit094b43d0cd8ea5ddf4450930beece61a
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
+        'Predis\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/predis/predis/src',
+        ),
         'PhpOption\\' =>
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
@@ -101,6 +110,10 @@ class ComposerStaticInit094b43d0cd8ea5ddf4450930beece61a
         'Monolog\\' =>
         array (
             0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
+        ),
+        'Intervention\\Image\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/intervention/image/src/Intervention/Image',
         ),
         'GuzzleHttp\\Psr7\\' =>
         array (

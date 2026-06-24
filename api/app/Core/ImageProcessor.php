@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use Intervention\Image\ImageManagerStatic as Image;
+
 class ImageProcessor
 {
     /**
@@ -9,8 +11,11 @@ class ImageProcessor
      */
     public static function generateVariants(string $sourcePath, string $destDir, string $basename, array $preset): array
     {
-        if (!extension_loaded('imagick') || !class_exists(\Imagick::class)) {
-            throw new \RuntimeException('افزونه Imagick روی سرور فعال نیست.', 500);
+        if (!extension_loaded('imagick') || !class_exists('Imagick', false)) {
+            throw new \RuntimeException(
+                'افزونه Imagick فعال نیست. پس از composer install، ext-imagick را در php.ini فعال کنید.',
+                500
+            );
         }
 
         if (!is_file($sourcePath)) {
@@ -21,37 +26,35 @@ class ImageProcessor
             throw new \RuntimeException('خطا در ایجاد پوشه آپلود.', 500);
         }
 
+        Image::configure(['driver' => 'imagick']);
+
         $quality = ImageConfig::webpQuality();
-        $urls    = [];
         $files   = [];
 
         try {
-            $source = new \Imagick($sourcePath);
-            $source->autoOrient();
-
             foreach (['large', 'medium', 'thumb'] as $variant) {
                 $maxDim   = (int) ($preset[$variant] ?? 800);
                 $filename = "{$basename}_{$variant}.webp";
                 $path     = $destDir . $filename;
 
-                $image = clone $source;
+                $image = Image::make($sourcePath);
+                $image->orientate();
                 self::resizeToMax($image, $maxDim);
-                $image->setImageFormat('webp');
-                $image->setImageCompressionQuality($quality);
-                $image->stripImage();
+                self::stripMetadata($image);
 
-                if (!$image->writeImage($path)) {
-                    $image->destroy();
+                $encoded = $image->encode('webp', $quality);
+                if (!$encoded->save($path)) {
                     throw new \RuntimeException('خطا در ذخیره تصویر بهینه‌شده.', 500);
                 }
 
                 $image->destroy();
                 $files[$variant] = $filename;
             }
-
-            $source->destroy();
-        } catch (\ImagickException $e) {
+        } catch (\Throwable $e) {
             self::cleanupFiles($destDir, $files);
+            if ($e instanceof \RuntimeException) {
+                throw $e;
+            }
             throw new \RuntimeException('خطا در پردازش تصویر: ' . $e->getMessage(), 500);
         }
 
@@ -63,10 +66,10 @@ class ImageProcessor
         ];
     }
 
-    private static function resizeToMax(\Imagick $image, int $maxDim): void
+    private static function resizeToMax(\Intervention\Image\Image $image, int $maxDim): void
     {
-        $width  = $image->getImageWidth();
-        $height = $image->getImageHeight();
+        $width  = $image->width();
+        $height = $image->height();
 
         if ($width <= 0 || $height <= 0) {
             throw new \RuntimeException('ابعاد تصویر معتبر نیست.', 422);
@@ -76,20 +79,18 @@ class ImageProcessor
             return;
         }
 
-        if ($width >= $height) {
-            $newWidth  = $maxDim;
-            $newHeight = (int) round($height * ($maxDim / $width));
-        } else {
-            $newHeight = $maxDim;
-            $newWidth  = (int) round($width * ($maxDim / $height));
-        }
+        $image->resize($maxDim, $maxDim, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+    }
 
-        $image->resizeImage(
-            max(1, $newWidth),
-            max(1, $newHeight),
-            \Imagick::FILTER_LANCZOS,
-            1
-        );
+    private static function stripMetadata(\Intervention\Image\Image $image): void
+    {
+        $core = $image->getCore();
+        if (is_object($core) && method_exists($core, 'stripImage')) {
+            $core->stripImage();
+        }
     }
 
     /** @param array<string,string> $files */
