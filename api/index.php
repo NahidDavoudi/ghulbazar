@@ -9,7 +9,7 @@ use App\Core\Http\SecurityHeaders;
 use App\Core\Http\RequestContext;
 
 // ─── Load environment ────────────────────────
-Env::load('.env');
+Env::load(__DIR__ . '/.env');
 Env::assertProductionReady();
 RequestContext::configureProduction();
 RequestContext::boot();
