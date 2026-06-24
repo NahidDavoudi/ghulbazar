@@ -220,6 +220,8 @@ const ProductInfo = {
           !selectable ? ui.textDisabled : active ? ui.textActive : ui.textInactive
         } ${!selectable ? 'product-size-unavailable' : ''}`;
       }
+
+      btn.classList.toggle('is-active', active && selectable);
     }
 
     function refreshVariantButtons() {

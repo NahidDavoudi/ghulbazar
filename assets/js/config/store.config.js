@@ -138,17 +138,17 @@ export default {
 
     variant: {
 
-      swatchActive: 'border-accent ring-2 ring-accent/30',
+      swatchActive: 'is-active border-accent ring-2 ring-accent/30',
 
-      swatchInactive: 'border-black/10',
+      swatchInactive: 'border-border',
 
       swatchDisabled: 'opacity-30 cursor-not-allowed',
 
-      textActive: 'bg-accent text-white border-accent',
+      textActive: 'is-active bg-accent text-white border-accent',
 
-      textInactive: 'border-black/10 hover:border-black/30 text-body',
+      textInactive: 'bg-card text-body border-border hover:border-accent/40',
 
-      textDisabled: 'border-black/10 text-muted/50 cursor-not-allowed opacity-50',
+      textDisabled: 'bg-card border-border text-muted/50 cursor-not-allowed opacity-50',
 
     },
 
