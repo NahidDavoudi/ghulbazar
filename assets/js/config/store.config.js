@@ -34,23 +34,23 @@ export default {
 
   theme: {
 
-    primary: '#DC2626',
+    primary: '#fb6f92',
 
-    primaryHover: '#B91C1C',
+    primaryHover: '#e85a7d',
 
-    background: '#0a0a0a',
+    background: '#ffffff',
 
-    surface: '#141414',
+    surface: '#ffe5ec',
 
-    card: '#1c1c1c',
+    card: '#ffffff',
 
-    border: '#2e2e2e',
+    border: '#ffc2d1',
 
-    muted: '#737373',
+    muted: '#a07888',
 
-    textDim: 'rgba(255, 255, 255, 0.55)',
+    textDim: 'rgba(45, 45, 45, 0.5)',
 
-    bodyText: '#f5f5f5',
+    bodyText: '#2d2d2d',
 
   },
 
@@ -120,7 +120,7 @@ export default {
 
     cardBase: 'bg-card border border-border',
 
-    cardHover: 'hover:shadow-[0_12px_40px_rgba(220,38,38,0.12)] hover:border-accent/30 transition-all duration-500',
+    cardHover: 'hover:shadow-[0_12px_40px_rgba(251,111,146,0.12)] hover:border-accent/30 transition-all duration-500',
 
     productCardAspect: 'aspect-[4/5]',
 
@@ -128,7 +128,7 @@ export default {
 
       success: { bg: '#16a34a', text: '#ffffff', border: '#15803d' },
 
-      error: { bg: '#dc2626', text: '#ffffff', border: '#b91c1c' },
+      error: { bg: '#fb6f92', text: '#ffffff', border: '#e85a7d' },
 
       warning: { bg: '#eab308', text: '#422006', border: '#ca8a04' },
 
@@ -195,7 +195,7 @@ export default {
 
       viewAllHref: '#/shop?featured=1',
 
-      backgroundColor: '#0a0a0a',
+      backgroundColor: '#ffffff',
 
       curve: {
 

@@ -1,15 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  --color-dark:        #0a0a0a;
-  --color-dark-2:      #141414;
-  --color-dark-3:      #1c1c1c;
-  --color-border:      #2e2e2e;
-  --color-accent:      #DC2626;
-  --color-accent-hover:#B91C1C;
-  --color-muted:       #737373;
-  --color-text-dim:    rgba(255, 255, 255, 0.55);
-  --color-body-text:   #f5f5f5;
+  --soft-blush:        #ffe5ec;
+  --pastel-pink:       #ffc2d1;
+  --cherry-blossom:    #ffb3c6;
+  --cotton-candy:      #ff8fab;
+  --petal-rouge:       #fb6f92;
+  --color-dark:        #ffffff;
+  --color-dark-2:      #ffe5ec;
+  --color-dark-3:      #ffffff;
+  --color-border:      #ffc2d1;
+  --color-accent:      #fb6f92;
+  --color-accent-hover:#e85a7d;
+  --color-muted:       #a07888;
+  --color-text-dim:    rgba(45, 45, 45, 0.5);
+  --color-body-text:   #2d2d2d;
   --font-vazir:   'Vazirmatn', sans-serif;
   --font-display: 'Agbalumo', sans-serif;
   --font-felipa:  'Felipa', sans-serif;
@@ -20,7 +25,7 @@
 .bg-surface      { background-color: var(--color-dark-2); }
 .bg-card         { background-color: var(--color-dark-3); }
 .bg-accent       { background-color: var(--color-accent); }
-.text-body       { color: var(--color-body-text, #f5f5f5); }
+.text-body       { color: var(--color-body-text, #2d2d2d); }
 .text-muted      { color: var(--color-muted); }
 .text-dim        { color: var(--color-text-dim); }
 .text-accent     { color: var(--color-accent); }
@@ -39,7 +44,7 @@
 .admin-input {
   background-color: var(--color-dark-3);
   border: 1px solid var(--color-border);
-  color: var(--color-body-text, #f5f5f5);
+  color: var(--color-body-text, #2d2d2d);
 }
 .admin-input::placeholder { color: var(--color-muted); }
 .admin-input:focus { border-color: var(--color-accent); outline: none; }
@@ -52,7 +57,7 @@
 div[data-page] { display: none; }
 div[data-page].active { display: block; }
 
-/* ── Accent Button (primary CTA — red on dark theme) ── */
+/* ── Accent Button (primary CTA — petal-rouge on light theme) ── */
 .btn-accent {
   position: relative;
   display: inline-flex;
@@ -63,8 +68,8 @@ div[data-page].active { display: block; }
   background: var(--color-accent);
   border: 1px solid color-mix(in oklab, var(--color-accent) 80%, #000);
   box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    0 4px 12px rgba(220, 38, 38, 0.25);
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 4px 12px rgba(251, 111, 146, 0.3);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   cursor: pointer;
   text-decoration: none;
@@ -73,8 +78,8 @@ div[data-page].active { display: block; }
 .btn-accent:hover {
   background: var(--color-accent-hover);
   box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.35),
-    0 8px 20px rgba(220, 38, 38, 0.35);
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    0 8px 20px rgba(251, 111, 146, 0.35);
 }
 .btn-accent:active {
   transform: scale(0.97);
@@ -149,32 +154,32 @@ div[data-page].active { display: block; }
   align-items: center;
   justify-content: center;
   font-weight: 500;
-  color: var(--color-body-text, #f5f5f5);
-  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-body-text, #2d2d2d);
+  background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 194, 209, 0.75);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 4px 16px rgba(0, 0, 0, 0.2),
-    0 1px 3px rgba(0, 0, 0, 0.15);
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 4px 16px rgba(251, 111, 146, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.06);
   transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
   cursor: pointer;
   text-decoration: none;
 }
 .btn-glass:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.92);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    0 6px 24px rgba(0, 0, 0, 0.25);
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 6px 24px rgba(251, 111, 146, 0.15);
 }
 .btn-glass:active {
   transform: scale(0.95);
 }
 .btn-glass.is-success {
-  background: rgba(0, 0, 0, 0.75);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--color-accent);
+  color: #ffffff;
+  border-color: color-mix(in oklab, var(--color-accent) 80%, #fff);
 }
 
 /* ── Button Sizes ── */
@@ -204,7 +209,7 @@ div[data-page].active { display: block; }
 }
 .iris-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 48px rgba(220, 38, 38, 0.14);
+  box-shadow: 0 16px 48px rgba(251, 111, 146, 0.12);
   border-color: color-mix(in oklab, var(--color-accent) 35%, var(--color-border));
 }
 
@@ -313,7 +318,7 @@ div[data-page].active { display: block; }
   will-change: filter;
 }
 .featured-poster-curve {
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 40px rgba(251, 111, 146, 0.15);
   border: 1px solid var(--color-border);
 }
 .curve-carousel__arrows {
@@ -374,7 +379,7 @@ div[data-page].active { display: block; }
   transform: scale(1.15);
 }
 .promo-poster-slide {
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 12px 40px rgba(251, 111, 146, 0.12);
 }
 
 /* ── Mobile Bottom Navigation (floating glass island) ── */
@@ -392,14 +397,14 @@ div[data-page].active { display: block; }
   max-width: 24rem;
   margin-inline: auto;
   border-radius: 1.25rem;
-  background: color-mix(in oklab, var(--color-dark) 82%, transparent);
+  background: color-mix(in oklab, var(--color-dark) 88%, transparent);
   backdrop-filter: blur(32px) saturate(110%);
   -webkit-backdrop-filter: blur(32px) saturate(110%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 194, 209, 0.65);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 8px 32px rgba(0, 0, 0, 0.55),
-    0 2px 8px rgba(0, 0, 0, 0.4);
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 8px 32px rgba(251, 111, 146, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 .mobile-bottom-nav__inner {
@@ -411,8 +416,8 @@ div[data-page].active { display: block; }
 }
 .mobile-bottom-nav__item.is-active {
   color: var(--color-accent);
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  background: rgba(251, 111, 146, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 .mobile-bottom-nav__item.is-active i {
   stroke-width: 2.25;
