@@ -6,12 +6,14 @@ use App\Core\Env;
 
 class UploadHelper
 {
+    private const MAX_FILE_BYTES = 3 * 1024 * 1024;
+
     /** @return string Public URL path (e.g. /universal/uploads/products/img_xxx.jpg) */
     public static function storeImage(array $file, string $folder): string
     {
         return self::store($file, $folder, [
             'allowed'  => ['image/jpeg', 'image/png', 'image/webp'],
-            'max_size' => 3 * 1024 * 1024,
+            'max_size' => self::MAX_FILE_BYTES,
             'prefix'   => 'img_',
         ])['url'];
     }
@@ -30,9 +32,9 @@ class UploadHelper
             throw new \RuntimeException('فقط فایل‌های JPG و PNG مجاز هستند.', 422);
         }
 
-        $maxSize = ImageConfig::maxUploadBytes();
+        $maxSize = self::MAX_FILE_BYTES;
         if ((int) $file['size'] > $maxSize) {
-            $mb = (int) ($maxSize / (1024 * 1024));
+            $mb = (int) ceil($maxSize / (1024 * 1024));
             throw new \RuntimeException("حجم فایل بیشتر از {$mb} مگابایت است.", 422);
         }
 
@@ -59,7 +61,7 @@ class UploadHelper
     {
         $result = self::store($file, 'receipts', [
             'allowed'  => ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
-            'max_size' => 5 * 1024 * 1024,
+            'max_size' => self::MAX_FILE_BYTES,
             'prefix'   => 'receipt_',
         ]);
 
@@ -84,7 +86,7 @@ class UploadHelper
         }
 
         if ((int) $file['size'] > $maxSize) {
-            $mb = (int) ($maxSize / (1024 * 1024));
+            $mb = (int) ceil($maxSize / (1024 * 1024));
             throw new \RuntimeException("حجم فایل بیشتر از {$mb} مگابایت است.", 422);
         }
 
